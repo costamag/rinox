@@ -40,6 +40,7 @@
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/networks/block.hpp>
 #include <mockturtle/views/cell_view.hpp>
+#include <filesystem>
 
 namespace rinox
 {
@@ -54,7 +55,7 @@ struct database_gen_params
   bool multiple_candidates = false;
   bool verbose = false;
   std::string metric = "area";
-  std::string output_file = "";
+  std::filesystem::path output_path = "";
 };
 
 /*! \brief Engine to initialize the database with simple structures
@@ -95,7 +96,7 @@ public:
   {
     if ( ps.method == "mapp" )
     {
-      area_oriented_generation( ps.output_file );
+      area_oriented_generation( ps.output_path );
     }
   }
 
@@ -113,7 +114,7 @@ public:
     auto mapped = map_to_block_network();
 
     // Create a database from the mapped network
-    create_database_from_mapped( mapped, output_file + ".v" );
+    create_database_from_mapped( mapped, output_file );
   }
 
 private:

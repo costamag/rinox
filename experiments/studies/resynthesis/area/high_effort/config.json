@@ -87,7 +87,7 @@
     "database":
     {
       "todo": ["load"],
-      "type": "verilog",
+      "tech": "asap7",
       "name": "asap7_area_4"
     },
     "params":

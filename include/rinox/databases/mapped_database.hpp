@@ -174,6 +174,12 @@ public:
 
 #pragma region loading
 
+  void load( std::string const& filename )
+  {
+    std::ifstream in( lorina::detail::word_exp_filename( filename ), std::ifstream::in );
+    load( in );
+  }
+
   void load( std::istream& file )
   {
     /* load the database */
