@@ -1,5 +1,5 @@
 /* rinox: C++ logic network library
- * Copyright (C) 2018-2022  EPFL
+ * Copyright (C) 2025 EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -222,19 +222,16 @@ public:
 private:
   void init()
   {
-    sims_.resize( CubeSizeLeaves+2 );
-    signature_t const0;
-    sims_[0] = const0;
-    sims_[1] = ~const0;
+    sims_.resize( CubeSizeLeaves );
     for ( auto i = 0u; i < CubeSizeLeaves; ++i )
-      kitty::create_nth_var( sims_[2+i], i );
+      kitty::create_nth_var( sims_[i], i );
   }
 
   template<typename WinMngr>
   void assign_inputs( WinMngr const& window )
   {
     window.foreach_input( [&]( auto const& f, auto i ) {
-      sig_to_sim_[f] = 2+i;
+      sig_to_sim_[f] = i;
     } );
   }
 

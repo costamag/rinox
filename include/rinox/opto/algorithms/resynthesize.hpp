@@ -32,6 +32,7 @@
 
 #pragma once
 
+#include "../../network/visualize.hpp"
 #include "../../databases/mapped_database.hpp"
 #include "../../dependency/dependency_cut.hpp"
 #include "../../dependency/rewire_dependencies.hpp"
@@ -76,6 +77,8 @@ namespace opto
 
 namespace algorithms
 {
+
+#define DEBUF_INFO false
 
 /*! \brief Statistics for rewrite.
  *
@@ -241,17 +244,16 @@ public:
 
       if ( !win_manager_.is_valid() )
         return true;
-
+      
       if ( ps_.try_rewire )
       {
         rewire_dependencies.run( win_manager_, win_simulator_ );
         std::optional<cut_t> best_cut;
         double best_reward = 0;
-
+        
         rewire_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           auto const& cut_leaves = cut.leaves;
           auto const reward = profiler_.evaluate_rewiring( n, cut_leaves );
-          std::cout << n << " rewire " << reward << " | best : " << best_reward << std::endl;
           if ( reward > best_reward )
           {
             best_reward = reward;
@@ -260,10 +262,22 @@ public:
         } );
         if ( best_cut )
         {
+          #if DEBUG_INFO
+            auto const filename1 = "before_" + std::to_string( n );
+            auto const win1 = win_manager_.get_window();
+            win_manager_.print();
+            rinox::graphics::visualize_multioutput_window(ntk_, win1, filename1);
+          #endif
           st_.num_optims++;
           auto const ids = ntk_.get_binding_ids( n );
           auto const fnew = ntk_.template create_node<Params::do_strashing>( ( *best_cut ).leaves, ids );
           substitute_node( n, fnew );
+          win_manager_.run( fnew.index );
+          #if DEBUG_INFO
+            auto const win = win_manager_.get_window();
+            auto const filename = "rewire_" + std::to_string( n ) +"_to_" + std::to_string( fnew.index ) ;
+            rinox::graphics::visualize_multioutput_window(ntk_, win, filename);
+          #endif
           return true;
         }
       }
@@ -277,14 +291,25 @@ public:
 
         struct_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           best_reward = std::max( evaluate( cut, best_chain, best_leaves ), best_reward );
-          std::cout << n << " struct best : " << best_reward << std::endl;
         } );
 
         if ( best_reward > 0 )
         {
+          #if DEBUG_INFO
+            auto const filename1 = "before_" + std::to_string( n );
+            auto const win1 = win_manager_.get_window();
+            rinox::graphics::visualize_multioutput_window(ntk_, win1, filename1);
+          #endif
           st_.num_optims++;
           auto const fnew = insert( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
+          win_manager_.run( fnew.index );
+
+          #if DEBUG_INFO
+            auto const win = win_manager_.get_window();
+            auto const filename = "cut_rewrite_" + std::to_string( n ) +"_to_" + std::to_string( fnew.index );
+            rinox::graphics::visualize_multioutput_window(ntk_, win, filename);
+          #endif
           return true;
         }
       }
@@ -293,14 +318,27 @@ public:
         window_dependencies.run( win_manager_, win_simulator_ );
         window_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           best_reward = std::max( evaluate( cut, best_chain, best_leaves ), best_reward );
-          std::cout << n << " window best : " << best_reward << std::endl;
         } );
 
         if ( best_reward > 0 )
         {
+          #if DEBUG_INFO
+            auto const filename1 = "before_" + std::to_string( n );
+            auto const win1 = win_manager_.get_window();
+            rinox::graphics::visualize_multioutput_window(ntk_, win1, filename1);
+          #endif
+
           st_.num_optims++;
           auto const fnew = insert( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
+
+          win_manager_.run( fnew.index );
+          #if DEBUG_INFO
+            auto const win = win_manager_.get_window();
+            auto const filename = "window_" + std::to_string( n ) +"_to_" + std::to_string( fnew.index ) ;
+            rinox::graphics::visualize_multioutput_window(ntk_, win, filename);
+          #endif
+
           return true;
         }
       }

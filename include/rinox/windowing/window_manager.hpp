@@ -33,6 +33,7 @@
 #pragma once
 
 #include <mockturtle/utils/node_map.hpp>
+#include "../network/visualize.hpp"
 
 namespace rinox
 {
@@ -171,8 +172,8 @@ public:
     while ( expanded )
     {
       expanded = false;
-      expanded &= collect_divs_nodes();
       expanded &= collect_leaf_nodes();
+      expanded &= collect_divs_nodes();
     }
 
     topological_sort( window_.tfos );
@@ -455,7 +456,14 @@ public:
             return;
 
           if ( is_input( no ) )
-            make_divisor( no );
+          {
+            bool all_contained = true;
+            ntk_.foreach_fanin( no, [&]( auto const& fi, auto const ii ){
+              all_contained &= is_contained( ntk_.get_node( fi ) );
+            } );
+            if ( all_contained )
+              make_divisor( no );
+          }
           else if ( !is_contained( no ) && ( ntk_.visited( no ) != ntk_.trav_id() ) )
           {
             bool in_divs = true;
@@ -777,6 +785,73 @@ public:
     {
       fn( window_.outputs[i], i );
     }
+  }
+
+  void print()
+  {
+    int i = 0;
+    for ( auto const& l : window_.inputs )
+      std::cout << "n[" << ntk_.get_node( l ) << "] = ntk.create_pi();" << std::endl;
+
+    i = 0;
+    for ( auto const& d : window_.divs )
+    {
+      if ( d.output == 0 )
+      {
+        auto const ids = ntk_.get_binding_ids( ntk_.get_node( d ) );
+        std::cout << "n[" << ntk_.get_node( d ) << "] = ntk.create_node( { ";
+        ntk_.foreach_fanin( d, [&]( auto const& fi, auto ii ){
+          if ( ii < ( ntk_.fanin_size( d.index ) - 1 ) )
+            std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } , ";
+          else
+            std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } } , { ";
+        } );
+        for ( auto i = 0u; i < (ids.size() - 1); ++i )
+        {
+          std::cout << ids[i] << ", ";
+        }
+        std::cout << ids.back() << " } ).index;" << std::endl;
+      }
+      std::cout << "ntk.create_po( { n[" << d.index << "], " << d.output << " } );" << std::endl;
+    }
+
+    for ( auto const& m : window_.mffc )
+    {
+      auto const ids = ntk_.get_binding_ids( m );
+      std::cout << "n[" << m << "] = ntk.create_node( { ";
+      ntk_.foreach_fanin( m, [&]( auto const& fi, auto ii ){
+        if ( ii < ( ntk_.fanin_size( m ) - 1 ) )
+          std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } , ";
+        else
+          std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } } , { ";
+      } );
+      for ( auto i = 0u; i < (ids.size() - 1); ++i )
+      {
+        std::cout << ids[i] << ", ";
+      }
+      std::cout << ids.back() << " } ).index;" << std::endl;
+    }
+
+    for ( auto const& m : window_.tfos )
+    {
+      auto const ids = ntk_.get_binding_ids( m );
+      std::cout << "n[" << m << "] = ntk.create_node( ";
+      ntk_.foreach_fanin( m, [&]( auto const& fi, auto ii ){
+        if ( ii < ( ntk_.fanin_size( m ) - 1 ) )
+          std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } , ";
+        else
+          std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } } , { ";
+      } );
+      for ( auto i = 0u; i < ids.size() - 1; ++i )
+      {
+        std::cout << ids[i] << ", ";
+      }
+      std::cout << ids.back() << " } ).index;" << std::endl;
+    }
+
+    i = 0;
+    for ( auto const& l : window_.outputs )
+      std::cout << "ntk.create_po( signal{ n[" << l.index << "], " << l.output << " } ); " << std::endl;
   }
 
 private:

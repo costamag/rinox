@@ -1192,6 +1192,12 @@ public:
     return tts;
   }
 
+  std::string const get_expression( signal_t const& f ) const
+  {
+    auto const& g = get_binding( f );
+    return g.expression;
+  }
+
   /*! \brief Get the binding identifiers of the output pins in a node
    */
   std::vector<uint32_t> get_binding_ids( node_index_t const& n ) const

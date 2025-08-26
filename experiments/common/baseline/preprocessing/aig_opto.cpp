@@ -1,6 +1,6 @@
 #include "aig_opto.hpp"
 #include <rinox/traits.hpp>
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include <mockturtle/algorithms/node_resynthesis/xag_npn.hpp>
 #include <mockturtle/algorithms/aig_balancing.hpp>
 #include <mockturtle/algorithms/rewrite.hpp>

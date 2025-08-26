@@ -477,7 +477,7 @@ public:
 
   bool is_constant( std::vector<unsigned int> const& ids ) const
   {
-    bool constant;
+    bool constant = false;
     for ( auto const& id : ids )
       constant |= gates_[id].function.num_vars() == 0 ;
     return constant;

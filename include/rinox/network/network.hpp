@@ -1177,6 +1177,18 @@ public:
     return _storage->get_functions( n );
   }
 
+  std::string const get_expression( signal_t const& f ) const
+  {
+    auto const n = get_node( f );
+    if ( is_pi( n ) )
+    {
+      std::string expr = "pi" + std::to_string(pi_index( n ));
+      return expr;
+    }
+    else
+      return _storage->get_expression( f );
+  }
+
   uint32_t get_fanin_number( unsigned int id, std::string const& pin_name ) const
   {
     return _storage->get_fanin_number( id, pin_name );

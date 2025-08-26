@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 # Collect any potential .cpp sources in diagnostics + visualization
 file(GLOB_RECURSE RINOX_INSPECT_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/rinox/diagnostics/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/rinox/visualization/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/rinox/graphics/*.cpp"
 )
 
 set(RINOX_INSPECT_PUBLIC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -38,8 +38,4 @@ endif()
 
 if (TARGET fmt::fmt)
     target_link_libraries(rinox_inspect INTERFACE fmt::fmt)
-endif()
-
-if (RINOX_ENABLE_VISUALIZATION)
-    message(STATUS "[rinox] Visualization module enabled (header-only for now)")
 endif()

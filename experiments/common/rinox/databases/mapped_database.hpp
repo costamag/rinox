@@ -1,7 +1,7 @@
 #pragma once
 #include "../../env.hpp"
 #include <rinox/traits.hpp>
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include <mockturtle/io/genlib_reader.hpp>

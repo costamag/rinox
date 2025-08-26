@@ -48,7 +48,7 @@
 #include <fmt/format.h>
 #include <mockturtle/io/write_bench.hpp>
 #include <mockturtle/io/write_verilog.hpp>
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include <rinox/io/verilog/write_verilog.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>

@@ -88,7 +88,7 @@ int main()
   auto ctx = rinox::experiments::load_context( *doc, &diag );
   auto const aig_opts = rinox::experiments::parse_aig_opto( *doc, &diag );
   auto map = rinox::experiments::load_tech_map_params( *doc, &diag );
-  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams<12>>( *doc, &diag );
+  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams<6>>( *doc, &diag );
 
   /* ========================================================================== */
   /*   Technology setup                                                         */

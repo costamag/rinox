@@ -193,6 +193,7 @@ TEST_CASE( "Area resynthesis via rewiring - multiple-output gate with don't care
   CHECK( ntk.area() == 7.5 );
 }
 
+
 struct custom_area_struct_params1 : rinox::opto::algorithms::default_resynthesis_params<8u>
 {
   bool try_rewire = false;
@@ -407,4 +408,89 @@ TEST_CASE( "Area resynthesis via window rewriting - single-output gate with don'
   ps.window_manager_ps.odc_levels = 3;
   rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_window_params1>( dntk, db, ps );
   CHECK( ntk.area() == 5.5 );
+}
+
+template<uint32_t NumLeaves>
+struct ResynParamsCC : rinox::opto::algorithms::default_resynthesis_params<NumLeaves>
+{
+  static constexpr bool do_strashing = true;
+  static constexpr uint32_t num_vars_sign = 12;
+  static constexpr uint32_t max_cuts_size = 4u;
+  static constexpr uint32_t max_cube_spfd = 10u;
+
+  struct window_manager_params : rinox::windowing::default_window_manager_params
+  {
+    static constexpr uint32_t max_num_leaves = NumLeaves;
+    bool preserve_depth = false;
+    int32_t odc_levels = 0u;
+    uint32_t skip_fanout_limit_for_divisors = 100u;
+    uint32_t max_num_divisors{ 128 };
+  };
+
+  window_manager_params window_manager_ps;
+
+};
+
+TEST_CASE( "Delay unconstrained rewiring - corner case 1", "[area_resynthesis]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  using signal = typename Ntk::signal;
+  std::vector<mockturtle::gate> gates;
+
+  std::ifstream in( std::string(RINOX_SOURCE_DIR) + "/techlib/genlib/asap7.genlib" );
+  auto result = lorina::read_genlib( in, mockturtle::genlib_reader( gates ) );
+  CHECK( result == lorina::return_code::success );
+
+  rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( gates );
+
+  using Db = rinox::databases::mapped_database<Ntk, 4u>;
+  Db db( lib );
+  Ntk ntk( gates );
+
+  std::unordered_map<uint32_t, uint64_t> f;
+  f[177] = ntk.create_pi();
+  f[170] = ntk.create_pi();
+  f[176] = ntk.create_pi();
+  f[169] = ntk.create_pi();
+  f[186] = ntk.create_pi();
+  f[188] = ntk.create_pi();
+  f[177] = ntk.create_node( { signal{ f[55], 0 } , signal{ f[14], 0 } , signal{ f[26], 0 } , signal{ f[104], 0 } , signal{ f[46], 0 } } , { 34 } ).index;
+  ntk.create_po( { f[177], 0 } );
+  f[170] = ntk.create_node( { signal{ f[55], 0 } , signal{ f[10], 0 } , signal{ f[24], 0 } , signal{ f[104], 0 } , signal{ f[50], 0 } } , { 34 } ).index;
+  ntk.create_po( { f[170], 0 } );
+  f[176] = ntk.create_node( { signal{ f[117], 0 } , signal{ f[125], 0 } , signal{ f[154], 0 } , signal{ f[175], 0 } } , { 27 } ).index;
+  ntk.create_po( { f[176], 0 } );
+  f[169] = ntk.create_node( { signal{ f[117], 0 } , signal{ f[125], 0 } , signal{ f[154], 0 } , signal{ f[122], 0 } } , { 27 } ).index;
+  ntk.create_po( { f[169], 0 } );
+  f[190] = ntk.create_node( { signal{ f[176], 0 } , signal{ f[177], 0 } } , { 4 } ).index;
+  ntk.create_po( { f[190], 0 } );
+  f[191] = ntk.create_node( { signal{ f[169], 0 } , signal{ f[170], 0 } } , { 4 } ).index;
+  ntk.create_po( { f[191], 0 } );
+  f[186] = ntk.create_node( { signal{ f[173], 0 } , signal{ f[172], 0 } } , { 6 } ).index;
+  ntk.create_po( { f[186], 0 } );
+  f[188] = ntk.create_node( { signal{ f[180], 0 } , signal{ f[178], 0 } } , { 6 } ).index;
+  ntk.create_po( { f[188], 0 } );
+  f[201] = ntk.create_node( { signal{ f[186], 0 } , signal{ f[190], 0 } , signal{ f[188], 0 } } , { 16 } ).index;
+  ntk.create_po( { f[201], 0 } );
+  f[200] = ntk.create_node( { signal{ f[191], 0 } } , { 3 } ).index;
+  ntk.create_po( { f[200], 0 } );
+  f[187] = ntk.create_node( { signal{ f[186], 0 } } , { 3 } ).index;
+  f[189] = ntk.create_node( { signal{ f[188], 0 } } , { 3 } ).index;
+  f[192] = ntk.create_node( { signal{ f[187], 0 } , signal{ f[189], 0 } , signal{ f[190], 0 } , signal{ f[191], 0 } } , { 21 } ).index;
+  ntk.create_po( signal{ f[192], 0 } );
+  using DNtk = mockturtle::depth_view<Ntk>;
+  DNtk dntk { ntk };
+  double area_init = ntk.area(); 
+  ResynParamsCC<6u> ps;
+  ps.try_rewire = true;
+  ps.try_struct = false;
+  ps.try_window = false;
+  ps.try_simula = false;
+  ps.dynamic_database = false;
+  ps.fanout_limit = 100;
+  ps.stop_after_nth = 7;
+  rinox::opto::algorithms::resynthesis_stats st;
+  rinox::opto::algorithms::area_resynthesize<DNtk, Db, ResynParamsCC<6u>>( dntk, db, ps, &st );
+  double area_end = ntk.area(); 
+  CHECK( area_end < area_init );
 }

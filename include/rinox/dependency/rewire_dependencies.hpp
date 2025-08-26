@@ -70,6 +70,10 @@ public:
     cuts.clear();
     auto const n = window.get_pivot();
 
+    //std::cout << "==========================================================" << std::endl;
+    //std::cout << "=                       " << n <<  "                     =" << std::endl;
+    //std::cout << "==========================================================" << std::endl;
+
     if ( ntk_.fanin_size( n ) > max_cuts_size )
       return;
 
@@ -77,7 +81,6 @@ public:
     std::vector<signal_t> leaves_curr;
 
     ntk_.foreach_fanin( n, [&]( auto fi, auto ii ) {
-      sim_ptrs.push_back( &simulator.get( fi ) );
       leaves_curr.push_back( fi );
     } );
 
@@ -86,17 +89,46 @@ public:
       tts_curr.push_back( simulator.get( f ) );
     } );
 
+    // Current
+    //ntk_.foreach_fanin( n, [&]( auto fii, auto iii ) {
+    //  kitty::print_binary( simulator.get( fii ) ); std::cout << " +" << iii << std::endl;
+    //} );
+    //std::cout << n << " " << ntk_.get_expression( typename Ntk::signal{ n, 0 } ) << std::endl;
+    //for ( auto tt : tts_curr )
+    //{
+    //  kitty::print_binary( tt ); std::cout << " curr" << std::endl;
+    //}
+
     signature_t obs_care = simulator.get_careset();
     ntk_.foreach_fanin( n, [&]( auto fi, auto ii ) {
       signature_t flipped = ~simulator.get( fi );
-      sim_ptrs[ii] = &flipped;
+
+      sim_ptrs.clear();
+      ntk_.foreach_fanin( n, [&]( auto fii, auto iii ) {
+        if ( ii == iii )
+        {
+          sim_ptrs.push_back( &flipped );
+      //    kitty::print_binary( *sim_ptrs.back() ); std::cout << " -" << iii << std::endl;
+        }
+        else
+        {
+          sim_ptrs.push_back( &simulator.get( fii ) ); 
+      //    kitty::print_binary( *sim_ptrs.back() ); std::cout << " +" << iii << std::endl;
+        }
+      } );
+
       auto tts_flip = ntk_.compute( n, sim_ptrs );
-      signature_t dont_care = ~obs_care;
+      //for ( auto tt : tts_flip )
+      //{
+      //  kitty::print_binary( tt ); std::cout << std::endl;
+      //}
+
+      signature_t dc = ~obs_care;
       for ( auto i = 0u; i < tts_curr.size(); ++i )
       {
-        dont_care |= ~( tts_flip[i] ^ tts_curr[i] );
+        dc |= ~( tts_flip[i] ^ tts_curr[i] );
       }
-      auto const care = ~dont_care;
+      auto const care = ~dc;
       std::vector<signal_t> leaves = leaves_curr;
       window.foreach_divisor( [&]( auto const& f, auto i ) {
         if ( f != fi )
