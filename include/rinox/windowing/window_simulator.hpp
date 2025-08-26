@@ -164,6 +164,14 @@ public:
   {
     if ( window.is_input( n ) )
       return;
+    if ( ntk_.is_constant( n ) )
+    {
+      if ( ntk_.constant_value( n ) )
+        sig_to_sim_[ntk_.make_signal( n )] = 1;
+      else
+        sig_to_sim_[ntk_.make_signal( n )] = 0;
+      return;
+    }
 
     std::vector<signature_t const*> sim_ptrs;
     ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
@@ -214,17 +222,19 @@ public:
 private:
   void init()
   {
-    sims_.resize( CubeSizeLeaves );
+    sims_.resize( CubeSizeLeaves+2 );
+    signature_t const0;
+    sims_[0] = const0;
+    sims_[1] = ~const0;
     for ( auto i = 0u; i < CubeSizeLeaves; ++i )
-      kitty::create_nth_var( sims_[i], i );
+      kitty::create_nth_var( sims_[2+i], i );
   }
 
   template<typename WinMngr>
   void assign_inputs( WinMngr const& window )
   {
-    sims_.resize( CubeSizeLeaves );
     window.foreach_input( [&]( auto const& f, auto i ) {
-      sig_to_sim_[f] = i;
+      sig_to_sim_[f] = 2+i;
     } );
   }
 

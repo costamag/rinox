@@ -121,7 +121,8 @@ void collect_benchmark_named(input_t& input, std::string const& name, lorina::di
     return;
   }
 
-  fs::path path = default_root() / "benchmarks" / suite / subdir / name / input.extension;
+  auto const file_name = name + input.extension;
+  fs::path path = default_root() / "benchmarks" / suite / subdir / file_name;
   if (!std::filesystem::exists(path)) {
     rinox::diagnostics::REPORT_DIAG(diag, lorina::diagnostic_level::fatal, "`{}` benchmark not found", path.c_str());
     return;

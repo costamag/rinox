@@ -44,7 +44,7 @@
 #include <lorina/detail/utils.hpp>
 #include <lorina/diagnostics.hpp>
 
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include "rinox/io/json/json_stream.hpp"
 
 namespace rinox

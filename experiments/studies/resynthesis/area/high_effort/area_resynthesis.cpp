@@ -8,6 +8,7 @@
 #include <rinox/network/converters.hpp>
 #include <rinox/databases/mapped_database.hpp>
 #include <rinox/opto/algorithms/resynthesize.hpp>
+#include <rinox/windowing/window_manager.hpp>
 #include <string>
 #include <vector>
 
@@ -27,12 +28,25 @@
 #include <mockturtle/views/depth_view.hpp>
 #include <mockturtle/views/names_view.hpp>
 
-struct ResynParams : rinox::opto::algorithms::default_resynthesis_params</* number of leaves */ 10>
+template<uint32_t NumLeaves>
+struct ResynParams : rinox::opto::algorithms::default_resynthesis_params<NumLeaves>
 {
   static constexpr bool do_strashing = true;
   static constexpr uint32_t num_vars_sign = 12;
   static constexpr uint32_t max_cuts_size = 4u;
   static constexpr uint32_t max_cube_spfd = 10u;
+
+  struct window_manager_params : rinox::windowing::default_window_manager_params
+  {
+    static constexpr uint32_t max_num_leaves = NumLeaves;
+    bool preserve_depth = false;
+    int32_t odc_levels = 0u;
+    uint32_t skip_fanout_limit_for_divisors = 100u;
+    uint32_t max_num_divisors{ 128 };
+  };
+
+  window_manager_params window_manager_ps;
+
 };
 
 template<typename TechLib>
@@ -40,36 +54,32 @@ std::optional<std::tuple<mockturtle::cell_view<mockturtle::block_network>, mockt
 
 int main()
 {
-  /* load parameters */
+  /* ========================================================================== */
+  /*   Diagnostics setup                                                        */
+  /* ========================================================================== */
+  rinox::diagnostics::text_diagnostics client;
+  lorina::diagnostic_engine diag( &client );
+
+  /* ========================================================================== */
+  /*   Experimental setup                                                       */
+  /* ========================================================================== */
   std::string const exp_path = std::string( RINOX_EXPERIMENTS_DIR ) + "/studies/resynthesis/area/high_effort/";
   std::string const config_path = exp_path + "config.json";
 
   rinox::experiments::experiment<
       std::string,
-      double,
-      double,
-      double,
-      double,
-      float,
-      float,
-      bool,
-      bool>
+      double, double,
+      double, double,
+      float, float,
+      bool, bool>
       exp(
           exp_path,
           "report",
           "benchmark",
-          "A(sota)",
-          "A(opto)",
-          "D(sota)",
-          "D(opto)",
-          "T(sota)",
-          "T(opto)",
-          "E(sota)",
-          "E(opto)" );
-
-  /* prepare diagnostics */
-  rinox::diagnostics::text_diagnostics client;
-  lorina::diagnostic_engine diag( &client );
+          "Area(sota)", "Area(opto)",
+          "Delay(sota)", "Delay(opto)",
+          "Time(sota)", "Time(opto)",
+          "EQ(sota)", "EQ(opto)" );
 
   auto doc = rinox::experiments::load_json_doc( config_path, &diag );
   if ( !doc )
@@ -78,38 +88,63 @@ int main()
   auto ctx = rinox::experiments::load_context( *doc, &diag );
   auto const aig_opts = rinox::experiments::parse_aig_opto( *doc, &diag );
   auto map = rinox::experiments::load_tech_map_params( *doc, &diag );
-  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams>( *doc, &diag );
+  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams<12>>( *doc, &diag );
 
-  /* library to map to technology */
-  rinox::diagnostics::REPORT_DIAG_RAW( &diag, lorina::diagnostic_level::note, "Processing technology library\n" );
+  /* ========================================================================== */
+  /*   Technology setup                                                         */
+  /* ========================================================================== */
+  rinox::diagnostics::REPORT_DIAG_RAW( &diag, lorina::diagnostic_level::note,
+    "Processing technology library" );
   auto const& gates = rinox::experiments::load_gates( ctx, &diag );
   if ( !gates )
     return false;
-  /* tech-lib for mapping */
   mockturtle::tech_library<9> tech_lib( *gates, map.tps );
 
   bool const success = rinox::experiments::foreach_benchmark( ctx, [&]( std::string const& path, std::string const& name ) {
-    /* Baseline evaluation */
+
+  rinox::diagnostics::REPORT_DIAG( &diag, lorina::diagnostic_level::note,
+    "Processing benchmark `{}`", name );
+
+    /* ========================================================================== */
+    /*   Baseline evaluation                                                      */
+    /* ========================================================================== */
     auto sota = evaluate_sota( path, aig_opts, map, tech_lib );
     if ( !sota )
       return false;
     auto [ntk_sota, st_sota] = *sota;
 
-    /* New algorithm evaluation */
+    /* ========================================================================== */
+    /*   New algorithm evaluation                                                 */
+    /* ========================================================================== */
     auto static constexpr design_t = rinox::network::design_type_t::CELL_BASED;
     static constexpr uint32_t max_num_outputs = 2u;
     using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
-    Ntk ntk = rinox::network::convert_mapped_to_bound( ntk_sota, *gates );
-    mockturtle::depth_view dntk {ntk};
-    rinox::analyzers::trackers::arrival_times_tracker times_track( dntk );
+    Ntk ntk_opto = rinox::network::convert_mapped_to_bound( ntk_sota, *gates );
+    mockturtle::depth_view dntk_opto {ntk_opto};
+    rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
 
     rinox::opto::algorithms::resynthesis_stats rst;
     rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( *gates );
     rinox::databases::mapped_database<Ntk, 4u> db( lib );
     db.load( rsy.database.path );
-    rinox::opto::algorithms::area_resynthesize( dntk, db, rsy.ps, &rst );
-    /* Store the report */
-    exp( name, ntk_sota.compute_area(), dntk.area(), ntk_sota.compute_worst_delay(), times_track.worst_delay(), mockturtle::to_seconds( st_sota.time_total ), 0, false, false );
+    mockturtle::write_verilog_with_cell( ntk_sota, name+".sota.v" );
+    rinox::io::verilog::write_verilog( ntk_opto, name+".opto.v" );
+    rinox::opto::algorithms::area_resynthesize( dntk_opto, db, rsy.ps, &rst );
+
+    /* ========================================================================== */
+    /*   Equivalence checking                                                     */
+    /* ========================================================================== */
+    bool const cec_sota = rinox::experiments::abc_cec_mapped_cell( ntk_sota, path, ctx.technology.path );
+    bool const cec_opto = rinox::experiments::abc_cec_rinox( ntk_opto, path, ctx.technology.path );
+
+    /* ========================================================================== */
+    /*   Results storage                                                          */
+    /* ========================================================================== */
+    exp( name,
+      ntk_sota.compute_area(), ntk_opto.area(),
+      ntk_sota.compute_worst_delay(), times_track.worst_delay(),
+      mockturtle::to_seconds( st_sota.time_total ), 0,
+      cec_sota, cec_opto );
     return true;
   } );
 

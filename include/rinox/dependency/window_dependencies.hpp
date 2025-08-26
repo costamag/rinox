@@ -396,7 +396,11 @@ private:
         return false;
       }
       if ( best_div )
+      {
         cut.add_leaf( *best_div );
+        auto const& sign = simulator.get( *best_div );
+        spfds_.update( sign );
+      }
       else
         return false;
       cnt++;

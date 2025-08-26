@@ -11,7 +11,7 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["iscas"],
+      "benchmarks": ["c432"],
       "excluded": ["c7552"]
     },
     "output":
@@ -35,22 +35,6 @@
         "minimize_levels" : false,
         "fast_mode" : true
       }
-    },
-    "cut-rewriting":
-    {
-      "algorithm" : "rewrite",
-      "iterations" : 1,
-      "params" :
-      {
-        "cut_limit" : 8,
-        "minimize_truth_table" : true,
-        "preserve_depth" : false,
-        "allow_multiple_structures" : true,
-        "allow_zero_gain" : false,
-        "use_dont_cares" : false,
-        "window_size" : 8,
-        "verbose" : false
-      }
     }
   },
   "tech-map":
@@ -67,7 +51,7 @@
       "minimize_truth_table" : true,
       "matching_mode": "hybrid",
       "area_oriented_mapping" : false,
-      "map_multioutput" : true,
+      "map_multioutput" : false,
       "relax_required" : 0,
       "required_time" : 0,
       "area_flow_rounds" : 3,
@@ -88,7 +72,7 @@
     {
       "todo": ["load"],
       "tech": "asap7",
-      "name": "asap7_area_4"
+      "name": "asap7_mapp_4"
     },
     "params":
     {
@@ -104,14 +88,15 @@
         "preserve_depth": false,
         "odc_levels": 0,
         "skip_fanout_limit_for_divisors": 200,
-        "max_num_divisors": 64
+        "max_num_divisors": 1000
       },
       "try_rewire": true,
       "try_struct": false,
       "try_window": false,
       "try_simula": false,
       "dynamic_database": false,
-      "fanout_limit": 20
+      "fanout_limit": 100,
+      "stop_after_nth": 1
     }
   }
 }

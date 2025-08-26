@@ -44,7 +44,7 @@ endif()
 add_subdirectory(lib/mockturtle)
 add_subdirectory(lib/replxx)
 add_subdirectory(lib/cli11)
-add_subdirectory(diagnostics)
+add_subdirectory(inspect)
 
 # RapidJSON (header-only) — submodule at lib/rapidjson
 set(RAPIDJSON_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/lib/rapidjson/include)
@@ -53,12 +53,19 @@ if(NOT EXISTS "${RAPIDJSON_INCLUDE_DIR}/rapidjson/document.h")
 Make sure you added the submodule: git submodule add https://github.com/Tencent/rapidjson.git lib/rapidjson")
 endif()
 
+# Drag (header-only) — submodule at lib/drag
+set(DRAG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/lib/drag/include)
+if(NOT EXISTS "${DRAG_INCLUDE_DIR}/drag/graph.hpp")
+  message(FATAL_ERROR "Drag headers not found at ${DRAG_INCLUDE_DIR}.
+Make sure you added the submodule: git submodule add https://github.com/bigno78/drag.git lib/drag")
+endif()
+
 # Shared CLI logic as a library (exclude main.cpp)
 file(GLOB_RECURSE MAD_CLI_SOURCES CONFIGURE_DEPENDS src/cli/*.cpp)
 list(FILTER MAD_CLI_SOURCES EXCLUDE REGEX "src/cli/main.cpp$")
 add_library(rho_cli ${MAD_CLI_SOURCES})
 
-target_link_libraries(rho_cli PUBLIC mockturtle replxx CLI11::CLI11 rinox_diagnostics)
+target_link_libraries(rho_cli PUBLIC mockturtle replxx CLI11::CLI11 )
 
 # Include paths
 target_include_directories(rho_cli
@@ -66,6 +73,8 @@ target_include_directories(rho_cli
     ${CMAKE_SOURCE_DIR}/src          # so "cli/context.hpp" works
   SYSTEM PRIVATE
     ${RAPIDJSON_INCLUDE_DIR}         # RapidJSON for sources in rho_cli
+  PUBLIC
+    ${DRAG_INCLUDE_DIR}
 )
 
 target_compile_definitions(rho_cli PUBLIC
@@ -85,7 +94,7 @@ endif()
 
 # CLI executable
 add_executable(rinox src/cli/main.cpp)
-target_link_libraries(rinox PRIVATE rho_cli rinox_diagnostics)
+target_link_libraries(rinox PRIVATE rho_cli rinox_inspect )
 
 # Public header-only interface library
 add_library(rinox_headers INTERFACE)
@@ -114,7 +123,7 @@ target_compile_definitions(rinox_build_options INTERFACE
 )
 
 # Make rho_cli consumers inherit headers/defines too
-target_link_libraries(rho_cli PUBLIC rinox_build_options rinox_headers rinox_diagnostics )
+target_link_libraries(rho_cli PUBLIC rinox_build_options rinox_headers rinox_inspect )
 # Tests
 if (RINOX_ENABLE_TESTS)
   enable_testing()

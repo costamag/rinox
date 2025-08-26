@@ -1,4 +1,3 @@
-#pragma once
 #include "tech_map.hpp"
 #include <cstdio>
 #include <rinox/diagnostics.hpp>

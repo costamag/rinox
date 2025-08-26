@@ -98,6 +98,7 @@ struct resynthesis_stats
   uint32_t num_window{ 0 };
   uint32_t num_simula{ 0 };
   uint32_t num_rewire{ 0 };
+  uint32_t num_optims{ 0 };
 
   void report() const
   {
@@ -127,6 +128,7 @@ struct default_resynthesis_params
   };
 
   window_manager_params window_manager_ps;
+  uint32_t stop_after_nth{ std::numeric_limits<uint32_t>::max() };
 
   static constexpr bool do_strashing = true;
   /*! \brief Use satisfiability don't cares for optimization. */
@@ -224,6 +226,9 @@ public:
 
     auto nmax = ntk_.size();
     profiler_.foreach_gate( [&]( auto n ) {
+      if ( st_.num_optims >= ps_.stop_after_nth )
+        return false;
+
       if ( n >= nmax )
         return false;
       /* Skip nodes which cannot result in optimization */
@@ -246,6 +251,7 @@ public:
         rewire_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           auto const& cut_leaves = cut.leaves;
           auto const reward = profiler_.evaluate_rewiring( n, cut_leaves );
+          std::cout << n << " rewire " << reward << " | best : " << best_reward << std::endl;
           if ( reward > best_reward )
           {
             best_reward = reward;
@@ -254,6 +260,7 @@ public:
         } );
         if ( best_cut )
         {
+          st_.num_optims++;
           auto const ids = ntk_.get_binding_ids( n );
           auto const fnew = ntk_.template create_node<Params::do_strashing>( ( *best_cut ).leaves, ids );
           substitute_node( n, fnew );
@@ -270,10 +277,12 @@ public:
 
         struct_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           best_reward = std::max( evaluate( cut, best_chain, best_leaves ), best_reward );
+          std::cout << n << " struct best : " << best_reward << std::endl;
         } );
 
         if ( best_reward > 0 )
         {
+          st_.num_optims++;
           auto const fnew = insert( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
           return true;
@@ -284,10 +293,12 @@ public:
         window_dependencies.run( win_manager_, win_simulator_ );
         window_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           best_reward = std::max( evaluate( cut, best_chain, best_leaves ), best_reward );
+          std::cout << n << " window best : " << best_reward << std::endl;
         } );
 
         if ( best_reward > 0 )
         {
+          st_.num_optims++;
           auto const fnew = insert( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
           return true;

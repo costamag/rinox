@@ -18,7 +18,7 @@ namespace rinox::experiments
     struct {
       std::string extension;
       std::string name;
-      std::filesystem::path path;
+      std::string path;
   } technology;
   
   struct {
@@ -29,7 +29,7 @@ namespace rinox::experiments
       std::string metric;
   } parameters;
 
-  std::filesystem::path path_out;
+  std::string path_out;
 };
 
 inline database_gen_t load_database_gen( rapidjson::Document const& doc,
@@ -56,9 +56,9 @@ inline database_gen_t load_database_gen( rapidjson::Document const& doc,
       rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::warning,
         "`technology.name` missing or invalid");
     
-    cfg.path_out = std::filesystem::path( RINOX_SOURCE_DIR ) / "databases" / cfg.technology.name;
+    cfg.path_out = std::string( RINOX_SOURCE_DIR ) + "databases" + cfg.technology.name;
     std::string const file_name = cfg.technology.name + "." + cfg.technology.extension;
-    cfg.technology.path = std::filesystem::path( RINOX_SOURCE_DIR ) / "techlib" / cfg.technology.extension / file_name;
+    cfg.technology.path = std::string( RINOX_SOURCE_DIR ) + "techlib" + cfg.technology.extension + file_name;
   }
   else
   {

@@ -127,6 +127,22 @@ public:
     }
   }
 
+  bool constant( std::vector<unsigned int> const& ids ) const
+  {
+    bool cst = false;
+    for ( auto const& id : ids )
+      cst |= ( kitty::count_ones(raw_gates_[id].function) > 0 );
+    return cst;
+  }
+
+  bool is_constant( std::vector<unsigned int> const& ids ) const
+  {
+    bool constant = false;
+    for ( auto const& id : ids )
+      constant |= (raw_gates_[id].function.num_vars() == 0);
+    return constant;
+  }
+
   /*! \brief Augment the gate and add it to the library.
    *
    * \param raw_gate Representation containing the gate's function
@@ -449,6 +465,22 @@ public:
   {
     (void)name;
     return false;
+  }
+
+  bool constant( std::vector<unsigned int> const& ids ) const
+  {
+    bool cst = false;
+    for ( auto const& id : ids )
+      cst |= ( kitty::count_ones(gates_[id].function) > 0 );
+    return cst;
+  }
+
+  bool is_constant( std::vector<unsigned int> const& ids ) const
+  {
+    bool constant;
+    for ( auto const& id : ids )
+      constant |= gates_[id].function.num_vars() == 0 ;
+    return constant;
   }
 
 private:

@@ -81,11 +81,26 @@ void convert_mapped_to_bound( bound_network<DesignType, MaxNumOutputs>& ntk, Ntk
     old_to_new[n_src] = { f };
     ntk_src.set_value( n_src, ntk_src.trav_id() );
   } );
+
+  kitty::dynamic_truth_table buf(1u);
+  kitty::dynamic_truth_table inv(1u);
+  kitty::create_from_binary_string( buf, "10" );
+  kitty::create_from_binary_string( inv, "01" );
   /* create the other nodes */
   ntk_src.foreach_po( [&]( auto fo_src ) {
-    convert_mapped_to_bound_tfi( ntk, ntk_src, old_to_new, fo_src );
     auto no_src = ntk_src.get_node( fo_src );
-    ntk.create_po( old_to_new[no_src][fo_src.output] );
+//    if ( ntk_src.is_constant( no_src ) )
+//    {
+//      node n;
+//      if ( ntk_src.constant_value( no_src ) )
+//        
+//      else
+//    }
+//    else
+    {
+      convert_mapped_to_bound_tfi( ntk, ntk_src, old_to_new, fo_src );
+      ntk.create_po( old_to_new[no_src][fo_src.output] );
+    }
   } );
 }
 

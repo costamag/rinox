@@ -115,8 +115,7 @@ public:
     nodes.reserve( 10000u ); // reserve to avoid frequent reallocations
 
     /* we reserve the first two nodes for constants */
-    nodes.emplace_back( pin_type_t::CONSTANT ); // 0
-    nodes.emplace_back( pin_type_t::CONSTANT ); // 1
+    init();
   }
 
   /*! \brief The storage constructor.
@@ -137,8 +136,7 @@ public:
     nodes.reserve( 10000u ); // reserve to avoid frequent reallocations
 
     /* we reserve the first two nodes for constants */
-    nodes.emplace_back( pin_type_t::CONSTANT ); // 0
-    nodes.emplace_back( pin_type_t::CONSTANT ); // 1
+    init();
   }
 
   /*! \brief The storage constructor.
@@ -155,8 +153,35 @@ public:
     nodes.reserve( 10000u ); // reserve to avoid frequent reallocations
 
     /* we reserve the first two nodes for constants */
-    nodes.emplace_back( pin_type_t::CONSTANT ); // 0
-    nodes.emplace_back( pin_type_t::CONSTANT ); // 1
+    init();
+  }
+
+  void init()
+  {
+    kitty::dynamic_truth_table const0(0u);
+    kitty::dynamic_truth_table const1(0u);
+    kitty::create_from_binary_string( const0, "0" );
+    kitty::create_from_binary_string( const1, "1" );
+    auto const id0 = library.get_id( const0 );
+    auto const id1 = library.get_id( const1 );
+
+    if ( id0 && id1 )
+    {
+      node_t new_node;
+      new_node.children.clear();
+      new_node.outputs = decltype( new_node.outputs )( 1u );
+      auto const pin0 = output_pin_t{ *id0, pin_type_t::CONSTANT };
+      auto const pin1 = output_pin_t{ *id1, pin_type_t::CONSTANT };
+      new_node.outputs[0] = pin0;
+      nodes.emplace_back( new_node );
+      new_node.outputs[0] = pin1;
+      nodes.emplace_back( new_node );
+    }
+    else
+    {
+      nodes.emplace_back();
+      nodes.emplace_back();
+    }
   }
 
 #pragma endregion
@@ -217,11 +242,18 @@ public:
     return po_index;
   }
 
+  bool constant( node_index_t const& n ) const
+  {
+    return library.constant( get_binding_ids( n ) );
+  }
+  
   /*! \brief Check if the node is a constant */
   bool is_constant( node_index_t const& n ) const
   {
     auto const& pins = nodes[n].outputs;
-    return has_intersection( pins[0].type, pin_type_t::CONSTANT );
+    bool const inter = has_intersection( pins[0].type, pin_type_t::CONSTANT );
+    bool const exter = inter || ( !is_pi(n) && library.is_constant( get_binding_ids( n ) ) );
+    return inter || exter;
   }
 
   /*! \brief Check if the node is a combinational input (CI)
@@ -342,6 +374,12 @@ public:
     kitty::dynamic_truth_table tt_xor3( 3 );
     kitty::create_from_words( tt_xor3, &_xor3, &_xor3 + 1 );
     return create_node<DoStrash>( std::vector<signal_t>{ a, b, c }, tt_xor3 );
+  }
+
+  unsigned int get_id( kitty::dynamic_truth_table const& tt ) const
+  {
+    auto id = library.get_id( tt );
+    return *id;
   }
 
   template<bool DoStrash = false>
@@ -939,7 +977,7 @@ public:
   template<typename Fn>
   void foreach_fanout( output_pin_t const& pin, Fn&& fn ) const
   {
-    auto& fanout = pin.fanout;
+    auto const fanout = pin.fanout;
     for ( uint32_t i = 0; i < fanout.size(); ++i )
     {
       node_index_t const& n = fanout[i];
@@ -1229,7 +1267,7 @@ public:
 
   bool has_binding( node_index_t const& n ) const
   {
-    return !is_constant( n ) && !is_ci( n ) && !is_pi( n );
+    return ( !is_ci( n ) && !is_pi( n ) );
   }
 
   bool has_gate( std::string const& name ) const

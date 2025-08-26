@@ -150,7 +150,13 @@ format_fanin( Ntk const& ntk, typename Ntk::node const& n, network::incomplete_s
 {
   std::vector<std::pair<bool, std::string>> children;
   ntk.foreach_fanin( n, [&]( auto const& f, auto i ) {
-    children.emplace_back( std::make_pair( ntk.is_complemented( f ), signal_names[f] ) );
+    std::string sname = signal_names[f];
+    if ( sname.empty() && ntk.is_constant( ntk.get_node(f) ) )
+    {
+      sname = signal_names[ntk.get_constant( ntk.constant( ntk.get_node(f) ) )];
+      signal_names[f] = sname;
+    }
+    children.emplace_back( std::make_pair( ntk.is_complemented( f ), sname ) );
   } );
   return children;
 }
@@ -304,7 +310,8 @@ void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& nt
   if constexpr ( mockturtle::has_has_name_v<Ntk> && mockturtle::has_get_name_v<Ntk> )
   {
     ntk.foreach_pi( [&]( auto const& i, uint32_t index ) {
-      if ( ntk.has_name( ntk.make_signal( i ) ) )
+      auto const f = ntk.make_signal( i );
+      if ( ntk.has_name( f ) )
       {
         inputs.emplace_back( ntk.get_name( ntk.make_signal( i ) ) );
       }
@@ -431,7 +438,7 @@ void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& nt
 
   auto const& gates = ntk.get_library();
 
-  int nDigits = (int)std::floor( std::log10( ntk.num_gates() ) );
+  int nDigits = (int)std::floor( std::log10( ntk.num_gates() + 2 + ntk.num_pos() ) );
   unsigned int length = 0;
   unsigned counter = 0;
 
@@ -444,8 +451,10 @@ void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& nt
   std::vector<std::pair<std::string, std::string>> assignments;
 
   ntk_topo.foreach_node( [&]( auto const& n ) {
+    if ( ntk_topo.is_constant( n ) && ( n > 1 ) )
+      return true;
     ntk_topo.foreach_output( n, [&]( auto const& f ) {
-      if ( po_signals.has( f ) )
+      if ( po_signals.has( f ) && !ntk_topo.is_constant( ntk_topo.get_node( f ) ) )
       {
         if ( ntk.has_name( f ) )
         {
@@ -529,6 +538,37 @@ void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& nt
     }
 
     return true;
+  } );
+
+  kitty::dynamic_truth_table inv( 1u );
+  kitty::create_from_binary_string( inv, "01" );
+  auto id = ntk_topo.get_id( inv );
+  auto const& gate_inv = gates[id];
+
+  ntk_topo.foreach_po( [&]( auto const& f, auto io ){
+    auto const n = ntk_topo.get_node( f );
+    if ( ntk_topo.is_constant( n ) )
+    {
+      int digits = counter == 0 ? 0 : (int)std::floor( std::log10( counter ) );
+      std::vector<std::pair<std::string, std::string>> args;
+      if ( ntk_topo.constant( n ) )
+      {
+        args.emplace_back( std::make_pair( gate_inv.output_name, outputs[io] ) );
+        args.emplace_back( std::make_pair( gate_inv.pins[0].name, signal_names[ntk_topo.get_constant( false )] ) );
+      }
+      else
+      {
+        args.emplace_back( std::make_pair( gate_inv.output_name, outputs[io] ) );
+        args.emplace_back( std::make_pair( gate_inv.pins[0].name, signal_names[ntk_topo.get_constant( true )] ) );
+      }
+      std::string name = gate_inv.name;
+
+      writer.on_module_instantiation( name.append( std::string( length - name.length(), ' ' ) ),
+                                      {},
+                                      std::string( "g" ) + std::string( nDigits - digits, '0' ) + std::to_string( counter ),
+                                      args );
+      ++counter;
+    }
   } );
 
   std::string lhs;

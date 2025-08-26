@@ -1,6 +1,6 @@
 #include "json.hpp"
 #include "../../../../include/rinox/io/json/json.hpp"
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include "../../../../include/rinox/network/network.hpp"
 #include "../../context.hpp"
 #include <fstream>

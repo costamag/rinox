@@ -155,6 +155,8 @@ public:
 
     window_.pivot = n;
 
+    if ( ntk_.fanin_size( n ) == 0 )
+      return false;
     // after this the mffc nodes are collected and marked
     // and the first nodes not in the mffc are considered as leaves
     // marked as such, and collected under inputs

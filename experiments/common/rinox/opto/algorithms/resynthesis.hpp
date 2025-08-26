@@ -22,7 +22,7 @@ struct resynthesis_t
 };
 
 template<class Params>
-inline resynthesis_t<Params> load_resynthesis_params( rapidjson::Document const& doc, lorina::diagnostic_engine* diag )
+inline resynthesis_t<Params> load_resynthesis_params( rapidjson::Value const& doc, lorina::diagnostic_engine* diag )
 {
   resynthesis_t<Params> res;
   Params& ps = res.ps;
@@ -76,66 +76,72 @@ inline resynthesis_t<Params> load_resynthesis_params( rapidjson::Document const&
   // -----------------------------
   // Parse other flags
   // -----------------------------
-  if ( rp.HasMember( "use_dont_cares" ) && rp["use_dont_cares"].IsBool() )
-    ps.use_dont_cares = rp["use_dont_cares"].GetBool();
-  if ( rp.HasMember( "try_rewire" ) && rp["try_rewire"].IsBool() )
-    ps.try_rewire = rp["try_rewire"].GetBool();
-  if ( rp.HasMember( "try_struct" ) && rp["try_struct"].IsBool() )
-    ps.try_struct = rp["try_struct"].GetBool();
-  if ( rp.HasMember( "try_window" ) && rp["try_window"].IsBool() )
-    ps.try_window = rp["try_window"].GetBool();
-  if ( rp.HasMember( "try_simula" ) && rp["try_simula"].IsBool() )
-    ps.try_simula = rp["try_simula"].GetBool();
-  if ( rp.HasMember( "dynamic_database" ) && rp["dynamic_database"].IsBool() )
-    ps.dynamic_database = rp["dynamic_database"].GetBool();
-  if ( rp.HasMember( "fanout_limit" ) && rp["fanout_limit"].IsUint() )
-    ps.fanout_limit = rp["fanout_limit"].GetUint();
-
-  // -----------------------------
-  // Parse "database" section
-  // -----------------------------
-  if ( rp.HasMember( "database" ) && rp["database"].IsObject() )
+  if ( rp.HasMember("params") && rp["params"].IsObject() )
   {
-    const auto& db = rp["database"];
+    const auto& params = rp["params"];
 
-    // Parse "todo"
-    if ( db.HasMember("todo") && db["todo"].IsArray() )
+    if ( params.HasMember( "use_dont_cares" ) && params["use_dont_cares"].IsBool() )
+      ps.use_dont_cares = params["use_dont_cares"].GetBool();
+    if ( params.HasMember( "try_rewire" ) && params["try_rewire"].IsBool() )
+      ps.try_rewire = params["try_rewire"].GetBool();
+    if ( params.HasMember( "try_struct" ) && params["try_struct"].IsBool() )
+      ps.try_struct = params["try_struct"].GetBool();
+    if ( params.HasMember( "try_window" ) && params["try_window"].IsBool() )
+      ps.try_window = params["try_window"].GetBool();
+    if ( params.HasMember( "try_simula" ) && params["try_simula"].IsBool() )
+      ps.try_simula = params["try_simula"].GetBool();
+    if ( params.HasMember( "dynamic_database" ) && params["dynamic_database"].IsBool() )
+      ps.dynamic_database = params["dynamic_database"].GetBool();
+    if ( params.HasMember( "fanout_limit" ) && params["fanout_limit"].IsUint() )
+      ps.fanout_limit = params["fanout_limit"].GetUint();
+    if ( params.HasMember( "stop_after_nth" ) && params["stop_after_nth"].IsUint() )
+      ps.stop_after_nth = params["stop_after_nth"].GetUint();
+    // -----------------------------
+    // Parse "database" section
+    // -----------------------------
+    if ( params.HasMember( "database" ) && params["database"].IsObject() )
     {
-      for ( const auto& entry : db["todo"].GetArray() )
+      const auto& db = params["database"];
+  
+      // Parse "todo"
+      if ( db.HasMember("todo") && db["todo"].IsArray() )
       {
-        if ( entry.IsString() )
-          res.database.todo.emplace_back( entry.GetString() );
+        for ( const auto& entry : db["todo"].GetArray() )
+        {
+          if ( entry.IsString() )
+            res.database.todo.emplace_back( entry.GetString() );
+          else
+            rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::warning,
+              "Invalid entry in `database.todo` (must be a string)");
+        }
+      }
+  
+      if ( res.database.todo[0] == "load" )
+      {
+        // Parse "type"
+        if ( db.HasMember("tech") && db["tech"].IsString() )
+          res.database.tech = db["tech"].GetString();
         else
           rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::warning,
-            "Invalid entry in `database.todo` (must be a string)");
+            "`database.tech` missing or invalid");
+  
+        std::string name;
+        // Parse "name"
+        if ( db.HasMember("name") && db["name"].IsString() )
+          name = db["name"].GetString();
+        else
+          rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::warning,
+            "`database.name` missing or invalid");
+  
+        std::filesystem::path databases = fs::path(RINOX_SOURCE_DIR) / "databases";
+        std::string filename = name + ".v";
+        res.database.path = databases / res.database.tech / filename;  
       }
-    }
-
-    if ( res.database.todo[0] == "load" )
-    {
-      // Parse "type"
-      if ( db.HasMember("tech") && db["tech"].IsString() )
-        res.database.tech = db["tech"].GetString();
       else
-        rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::warning,
-          "`database.tech` missing or invalid");
-
-      std::string name;
-      // Parse "name"
-      if ( db.HasMember("name") && db["name"].IsString() )
-        name = db["name"].GetString();
-      else
-        rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::warning,
-          "`database.name` missing or invalid");
-
-      std::filesystem::path databases = fs::path(RINOX_SOURCE_DIR) / "databases";
-      std::string filename = name + ".v";
-      res.database.path = databases / res.database.tech / filename;  
-    }
-    else
-    {
-      rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::fatal,
-        "`database` section missing from `resynthesis`");
+      {
+        rinox::diagnostics::REPORT_DIAG_RAW(diag, lorina::diagnostic_level::fatal,
+          "`database` section missing from `resynthesis`");
+      }
     }
   }
 

@@ -208,6 +208,11 @@ public:
     return _storage->is_constant( n );
   }
 
+  bool constant( node_index_t const& n ) const
+  {
+    return _storage->constant( n );
+  }
+
   /*! \brief Check if a node is a combinational input (CI).
    *
    * \param n The node index to check.
@@ -385,6 +390,23 @@ public:
   {
     auto const binding_id = _storage->insert( tt );
     return create_node<DoStrash>( children, binding_id );
+  }
+
+  template<bool DoStrash = false,
+           design_type_t D = DesignType,
+           std::enable_if_t<D == design_type_t::CELL_BASED, int> = 0>
+  signal_t create_node( std::vector<signal_t> const& children,
+                        kitty::dynamic_truth_table const& tt )
+  {
+    auto const binding_id = _storage->get_id( tt );
+    if ( !binding_id )
+      throw std::runtime_error( "[ERROR] function not found" );
+    return create_node<DoStrash>( children, binding_id );
+  }
+
+  unsigned int get_id( kitty::dynamic_truth_table const& tt ) const
+  {
+    return _storage->get_id( tt );
   }
 
   /*! \brief Create a node from the truth table of its functionality.

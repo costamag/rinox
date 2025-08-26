@@ -55,7 +55,7 @@ struct database_gen_params
   bool multiple_candidates = false;
   bool verbose = false;
   std::string metric = "area";
-  std::filesystem::path output_path = "";
+  std::string output_path = "";
 };
 
 /*! \brief Engine to initialize the database with simple structures

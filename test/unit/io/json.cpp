@@ -733,15 +733,17 @@ TEST_CASE( "Ripple carry Adder", "[json_parsing]" )
   rinox::io::verilog::write_verilog( ntk, out );
 
   std::string expected =
-      "module rca3( a , b , sum );\n"
-      "  input [2:0] a ;\n"
-      "  input [2:0] b ;\n"
-      "  output [3:0] sum ;\n"
-      "  wire n8_0 , n9_1 ;\n"
-      "  fa    g0( .a (a[0]), .b (b[0]), .c (1'b0), .C (n8_0), .S (sum[0]) );\n"
-      "  fa    g1( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
-      "  fa    g2( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[3]) );\n"
-      "endmodule\n";
+  "module rca3( a , b , sum );\n"
+  "  input [2:0] a ;\n"
+  "  input [2:0] b ;\n"
+  "  output [3:0] sum ;\n"
+  "  wire n0 , n1 , n8_0 , n9_1 ;\n"
+  "  zero  g0( .O (n0) );\n"
+  "  one   g1( .O (n1) );\n"
+  "  fa    g2( .a (a[0]), .b (b[0]), .c (n0), .C (n8_0), .S (sum[0]) );\n"
+  "  fa    g3( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
+  "  fa    g4( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[3]) );\n"
+  "endmodule\n";
 
   CHECK( out.str() == expected );
 }
@@ -778,7 +780,7 @@ TEST_CASE( "Ripple carry Adder with constants", "[json_parsing]" )
       "netnames": {
         "a":   { "bits": [20, 2, 3] },
         "b":   { "bits": [4, 5, 6] },
-        "sum": { "bits": [7, 8, 9, 10] }
+        "sum": { "bits": [7, 8, 9, "0", 10, "0", "0", "1"] }
       }
     }
   }
@@ -799,19 +801,23 @@ TEST_CASE( "Ripple carry Adder with constants", "[json_parsing]" )
   rinox::io::verilog::write_verilog( ntk, out );
 
   std::string expected =
-      "module rca3( a , b , sum );\n"
-      "  input [2:0] a ;\n"
-      "  input [2:0] b ;\n"
-      "  output [7:0] sum ;\n"
-      "  wire n8_0 , n9_1 ;\n"
-      "  fa    g0( .a (a[0]), .b (b[0]), .c (1'b0), .C (n8_0), .S (sum[0]) );\n"
-      "  fa    g1( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
-      "  fa    g2( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[4]) );\n"
-      "  assign sum[6] = 1'b0 ;\n"
-      "  assign sum[5] = 1'b0 ;\n"
-      "  assign sum[3] = 1'b0 ;\n"
-      "  assign sum[7] = 1'b1 ;\n"
-      "endmodule\n";
+    "module rca3( a , b , sum );\n"
+    "  input [2:0] a ;\n"
+    "  input [2:0] b ;\n"
+    "  output [7:0] sum ;\n"
+    "  wire n8_0 , n9_1 ;\n"
+    "  zero  g00( .O (n0) );\n"
+    "  zero  g01( .O (sum[5]) );\n"
+    "  zero  g02( .O (sum[3]) );\n"
+    "  one   g03( .O (n1) );\n"
+    "  fa    g04( .a (a[0]), .b (b[0]), .c (n0), .C (n8_0), .S (sum[0]) );\n"
+    "  fa    g05( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
+    "  fa    g06( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[4]) );\n"
+    "  inv2  g07( .O (sum[7]), .a (n0) );\n"
+    "  inv2  g08( .O (sum[6]), .a (n1) );\n"
+    "  inv2  g09( .O (sum[5]), .a (n1) );\n"
+    "  inv2  g10( .O (sum[3]), .a (n1) );\n"
+    "endmodule\n";
 
   CHECK( out.str() == expected );
 }

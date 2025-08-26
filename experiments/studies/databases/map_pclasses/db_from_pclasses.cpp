@@ -32,7 +32,7 @@ int main()
   ps.multiple_candidates = dbc.parameters.multiple_candidates;
   ps.verbose = dbc.parameters.verbose;
   ps.metric = dbc.parameters.metric;
-  ps.output_path = dbc.path_out / "asap7_p_classes.v";
+  ps.output_path = dbc.path_out / ( dbc.technology.name + "_" + ps.method + "_" + std::to_string( ps.num_vars ) + ".v" );
   std::cout << ps.output_path << std::endl;
   gen.run( ps );
 
