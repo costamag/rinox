@@ -162,14 +162,25 @@ public:
   template<typename WinMngr>
   void compute( WinMngr const& window, node_index_t const& n )
   {
+    static const signature_t const0 = sims_[0].construct();
     if ( window.is_input( n ) )
       return;
     if ( ntk_.is_constant( n ) )
     {
-      if ( ntk_.constant_value( n ) )
-        sig_to_sim_[ntk_.make_signal( n )] = 1;
+      if ( ntk_.constant( n ) )
+      {
+        ntk_.foreach_output( n, [&]( auto const& fo ) {
+          sig_to_sim_[fo] = sims_.size();
+          sims_.emplace_back( ( ~const0 ) ^ const0 );
+        } );
+      }
       else
-        sig_to_sim_[ntk_.make_signal( n )] = 0;
+      {
+        ntk_.foreach_output( n, [&]( auto const& fo ) {
+          sig_to_sim_[fo] = sims_.size();
+          sims_.emplace_back( const0 ^ const0 );
+        } );
+      }
       return;
     }
 

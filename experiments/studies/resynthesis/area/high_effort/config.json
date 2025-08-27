@@ -11,7 +11,7 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["c880"],
+      "benchmarks": ["iscas"],
       "excluded": []
     },
     "output":
@@ -96,7 +96,7 @@
       "try_simula": false,
       "dynamic_database": false,
       "fanout_limit": 100,
-      "stop_after_nth": 1000000
+      "stop_after_nth": 100000
     }
   }
 }

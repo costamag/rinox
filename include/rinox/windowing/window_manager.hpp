@@ -32,8 +32,8 @@
 
 #pragma once
 
-#include <mockturtle/utils/node_map.hpp>
 #include "../network/visualize.hpp"
+#include <mockturtle/utils/node_map.hpp>
 
 namespace rinox
 {
@@ -175,7 +175,6 @@ public:
       expanded &= collect_leaf_nodes();
       expanded &= collect_divs_nodes();
     }
-
     topological_sort( window_.tfos );
     topological_sort( window_.outputs );
     topological_sort( window_.mffc );
@@ -249,16 +248,93 @@ private:
 
   void topological_sort( std::vector<node_index_t>& nodes )
   {
-    std::stable_sort( nodes.begin(), nodes.end(), [&]( auto const& a, auto const& b ) {
-      return ntk_.level( a ) < ntk_.level( b );
-    } );
+    topo_++;
+    static constexpr uint32_t maskTag = 0xFFFFF000u;   // upper 20 bits
+    static constexpr uint32_t maskCount = 0x00000FFFu; // lower 12 bits
+    static constexpr unsigned shiftTag = 12;
+    uint32_t tag = topo_;
+
+    // initialize indegree with tag and 0 count
+    for ( auto const& n : nodes )
+    {
+      ntk_.set_value( n, ( tag << shiftTag ) | 0u );
+    }
+
+    // compute indegree counts (within this subset)
+    for ( auto const& n : nodes )
+    {
+      ntk_.foreach_fanin( n, [&]( auto const& fi, auto ) {
+        auto const& ni = ntk_.get_node( fi );
+        if ( ( ntk_.value( ni ) >> shiftTag ) == tag )
+        {
+          uint32_t cnt = ( ntk_.value( n ) & maskCount ) + 1;
+          assert( cnt <= maskCount && "indegree overflow (>4095 fanins)" );
+          ntk_.set_value( n, ( tag << shiftTag ) | cnt );
+        }
+      } );
+    }
+
+    std::queue<node_index_t> q;
+    for ( auto const& n : nodes )
+    {
+      if ( ( ntk_.value( n ) & maskCount ) == 0 )
+        q.push( n );
+    }
+
+    std::vector<node_index_t> result;
+    result.reserve( nodes.size() );
+
+    while ( !q.empty() )
+    {
+      auto n = q.front();
+      q.pop();
+      result.push_back( n );
+
+      ntk_.foreach_fanout( n, [&]( auto const& no ) {
+        if ( ( ntk_.value( no ) >> shiftTag ) == tag )
+        {
+          uint32_t cnt = ( ntk_.value( no ) & maskCount );
+          assert( cnt > 0 && "indegree underflow in topological_sort" );
+          cnt--;
+          ntk_.set_value( no, ( tag << shiftTag ) | cnt );
+          if ( cnt == 0 )
+            q.push( no );
+        }
+      } );
+    }
+
+    if ( result.size() != nodes.size() )
+    {
+      throw std::runtime_error( "Cycle detected in topological_sort" );
+    }
+
+    nodes = std::move( result );
   }
 
   void topological_sort( std::vector<signal_t>& signals )
   {
-    std::stable_sort( signals.begin(), signals.end(), [&]( auto const& a, auto const& b ) {
-      return ntk_.level( ntk_.get_node( a ) ) < ntk_.level( ntk_.get_node( b ) );
-    } );
+    std::vector<node_index_t> nodes;
+    nodes.reserve( signals.size() );
+    for ( auto const& s : signals )
+    {
+      if ( s.output == 0 )
+      {
+        nodes.push_back( ntk_.get_node( s ) );
+      }
+    }
+
+    topological_sort( nodes );
+
+    std::vector<signal_t> result;
+    result.reserve( signals.size() );
+    for ( auto const& n : nodes )
+    {
+      ntk_.foreach_output( n, [&]( auto const& f ) {
+        result.push_back( f );
+      } );
+    }
+
+    signals = std::move( result );
   }
 
 public:
@@ -274,7 +350,7 @@ public:
 
   bool is_contained( node_index_t const& n ) const
   {
-    return (n < color_map_.size()) && color_map_.has( n ) && ( color_map_[n] >> 3u == color_ );
+    return ( n < color_map_.size() ) && color_map_.has( n ) && ( color_map_[n] >> 3u == color_ );
   }
 
   void mark_contained()
@@ -458,7 +534,7 @@ public:
           if ( is_input( no ) )
           {
             bool all_contained = true;
-            ntk_.foreach_fanin( no, [&]( auto const& fi, auto const ii ){
+            ntk_.foreach_fanin( no, [&]( auto const& fi, auto const ii ) {
               all_contained &= is_contained( ntk_.get_node( fi ) );
             } );
             if ( all_contained )
@@ -800,13 +876,13 @@ public:
       {
         auto const ids = ntk_.get_binding_ids( ntk_.get_node( d ) );
         std::cout << "n[" << ntk_.get_node( d ) << "] = ntk.create_node( { ";
-        ntk_.foreach_fanin( d, [&]( auto const& fi, auto ii ){
+        ntk_.foreach_fanin( d, [&]( auto const& fi, auto ii ) {
           if ( ii < ( ntk_.fanin_size( d.index ) - 1 ) )
             std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } , ";
           else
             std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } } , { ";
         } );
-        for ( auto i = 0u; i < (ids.size() - 1); ++i )
+        for ( auto i = 0u; i < ( ids.size() - 1 ); ++i )
         {
           std::cout << ids[i] << ", ";
         }
@@ -819,13 +895,13 @@ public:
     {
       auto const ids = ntk_.get_binding_ids( m );
       std::cout << "n[" << m << "] = ntk.create_node( { ";
-      ntk_.foreach_fanin( m, [&]( auto const& fi, auto ii ){
+      ntk_.foreach_fanin( m, [&]( auto const& fi, auto ii ) {
         if ( ii < ( ntk_.fanin_size( m ) - 1 ) )
           std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } , ";
         else
           std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } } , { ";
       } );
-      for ( auto i = 0u; i < (ids.size() - 1); ++i )
+      for ( auto i = 0u; i < ( ids.size() - 1 ); ++i )
       {
         std::cout << ids[i] << ", ";
       }
@@ -836,7 +912,7 @@ public:
     {
       auto const ids = ntk_.get_binding_ids( m );
       std::cout << "n[" << m << "] = ntk.create_node( ";
-      ntk_.foreach_fanin( m, [&]( auto const& fi, auto ii ){
+      ntk_.foreach_fanin( m, [&]( auto const& fi, auto ii ) {
         if ( ii < ( ntk_.fanin_size( m ) - 1 ) )
           std::cout << "signal{ n[" << fi.index << "], " << fi.output << " } , ";
         else
@@ -859,6 +935,7 @@ private:
   window_t<Ntk> window_;
   mockturtle::incomplete_node_map<uint32_t, Ntk> color_map_;
   uint32_t color_ = 1u;
+  uint32_t topo_ = 1u;
   Params const& ps_;
   window_manager_stats& st_;
 };
