@@ -64,7 +64,7 @@ public:
   };
 
 public:
-  area_profiler( Ntk& ntk, WinMngr & win_manager, profiler_params const& ps )
+  area_profiler( Ntk& ntk, WinMngr& win_manager, profiler_params const& ps )
       : ntk_( ntk ),
         ps_( ps ),
         nodes_( ntk_.size() ),
@@ -122,25 +122,10 @@ public:
   template<typename Fn>
   void foreach_gate( Fn&& fn )
   {
-    if ( ps_.max_num_roots < std::numeric_limits<uint32_t>::max() )
-    {
-      sort_nodes();
-      uint32_t const num_roots = std::min( ps_.max_num_roots, static_cast<uint32_t>( nodes_.size() ) );
-
-      for ( uint32_t i = 0; i < num_roots; ++i )
-      {
-        node_index_t const n = nodes_[i].root;
-        if ( !ntk_.is_dead( n ) && !ntk_.is_constant( n ) && !ntk_.is_pi( n ) )
-          fn( n );
-      }
-    }
-    else
-    {
-      ntk_.foreach_gate( [&]( node_index_t const& n ) {
-        if ( !ntk_.is_dead( n ) && !ntk_.is_constant( n ) && !ntk_.is_pi( n ) )
-          fn( n );
-      } );
-    }
+    ntk_.foreach_gate( [&]( node_index_t const& n ) {
+      if ( !ntk_.is_dead( n ) && !ntk_.is_constant( n ) && !ntk_.is_pi( n ) )
+        fn( n );
+    } );
   }
 
 private:
@@ -261,7 +246,7 @@ private:
   profiler_params const& ps_;
   std::vector<node_with_cost_t> nodes_;
   analyzers::trackers::arrival_times_tracker<Ntk> arrival_;
-  WinMngr & win_manager_;
+  WinMngr& win_manager_;
 };
 
 } /* namespace profilers */
