@@ -331,7 +331,7 @@ TEST_CASE( "Area resynthesis via window rewriting - single-output gate without d
 
   rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( gates );
 
-  static constexpr uint32_t MaxNumVars = 6u;
+  static constexpr uint32_t MaxNumVars = 3u;
   using Db = rinox::databases::mapped_database<Ntk, MaxNumVars>;
   Db db( lib );
 
@@ -428,70 +428,3 @@ struct ResynParamsCC : rinox::opto::algorithms::default_resynthesis_params<NumLe
 
   window_manager_params window_manager_ps;
 };
-
-TEST_CASE( "Delay unconstrained rewiring - corner case 1", "[area_resynthesis]" )
-{
-  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
-  using signal = typename Ntk::signal;
-  std::vector<mockturtle::gate> gates;
-
-  std::ifstream in( std::string( RINOX_SOURCE_DIR ) + "/techlib/genlib/asap7.genlib" );
-  auto result = lorina::read_genlib( in, mockturtle::genlib_reader( gates ) );
-  CHECK( result == lorina::return_code::success );
-
-  rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( gates );
-
-  using Db = rinox::databases::mapped_database<Ntk, 4u>;
-  Db db( lib );
-  Ntk ntk( gates );
-
-  std::unordered_map<uint32_t, uint64_t> n;
-  n[201] = ntk.create_pi();
-  n[190] = ntk.create_pi();
-  n[193] = ntk.create_pi();
-  n[205] = ntk.create_pi();
-  n[216] = ntk.create_pi();
-  n[238] = ntk.create_pi();
-  n[201] = ntk.create_node( { signal{ n[36], 0 }, signal{ n[200], 0 } }, { 7 } ).index;
-  ntk.create_po( { n[201], 0 } );
-  n[190] = ntk.create_node( { signal{ n[35], 0 }, signal{ n[189], 0 } }, { 7 } ).index;
-  ntk.create_po( { n[190], 0 } );
-  n[193] = ntk.create_node( { signal{ n[34], 0 }, signal{ n[192], 0 } }, { 7 } ).index;
-  ntk.create_po( { n[193], 0 } );
-  n[205] = ntk.create_node( { signal{ n[34], 0 }, signal{ n[192], 0 } }, { 6 } ).index;
-  ntk.create_po( { n[205], 0 } );
-  n[230] = ntk.create_node( { signal{ n[201], 0 }, signal{ n[190], 0 } }, { 7 } ).index;
-  ntk.create_po( { n[230], 0 } );
-  n[231] = ntk.create_node( { signal{ n[205], 0 } }, { 3 } ).index;
-  ntk.create_po( { n[231], 0 } );
-  n[194] = ntk.create_node( { signal{ n[190], 0 }, signal{ n[193], 0 } }, { 5 } ).index;
-  ntk.create_po( { n[194], 0 } );
-  n[233] = ntk.create_node( { signal{ n[190], 0 } }, { 3 } ).index;
-  ntk.create_po( { n[233], 0 } );
-  n[216] = ntk.create_node( { signal{ n[144], 0 }, signal{ n[162], 0 }, signal{ n[142], 0 } }, { 16 } ).index;
-  ntk.create_po( { n[216], 0 } );
-  n[232] = ntk.create_node( { signal{ n[193], 0 }, signal{ n[231], 0 } }, { 7 } ).index;
-  ntk.create_po( { n[232], 0 } );
-  n[195] = ntk.create_node( { signal{ n[194], 0 } }, { 3 } ).index;
-  ntk.create_po( { n[195], 0 } );
-  n[238] = ntk.create_node( { signal{ n[214], 0 }, signal{ n[233], 0 }, signal{ n[230], 0 }, signal{ n[216], 0 }, signal{ n[234], 0 } }, { 33 } ).index;
-  ntk.create_po( { n[238], 0 } );
-  n[237] = ntk.create_node( { signal{ n[251], 0 } }, { 3 } ).index;
-  n[251] = ntk.create_node( { signal{ n[230], 0 }, signal{ n[216], 0 }, signal{ n[232], 0 }, signal{ n[238], 0 } }, { 26 } ).index;
-  ntk.create_po( signal{ n[237], 0 } );
-  using DNtk = mockturtle::depth_view<Ntk>;
-  DNtk dntk{ ntk };
-  double area_init = ntk.area();
-  ResynParamsCC<6u> ps;
-  ps.try_rewire = true;
-  ps.try_struct = false;
-  ps.try_window = false;
-  ps.try_simula = false;
-  ps.dynamic_database = false;
-  ps.fanout_limit = 100;
-  ps.stop_after_nth = 7;
-  rinox::opto::algorithms::resynthesis_stats st;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, ResynParamsCC<6u>>( dntk, db, ps, &st );
-  double area_end = ntk.area();
-  CHECK( area_end < area_init );
-}

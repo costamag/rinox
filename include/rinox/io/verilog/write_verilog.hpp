@@ -63,7 +63,7 @@ namespace io
 
 namespace verilog
 {
-using namespace std::string_literals;
+// using namespace std::string_literals;
 
 namespace detail
 {
@@ -151,9 +151,9 @@ format_fanin( Ntk const& ntk, typename Ntk::node const& n, network::incomplete_s
   std::vector<std::pair<bool, std::string>> children;
   ntk.foreach_fanin( n, [&]( auto const& f, auto i ) {
     std::string sname = signal_names[f];
-    if ( sname.empty() && ntk.is_constant( ntk.get_node(f) ) )
+    if ( sname.empty() && ntk.is_constant( ntk.get_node( f ) ) )
     {
-      sname = signal_names[ntk.get_constant( ntk.constant( ntk.get_node(f) ) )];
+      sname = signal_names[ntk.get_constant( ntk.constant( ntk.get_node( f ) ) )];
       signal_names[f] = sname;
     }
     children.emplace_back( std::make_pair( ntk.is_complemented( f ), sname ) );
@@ -545,7 +545,7 @@ void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& nt
   auto id = ntk_topo.get_id( inv );
   auto const& gate_inv = gates[id];
 
-  ntk_topo.foreach_po( [&]( auto const& f, auto io ){
+  ntk_topo.foreach_po( [&]( auto const& f, auto io ) {
     auto const n = ntk_topo.get_node( f );
     if ( ntk_topo.is_constant( n ) )
     {

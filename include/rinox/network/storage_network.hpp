@@ -158,8 +158,8 @@ public:
 
   void init()
   {
-    kitty::dynamic_truth_table const0(0u);
-    kitty::dynamic_truth_table const1(0u);
+    kitty::dynamic_truth_table const0( 0u );
+    kitty::dynamic_truth_table const1( 0u );
     kitty::create_from_binary_string( const0, "0" );
     kitty::create_from_binary_string( const1, "1" );
     auto const id0 = library.get_id( const0 );
@@ -246,13 +246,13 @@ public:
   {
     return library.constant( get_binding_ids( n ) );
   }
-  
+
   /*! \brief Check if the node is a constant */
   bool is_constant( node_index_t const& n ) const
   {
     auto const& pins = nodes[n].outputs;
     bool const inter = has_intersection( pins[0].type, pin_type_t::CONSTANT );
-    bool const exter = inter || ( !is_pi(n) && library.is_constant( get_binding_ids( n ) ) );
+    bool const exter = inter || ( !is_pi( n ) && library.is_constant( get_binding_ids( n ) ) );
     return inter || exter;
   }
 
@@ -304,76 +304,76 @@ public:
 #pragma endregion
 
 #pragma region Create special functions
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_not( signal_t const& a )
   {
     static uint64_t _not = 0x1;
     kitty::dynamic_truth_table tt_not( 1 );
     kitty::create_from_words( tt_not, &_not, &_not + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a }, tt_not );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a }, tt_not );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_and( signal_t const& a, signal_t const& b )
   {
     static uint64_t _and = 0x8;
     kitty::dynamic_truth_table tt_and( 2 );
     kitty::create_from_words( tt_and, &_and, &_and + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b }, tt_and );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b }, tt_and );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_nand( signal_t const& a, signal_t const& b )
   {
     static uint64_t _nand = 0xE;
     kitty::dynamic_truth_table tt_nand( 2 );
     kitty::create_from_words( tt_nand, &_nand, &_nand + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b }, tt_nand );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b }, tt_nand );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_or( signal_t const& a, signal_t const& b )
   {
     static uint64_t _or = 0xe;
     kitty::dynamic_truth_table tt_or( 2 );
     kitty::create_from_words( tt_or, &_or, &_or + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b }, tt_or );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b }, tt_or );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_xor( signal_t const& a, signal_t const& b )
   {
     static uint64_t _xor = 0x6;
     kitty::dynamic_truth_table tt_xor( 2 );
     kitty::create_from_words( tt_xor, &_xor, &_xor + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b }, tt_xor );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b }, tt_xor );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_maj( signal_t const& a, signal_t const& b, signal_t const& c )
   {
     static uint64_t _maj = 0xe8;
     kitty::dynamic_truth_table tt_maj( 3 );
     kitty::create_from_words( tt_maj, &_maj, &_maj + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b, c }, tt_maj );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b, c }, tt_maj );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_ite( signal_t const& a, signal_t const& b, signal_t const& c )
   {
     static uint64_t _ite = 0xd8;
     kitty::dynamic_truth_table tt_ite( 3 );
     kitty::create_from_words( tt_ite, &_ite, &_ite + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b, c }, tt_ite );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b, c }, tt_ite );
   }
 
-  template<bool DoStrash>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = true>
   signal_t create_xor3( signal_t const& a, signal_t const& b, signal_t const& c )
   {
     static uint64_t _xor3 = 0x96;
     kitty::dynamic_truth_table tt_xor3( 3 );
     kitty::create_from_words( tt_xor3, &_xor3, &_xor3 + 1 );
-    return create_node<DoStrash>( std::vector<signal_t>{ a, b, c }, tt_xor3 );
+    return create_node<SignalsVec, DoStrash>( std::vector<signal_t>{ a, b, c }, tt_xor3 );
   }
 
   unsigned int get_id( kitty::dynamic_truth_table const& tt ) const
@@ -382,8 +382,8 @@ public:
     return *id;
   }
 
-  template<bool DoStrash = false>
-  signal_t create_node( std::vector<signal_t> const& children, kitty::dynamic_truth_table const& tt )
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
+  signal_t create_node( SignalsVec const& children, kitty::dynamic_truth_table const& tt )
   {
     auto id = library.get_id( tt );
     if ( !id )
@@ -402,7 +402,8 @@ public:
    * \param children input signals.
    * \param ids binding identifier of the output pins.
    */
-  node_t create_storage_node( std::vector<signal_t> const& children, std::vector<unsigned int> const& ids )
+  template<typename SignalsVec>
+  node_t create_storage_node( SignalsVec const& children, std::vector<unsigned int> const& ids )
   {
     if constexpr ( DesignType == design_type_t::CELL_BASED )
     {
@@ -434,7 +435,8 @@ public:
    * \param ids The IDs of the outputs for this node.
    * \return A signal representing the newly created node.
    */
-  signal_t create_node( std::vector<signal_t> const& children, node_t const& n )
+  template<typename SignalsVec = std::vector<signal_t>>
+  signal_t create_node( SignalsVec const& children, node_t const& n )
   {
     const auto index = get_new_index();
     nodes[index] = n;

@@ -5,8 +5,8 @@
 #include "../common/rinox/opto/algorithms/resynthesis.hpp"
 #include <iostream>
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
-#include <rinox/network/converters.hpp>
 #include <rinox/databases/mapped_database.hpp>
+#include <rinox/network/converters.hpp>
 #include <rinox/opto/algorithms/resynthesize.hpp>
 #include <rinox/windowing/window_manager.hpp>
 #include <string>
@@ -46,7 +46,6 @@ struct ResynParams : rinox::opto::algorithms::default_resynthesis_params<NumLeav
   };
 
   window_manager_params window_manager_ps;
-
 };
 
 template<typename TechLib>
@@ -88,22 +87,21 @@ int main()
   auto ctx = rinox::experiments::load_context( *doc, &diag );
   auto const aig_opts = rinox::experiments::parse_aig_opto( *doc, &diag );
   auto map = rinox::experiments::load_tech_map_params( *doc, &diag );
-  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams<6>>( *doc, &diag );
+  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams<12>>( *doc, &diag );
 
   /* ========================================================================== */
   /*   Technology setup                                                         */
   /* ========================================================================== */
   rinox::diagnostics::REPORT_DIAG_RAW( &diag, lorina::diagnostic_level::note,
-    "Processing technology library" );
+                                       "Processing technology library" );
   auto const& gates = rinox::experiments::load_gates( ctx, &diag );
   if ( !gates )
     return false;
   mockturtle::tech_library<9> tech_lib( *gates, map.tps );
 
   bool const success = rinox::experiments::foreach_benchmark( ctx, [&]( std::string const& path, std::string const& name ) {
-
-  rinox::diagnostics::REPORT_DIAG( &diag, lorina::diagnostic_level::note,
-    "Processing benchmark `{}`", name );
+    rinox::diagnostics::REPORT_DIAG( &diag, lorina::diagnostic_level::note,
+                                     "Processing benchmark `{}`", name );
 
     /* ========================================================================== */
     /*   Baseline evaluation                                                      */
@@ -120,15 +118,15 @@ int main()
     static constexpr uint32_t max_num_outputs = 2u;
     using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
     Ntk ntk_opto = rinox::network::convert_mapped_to_bound( ntk_sota, *gates );
-    mockturtle::depth_view dntk_opto {ntk_opto};
+    mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
 
     rinox::opto::algorithms::resynthesis_stats rst;
     rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( *gates );
     rinox::databases::mapped_database<Ntk, 4u> db( lib );
     db.load( rsy.database.path );
-    mockturtle::write_verilog_with_cell( ntk_sota, name+".sota.v" );
-    rinox::io::verilog::write_verilog( ntk_opto, name+".opto.v" );
+    mockturtle::write_verilog_with_cell( ntk_sota, name + ".sota.v" );
+    rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
     rinox::opto::algorithms::area_resynthesize( dntk_opto, db, rsy.ps, &rst );
 
     /* ========================================================================== */
@@ -141,10 +139,10 @@ int main()
     /*   Results storage                                                          */
     /* ========================================================================== */
     exp( name,
-      ntk_sota.compute_area(), ntk_opto.area(),
-      ntk_sota.compute_worst_delay(), times_track.worst_delay(),
-      mockturtle::to_seconds( st_sota.time_total ), 0,
-      cec_sota, cec_opto );
+         ntk_sota.compute_area(), ntk_opto.area(),
+         ntk_sota.compute_worst_delay(), times_track.worst_delay(),
+         mockturtle::to_seconds( st_sota.time_total ), 0,
+         cec_sota, cec_opto );
     return true;
   } );
 

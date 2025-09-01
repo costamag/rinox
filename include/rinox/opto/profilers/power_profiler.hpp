@@ -69,7 +69,7 @@ public:
   };
 
 public:
-  power_profiler( Ntk& ntk, WinMngr & win_manager, profiler_params const& ps )
+  power_profiler( Ntk& ntk, WinMngr& win_manager, profiler_params const& ps )
       : ntk_( ntk ),
         ps_( ps ),
         nodes_( ntk_.size() ),
@@ -99,7 +99,7 @@ public:
 
   void simulate_window()
   {
-    
+
     /* simulate the network in topological order */
     win_manager_.foreach_divisor( [&]( auto f, auto i ) {
       (void)i;
@@ -122,11 +122,12 @@ public:
 
   void simulate_signal( signal_t const& f )
   {
-    auto const & children = ntk_.get_children( f );
+    auto const& children = ntk_.get_children( f );
     simulate_signal( f, children );
   }
 
-  void simulate_signal( signal_t const& f, std::vector<signal_t> const& fanin )
+  template<typename Signals>
+  void simulate_signal( signal_t const& f, Signals const& fanin )
   {
     double const norm = static_cast<double>( workload_.num_bits() );
 
@@ -165,7 +166,7 @@ public:
         for ( auto ii = 0u; ii < fanin.size(); ++ii )
         {
           auto const fi = fanin[ii];
-          assert(binding.max_pin_time.size() >= fanin.size());
+          assert( binding.max_pin_time.size() >= fanin.size() );
 
           double const time_i = time - binding.max_pin_time[ii];
           auto step_i = get_step( time_i, sensing_.get_time( fi ) - binding.avg_pin_delay, arrival_.get_time( fi ) + binding.avg_pin_delay );
@@ -210,8 +211,8 @@ public:
     return arrival_.get_time( f );
   }
 
-  template<class List_t>
-  cost_t evaluate( List_t const& list, std::vector<signal_t> const& leaves, node_index_t const nold )
+  template<class List_t, typename Signals>
+  cost_t evaluate( List_t const& list, Signals const& leaves, node_index_t const nold )
   {
     auto const size_before = activity_.size();
     activity_.reserve( size_before + list.num_gates() );
@@ -245,7 +246,8 @@ public:
     return cost_deref;
   }
 
-  cost_t evaluate_rewiring( node_index_t const& n, std::vector<signal_t> const& new_children )
+  template<typename Signals>
+  cost_t evaluate_rewiring( node_index_t const& n, Signals const& new_children )
   {
     double cost_curr = 0.0;
     ntk_.foreach_output( n, [&]( auto const& f ) {
@@ -282,7 +284,8 @@ public:
     return cost_curr - cost_cand;
   }
 
-  cost_t evaluate( node_index_t const& n, std::vector<signal_t> const& children, node_index_t const& nold )
+  template<typename Signals>
+  cost_t evaluate( node_index_t const& n, Signals const& children, node_index_t const& nold )
   {
     auto const size_before = activity_.size();
     signal_to_activity_.resize();
@@ -310,7 +313,8 @@ public:
     return cost_deref;
   }
 
-  void simulate_tfi( signal_t const& f, std::vector<signal_t> const& leaves )
+  template<typename Signals>
+  void simulate_tfi( signal_t const& f, Signals const& leaves )
   {
     ntk_.incr_trav_id();
     for ( auto const& l : leaves )
@@ -335,25 +339,30 @@ public:
   template<typename Fn>
   void foreach_gate( Fn&& fn )
   {
-    ntk_.foreach_gate( [&]( auto const& n ){
+    ntk_.foreach_gate( [&]( auto const& n ) {
       fn( n );
     } );
   }
 
 private:
   /*! \brief get the simulation time given the simulation step in the activity window */
-  double get_time(uint32_t step, double s, double a) const {
-    if (a <= s) return s; // or a; pick a convention
-    step = std::min(max_num_steps - 1, step);
-    return s + step * (a - s) / (max_num_steps - 1);
+  double get_time( uint32_t step, double s, double a ) const
+  {
+    if ( a <= s )
+      return s; // or a; pick a convention
+    step = std::min( max_num_steps - 1, step );
+    return s + step * ( a - s ) / ( max_num_steps - 1 );
   }
 
-  uint32_t get_step(double t, double s, double a) const {
-    if (a <= s) return 0u;
-    const double sf = (max_num_steps - 1) * (t - s) / (a - s);
-    if (!std::isfinite(sf)) return 0u;
-    auto step = static_cast<uint32_t>(std::lround(sf));
-    return std::min(max_num_steps - 1, step);
+  uint32_t get_step( double t, double s, double a ) const
+  {
+    if ( a <= s )
+      return 0u;
+    const double sf = ( max_num_steps - 1 ) * ( t - s ) / ( a - s );
+    if ( !std::isfinite( sf ) )
+      return 0u;
+    auto step = static_cast<uint32_t>( std::lround( sf ) );
+    return std::min( max_num_steps - 1, step );
   }
 
   cost_t recursive_deref( node_index_t const& n )
@@ -450,7 +459,7 @@ private:
   analyzers::trackers::arrival_times_tracker<Ntk> arrival_;
   analyzers::trackers::sensing_times_tracker<Ntk> sensing_;
   analyzers::trackers::gate_load_tracker<Ntk> loading_;
-  WinMngr & win_manager_;
+  WinMngr& win_manager_;
 };
 
 } /* namespace profilers */

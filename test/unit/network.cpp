@@ -8,11 +8,11 @@
 #include <vector>
 
 #include <lorina/genlib.hpp>
-#include <rinox/network/network.hpp>
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/io/super_reader.hpp>
 #include <mockturtle/utils/tech_library.hpp>
 #include <mockturtle/views/depth_view.hpp>
+#include <rinox/network/network.hpp>
 
 using namespace mockturtle;
 using namespace rinox;
@@ -48,15 +48,15 @@ TEST_CASE( "Cell-based Bound network: Primary I / O and constants", "[network]" 
   auto const a = ntk.create_pi();
   auto const b = ntk.create_pi();
   auto const c = ntk.create_pi();
-  auto const f1 = ntk.create_node( { a, b, c }, 5 );          // maj3
-  auto const f2 = ntk.create_node( { a, b, c }, { 12, 13 } ); // fa
-  signal const carry = signal{ f2.index, 0 };                 // carry output
-  signal const sum = signal{ f2.index, 1 };                   // sum output
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, 5 );          // maj3
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  signal const carry = signal{ f2.index, 0 };                                             // carry output
+  signal const sum = signal{ f2.index, 1 };                                               // sum output
   ntk.create_po( f1 );
   /* use the carry bit as an output */
   ntk.create_po( carry );
   /* create a new node taking the carry signal as input */
-  auto const f3 = ntk.create_node( { sum, f1 }, 2u );
+  auto const f3 = ntk.create_node<std::vector<signal>, false>( { sum, f1 }, 2u );
   ntk.create_po( f3 );
   CHECK( ntk.is_multioutput( "fa" ) );
   CHECK( !ntk.is_multioutput( "nand2" ) );
@@ -103,15 +103,15 @@ TEST_CASE( "Array-based Bound network: Primary I / O and constants", "[network]"
   kitty::dynamic_truth_table tt_maj( 3u ), tt_xor( 3u );
   kitty::create_majority( tt_maj );
   kitty::create_parity( tt_xor );
-  auto const f1 = ntk.create_node( { a, b, c }, tt_maj );             // maj3
-  auto const f2 = ntk.create_node( { a, b, c }, { tt_maj, tt_xor } ); // fa
-  signal const carry = signal{ f2.index, 0 };                         // carry output
-  signal const sum = signal{ f2.index, 1 };                           // sum output
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, tt_maj );             // maj3
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { tt_maj, tt_xor } ); // fa
+  signal const carry = signal{ f2.index, 0 };                                                     // carry output
+  signal const sum = signal{ f2.index, 1 };                                                       // sum output
   ntk.create_po( f1 );
   /* use the carry bit as an output */
   ntk.create_po( carry );
   /* create a new node taking the carry signal as input */
-  auto const f3 = ntk.create_node( { sum, f1 }, 2u );
+  auto const f3 = ntk.create_node<std::vector<signal>, false>( { sum, f1 }, 2u );
   ntk.create_po( f3 );
   CHECK( ntk.is_combinational() );
   CHECK( ntk.get_constant( true ) == signal{ 1, 0 } );
@@ -159,13 +159,13 @@ TEST_CASE( "Cell-based Bound network: Cloning nodes and networks", "[network]" )
   auto const a = ntk.create_pi();
   auto const b = ntk.create_pi();
   auto const c = ntk.create_pi();
-  auto const f1 = ntk.create_node( { a, b, c }, 5 );          // maj3
-  auto const f2 = ntk.create_node( { a, b, c }, { 12, 13 } ); // fa
-  signal const carry = signal{ f2.index, 0 };                 // carry output
-  signal const sum = signal{ f2.index, 1 };                   // sum output
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, 5 );          // maj3
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  signal const carry = signal{ f2.index, 0 };                                             // carry output
+  signal const sum = signal{ f2.index, 1 };                                               // sum output
   ntk.create_po( f1 );
   ntk.create_po( carry );
-  auto const f3 = ntk.create_node( { sum, f1 }, 2u );
+  auto const f3 = ntk.create_node<std::vector<signal>, false>( { sum, f1 }, 2u );
   ntk.create_po( f3 );
   auto ntk2 = ntk.clone();
   CHECK( ntk2.size() == ntk.size() );
@@ -174,7 +174,7 @@ TEST_CASE( "Cell-based Bound network: Cloning nodes and networks", "[network]" )
   CHECK( ntk2.num_gates() == ntk.num_gates() );
   CHECK( ntk2.is_combinational() );
 
-  auto const f4 = ntk2.create_node( { a, b, c }, 6 ); // xor3
+  auto const f4 = ntk2.create_node<std::vector<signal>, false>( { a, b, c }, 6 ); // xor3
   CHECK( ntk2.size() - 1 == ntk.size() );
   CHECK( ntk2.num_gates() - 1 == ntk.num_gates() );
 
@@ -197,13 +197,13 @@ TEST_CASE( "Array-based Bound network: Cloning nodes and networks", "[network]" 
   kitty::create_majority( tt_maj );
   kitty::create_parity( tt_xor );
 
-  auto const f1 = ntk.create_node( { a, b, c }, tt_maj );             // maj3
-  auto const f2 = ntk.create_node( { a, b, c }, { tt_maj, tt_xor } ); // fa
-  signal const carry = signal{ f2.index, 0 };                         // carry output
-  signal const sum = signal{ f2.index, 1 };                           // sum output
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, tt_maj );             // maj3
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { tt_maj, tt_xor } ); // fa
+  signal const carry = signal{ f2.index, 0 };                                                     // carry output
+  signal const sum = signal{ f2.index, 1 };                                                       // sum output
   ntk.create_po( f1 );
   ntk.create_po( carry );
-  auto const f3 = ntk.create_node( { sum, f1 }, 2u );
+  auto const f3 = ntk.create_node<std::vector<signal>, false>( { sum, f1 }, 2u );
   ntk.create_po( f3 );
   auto ntk2 = ntk.clone();
   CHECK( ntk2.size() == ntk.size() );
@@ -212,7 +212,7 @@ TEST_CASE( "Array-based Bound network: Cloning nodes and networks", "[network]" 
   CHECK( ntk2.num_gates() == ntk.num_gates() );
   CHECK( ntk2.is_combinational() );
 
-  auto const f4 = ntk2.create_node( { a, b, c }, tt_xor ); // xor3
+  auto const f4 = ntk2.create_node<std::vector<signal>, false>( { a, b, c }, tt_xor ); // xor3
   CHECK( ntk2.size() - 1 == ntk.size() );
   CHECK( ntk2.num_gates() - 1 == ntk.num_gates() );
 
@@ -236,12 +236,12 @@ TEST_CASE( "Cell-based Bound network: Substitute multiple-output node with singl
   auto const a = ntk.create_pi();
   auto const b = ntk.create_pi();
   auto const c = ntk.create_pi();
-  auto const f1 = ntk.create_node( { a, b, c }, { 12, 13 } ); // fa
-  auto const carry = ntk.create_node( { a, b, c }, 5 );       // maj3
-  auto const sum = ntk.create_node( { a, b, c }, 6 );         // xor3
-  auto const f2 = ntk.create_node( std::vector<signal>{ signal{ f1.index, 0 },
-                                                        signal{ f1.index, 1 } },
-                                   2u ); // create a new node with carry and sum
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  auto const carry = ntk.create_node<std::vector<signal>, false>( { a, b, c }, 5 );       // maj3
+  auto const sum = ntk.create_node<std::vector<signal>, false>( { a, b, c }, 6 );         // xor3
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { signal{ f1.index, 0 },
+                                                                 signal{ f1.index, 1 } },
+                                                               2u ); // create a new node with carry and sum
   ntk.create_po( signal{ f1.index, 0 } );
   ntk.create_po( f2 );
   ntk.create_po( signal{ f1.index, 1 } );
@@ -286,12 +286,12 @@ TEST_CASE( "Array-based Bound network: Substitute multiple-output node with sing
   kitty::create_majority( tt_maj );
   kitty::create_parity( tt_xor );
 
-  auto const f1 = ntk.create_node( { a, b, c }, { tt_maj, tt_xor } ); // fa
-  auto const carry = ntk.create_node( { a, b, c }, tt_maj );          // maj3
-  auto const sum = ntk.create_node( { a, b, c }, tt_xor );            // xor3
-  auto const f2 = ntk.create_node( std::vector<signal>{ signal{ f1.index, 0 },
-                                                        signal{ f1.index, 1 } },
-                                   2u ); // create a new node with carry and sum
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { tt_maj, tt_xor } ); // fa
+  auto const carry = ntk.create_node<std::vector<signal>, false>( { a, b, c }, tt_maj );          // maj3
+  auto const sum = ntk.create_node<std::vector<signal>, false>( { a, b, c }, tt_xor );            // xor3
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { signal{ f1.index, 0 },
+                                                                 signal{ f1.index, 1 } },
+                                                               2u ); // create a new node with carry and sum
   ntk.create_po( signal{ f1.index, 0 } );
   ntk.create_po( f2 );
   ntk.create_po( signal{ f1.index, 1 } );
@@ -325,6 +325,7 @@ TEST_CASE( "Array-based Bound network: Substitute multiple-output node with sing
 TEST_CASE( "Array-based Bound network: Strashing", "[network]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename bound_network::signal;
 
   bound_network ntk;
   auto const a = ntk.create_pi();
@@ -336,12 +337,12 @@ TEST_CASE( "Array-based Bound network: Strashing", "[network]" )
   kitty::create_parity( tt_xor );
   kitty::create_from_binary_string( tt_nand2, "0111" );
 
-  auto const f1 = ntk.create_node( { a, b, c }, { tt_maj, tt_xor } );       // fa
-  auto const f2 = ntk.create_node( { a, b, c }, { tt_maj, tt_xor } );       // fa
-  auto const f3 = ntk.create_node<true>( { a, b, c }, { tt_maj, tt_xor } ); // fa
-  auto const f4 = ntk.create_node( { a, b }, tt_nand2 );                    // nand2
-  auto const f5 = ntk.create_node( { a, b }, tt_nand2 );                    // nand2
-  auto const f6 = ntk.create_node<true>( { a, b }, tt_nand2 );              // nand2
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { tt_maj, tt_xor } ); // fa
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { tt_maj, tt_xor } ); // fa
+  auto const f3 = ntk.create_node<std::vector<signal>, true>( { a, b, c }, { tt_maj, tt_xor } );  // fa
+  auto const f4 = ntk.create_node<std::vector<signal>, false>( { a, b }, tt_nand2 );              // nand2
+  auto const f5 = ntk.create_node<std::vector<signal>, false>( { a, b }, tt_nand2 );              // nand2
+  auto const f6 = ntk.create_node<std::vector<signal>, true>( { a, b }, tt_nand2 );               // nand2
 
   CHECK( f2 != f1 );
   CHECK( f3 == f1 );
@@ -354,6 +355,7 @@ TEST_CASE( "Array-based Bound network: Strashing", "[network]" )
 TEST_CASE( "Cell-based Bound network: Strashing", "[network]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  using signal = typename bound_network::signal;
 
   std::vector<gate> gates;
 
@@ -365,12 +367,12 @@ TEST_CASE( "Cell-based Bound network: Strashing", "[network]" )
   auto const a = ntk.create_pi();
   auto const b = ntk.create_pi();
   auto const c = ntk.create_pi();
-  auto const f1 = ntk.create_node( { a, b, c }, { 12, 13 } );       // fa
-  auto const f2 = ntk.create_node( { a, b, c }, { 12, 13 } );       // fa
-  auto const f3 = ntk.create_node<true>( { a, b, c }, { 12, 13 } ); // fa
-  auto const f4 = ntk.create_node( { a, b }, 2 );                   // nand2
-  auto const f5 = ntk.create_node( { a, b }, 2 );                   // nand2
-  auto const f6 = ntk.create_node<true>( { a, b }, 2 );             // nand2
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  auto const f3 = ntk.create_node<std::vector<signal>, true>( { a, b, c }, { 12, 13 } );  // fa
+  auto const f4 = ntk.create_node<std::vector<signal>, false>( { a, b }, 2 );             // nand2
+  auto const f5 = ntk.create_node<std::vector<signal>, false>( { a, b }, 2 );             // nand2
+  auto const f6 = ntk.create_node<std::vector<signal>, true>( { a, b }, 2 );              // nand2
 
   CHECK( f2 != f1 );
   CHECK( f3 == f1 );
@@ -383,6 +385,7 @@ TEST_CASE( "Cell-based Bound network: Strashing", "[network]" )
 TEST_CASE( "Cell-based Bound network: Simulation", "[network]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  using signal = typename bound_network::signal;
 
   std::vector<gate> gates;
 
@@ -394,8 +397,8 @@ TEST_CASE( "Cell-based Bound network: Simulation", "[network]" )
   auto const a = ntk.create_pi();
   auto const b = ntk.create_pi();
   auto const c = ntk.create_pi();
-  auto const f1 = ntk.create_node( { a, b, c }, { 12, 13 } ); // fa
-  auto const f2 = ntk.create_node( { a, b }, 2 );             // nand2
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b }, 2 );             // nand2
 
   std::vector<kitty::dynamic_truth_table> tts;
   for ( int i = 0; i < 3; ++i )
@@ -423,6 +426,7 @@ TEST_CASE( "Cell-based Bound network: Simulation", "[network]" )
 TEST_CASE( "Array-based Bound network: Simulation", "[network]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename bound_network::signal;
 
   bound_network ntk;
   auto const a = ntk.create_pi();
@@ -434,8 +438,8 @@ TEST_CASE( "Array-based Bound network: Simulation", "[network]" )
   kitty::create_parity( tt_xor );
   kitty::create_from_binary_string( tt_nand2, "0111" );
 
-  auto const f1 = ntk.create_node( { a, b, c }, { tt_maj, tt_xor } ); // fa
-  auto const f2 = ntk.create_node( { a, b }, tt_nand2 );              // nand2
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { tt_maj, tt_xor } ); // fa
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { a, b }, tt_nand2 );              // nand2
 
   std::vector<kitty::dynamic_truth_table> tts;
   for ( int i = 0; i < 3; ++i )
@@ -475,11 +479,11 @@ TEST_CASE( "Cell-based Bound network wrapped in a depth view", "[network]" )
   auto const a = ntk.create_pi();
   auto const b = ntk.create_pi();
   auto const c = ntk.create_pi();
-  auto const f1 = ntk.create_node( { a, b, c }, { 12, 13 } ); // fa
-  auto const f2 = ntk.create_node( std::vector<signal>{ signal{ f1.index, 0 },
-                                                        signal{ f1.index, 1 } },
-                                   2u );                               // create a new node with carry and sum
-  auto const f3 = ntk.create_node( std::vector<signal>{ f2, c }, 2u ); // create a new node with carry and sum
+  auto const f1 = ntk.create_node<std::vector<signal>, false>( { a, b, c }, { 12, 13 } ); // fa
+  auto const f2 = ntk.create_node<std::vector<signal>, false>( { signal{ f1.index, 0 },
+                                                                 signal{ f1.index, 1 } },
+                                                               2u );            // create a new node with carry and sum
+  auto const f3 = ntk.create_node<std::vector<signal>, false>( { f2, c }, 2u ); // create a new node with carry and sum
   ntk.create_po( signal{ f1.index, 0 } );
   ntk.create_po( f2 );
   ntk.create_po( signal{ f1.index, 1 } );

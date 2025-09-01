@@ -36,6 +36,7 @@
 #include "../io/utils/reader.hpp"
 #include "../io/verilog/verilog.hpp"
 #include "../io/verilog/write_verilog.hpp"
+#include "../math/math.hpp"
 #include "../network/utils.hpp"
 #include <kitty/kitty.hpp>
 
@@ -57,6 +58,7 @@ public:
   static constexpr uint32_t max_num_vars = MaxNumVars;
   using chain_t = typename evaluation::chains::bound_chain<design_t>;
   using signal_t = typename NtkDb::signal;
+  using signals_t = rinox::math::static_vector<signal_t, MaxNumVars>;
   using library_t = typename libraries::augmented_library<design_t>;
   using node_index_t = typename NtkDb::node_index_t;
   using truth_table_t = kitty::static_truth_table<MaxNumVars>;
@@ -314,7 +316,7 @@ private:
       }
       else if ( entry < database_[row][i] )
       {
-        auto const f = insert( ntk_, pis_, chain );
+        auto const f = rinox::evaluation::chains::insert<NtkDb, NtkDb::design_t, signals_t, true>( ntk_, pis_, chain );
         ntk_.substitute_node( database_[row][i].index, f );
         entry.index = ntk_.get_node( f );
         database_[row][i] = entry;
@@ -322,7 +324,7 @@ private:
       }
     }
     // TODO: add capacity
-    auto const f = insert( ntk_, pis_, chain );
+    auto const f = rinox::evaluation::chains::insert<NtkDb, NtkDb::design_t, signals_t, true>( ntk_, pis_, chain );
     if ( ntk_.is_po( f ) )
       return false; // do not re-insert POs in the database
     ntk_.create_po( f );
@@ -354,9 +356,9 @@ public:
   //    return std::nullopt;
   //  }
 
-  template<typename Time, typename... Vecs>
+  template<typename Times, typename... Vecs>
   std::optional<uint64_t> boolean_matching( truth_table_t const& func,
-                                            std::vector<Time>& times, Vecs&... others )
+                                            Times& times, Vecs&... others )
   {
     // Resize times
     times.resize( MaxNumVars, std::numeric_limits<double>::max() );
@@ -393,14 +395,14 @@ public:
     }
   }
 
-  template<typename Ntk>
-  node_index_t write( database_entry_t const& entry, Ntk& ntk, std::vector<signal_t> const& leaves )
+  template<typename Ntk, typename Signals>
+  node_index_t write( database_entry_t const& entry, Ntk& ntk, Signals const& leaves )
   {
     return write( entry.index, ntk, leaves );
   }
 
-  template<typename Ntk>
-  node_index_t write( typename NtkDb::node const& index, Ntk& ntk, std::vector<signal_t> const& leaves )
+  template<typename Ntk, typename Signals>
+  node_index_t write( typename NtkDb::node const& index, Ntk& ntk, Signals const& leaves )
   {
     ntk_.incr_trav_id();
 
@@ -493,7 +495,7 @@ private:
 
   /*! \brief Database represented as a network */
   NtkDb ntk_;
-  std::vector<signal_t> pis_;
+  rinox::math::static_vector<signal_t, MaxNumVars> pis_;
 
   /*! \brief Technology library */
   library_t lib_;

@@ -84,11 +84,11 @@ struct permutation_t
   }
 };
 
-template<typename T>
-std::vector<T> inverse_permute( permutation_t const& perm, std::vector<T> const& vec )
+template<typename Vec>
+Vec inverse_permute( permutation_t const& perm, Vec const& vec )
 {
   assert( vec.size() < 16 );
-  std::vector<T> res( vec.size() );
+  Vec res( vec.size() );
   for ( auto i = 0u; i < vec.size(); ++i )
   {
     res[i] = vec[perm.inverse( i )];
@@ -96,11 +96,12 @@ std::vector<T> inverse_permute( permutation_t const& perm, std::vector<T> const&
   return res;
 }
 
-template<typename T>
-std::vector<T> forward_permute( permutation_t const& perm, std::vector<T> const& vec )
+template<typename Vec>
+Vec forward_permute( permutation_t const& perm, Vec const& vec )
 {
   assert( vec.size() < 16 );
-  std::vector<T> res( vec.size() );
+  Vec res;
+  res.resize( vec.size() );
   for ( auto i = 0u; i < vec.size(); ++i )
   {
     res[i] = vec[perm.forward( i )];
@@ -108,8 +109,8 @@ std::vector<T> forward_permute( permutation_t const& perm, std::vector<T> const&
   return res;
 }
 
-template<typename T>
-void inverse_permute_inplace_single( permutation_t const& perm, std::vector<T>& vec )
+template<typename Vec>
+void inverse_permute_inplace_single( permutation_t const& perm, Vec& vec )
 {
   vec = inverse_permute( perm, vec );
 }
@@ -120,8 +121,8 @@ void inverse_permute_inplace( permutation_t const& perm, Vecs&... vecs )
   ( inverse_permute_inplace_single( perm, vecs ), ... );
 }
 
-template<typename T>
-void forward_permute_inplace_single( permutation_t const& perm, std::vector<T>& vec )
+template<typename Vec>
+void forward_permute_inplace_single( permutation_t const& perm, Vec& vec )
 {
   vec = forward_permute( perm, vec );
 }

@@ -104,8 +104,8 @@ public:
     pos_.resize( 256, invalid_ );
   }
 
-  template<typename... Containers>
-  void run( func_t& tt, std::vector<uint8_t>& support, Containers&... extra )
+  template<typename Vec, typename... Containers>
+  void run( func_t& tt, Vec& support, Containers&... extra )
   {
     const size_t sz = support.size();
 

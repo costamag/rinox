@@ -55,6 +55,7 @@ public:
   using truth_table_t = kitty::static_truth_table<max_cuts_size>;
   using functionality_t = kitty::ternary_truth_table<truth_table_t>;
   using cut_t = dependency_cut_t<Ntk, max_cuts_size>;
+  using signals_t = rinox::math::static_vector<signal_t, max_cuts_size>;
 
 public:
   rewire_dependencies( Ntk& ntk )
@@ -70,15 +71,15 @@ public:
     cuts.clear();
     auto const n = window.get_pivot();
 
-    //std::cout << "==========================================================" << std::endl;
-    //std::cout << "=                       " << n <<  "                     =" << std::endl;
-    //std::cout << "==========================================================" << std::endl;
+    // std::cout << "==========================================================" << std::endl;
+    // std::cout << "=                       " << n <<  "                     =" << std::endl;
+    // std::cout << "==========================================================" << std::endl;
 
     if ( ntk_.fanin_size( n ) > max_cuts_size )
       return;
 
     std::vector<signature_t const*> sim_ptrs;
-    std::vector<signal_t> leaves_curr;
+    signals_t leaves_curr;
 
     ntk_.foreach_fanin( n, [&]( auto fi, auto ii ) {
       leaves_curr.push_back( fi );
@@ -90,11 +91,11 @@ public:
     } );
 
     // Current
-    //ntk_.foreach_fanin( n, [&]( auto fii, auto iii ) {
+    // ntk_.foreach_fanin( n, [&]( auto fii, auto iii ) {
     //  kitty::print_binary( simulator.get( fii ) ); std::cout << " +" << iii << std::endl;
     //} );
-    //std::cout << n << " " << ntk_.get_expression( typename Ntk::signal{ n, 0 } ) << std::endl;
-    //for ( auto tt : tts_curr )
+    // std::cout << n << " " << ntk_.get_expression( typename Ntk::signal{ n, 0 } ) << std::endl;
+    // for ( auto tt : tts_curr )
     //{
     //  kitty::print_binary( tt ); std::cout << " curr" << std::endl;
     //}
@@ -108,20 +109,20 @@ public:
         if ( ii == iii )
         {
           sim_ptrs.push_back( &flipped );
-      //    kitty::print_binary( *sim_ptrs.back() ); std::cout << " -" << iii << std::endl;
+          //    kitty::print_binary( *sim_ptrs.back() ); std::cout << " -" << iii << std::endl;
         }
         else
         {
-          sim_ptrs.push_back( &simulator.get( fii ) ); 
-      //    kitty::print_binary( *sim_ptrs.back() ); std::cout << " +" << iii << std::endl;
+          sim_ptrs.push_back( &simulator.get( fii ) );
+          //    kitty::print_binary( *sim_ptrs.back() ); std::cout << " +" << iii << std::endl;
         }
       } );
 
       auto tts_flip = ntk_.compute( n, sim_ptrs );
-      //for ( auto tt : tts_flip )
+      // for ( auto tt : tts_flip )
       //{
-      //  kitty::print_binary( tt ); std::cout << std::endl;
-      //}
+      //   kitty::print_binary( tt ); std::cout << std::endl;
+      // }
 
       signature_t dc = ~obs_care;
       for ( auto i = 0u; i < tts_curr.size(); ++i )
@@ -129,7 +130,7 @@ public:
         dc |= ~( tts_flip[i] ^ tts_curr[i] );
       }
       auto const care = ~dc;
-      std::vector<signal_t> leaves = leaves_curr;
+      signals_t leaves = leaves_curr;
       window.foreach_divisor( [&]( auto const& f, auto i ) {
         if ( f != fi )
         {

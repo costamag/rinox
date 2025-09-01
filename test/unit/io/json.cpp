@@ -42,6 +42,8 @@ TEST_CASE( "Read structural json to mapped network", "[json_parsing]" )
 {
 
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  using signal = bound_network::signal;
+
   std::vector<mockturtle::gate> gates;
 
   std::istringstream in_lib( test_library );
@@ -206,9 +208,9 @@ TEST_CASE( "Read structural json to mapped network", "[json_parsing]" )
 
   auto const a = ntk.make_signal( ntk.pi_at( 0 ) );
   auto const b = ntk.make_signal( ntk.pi_at( 1 ) );
-  auto const f1 = ntk.create_node<true>( { a, b }, 2u );
+  auto const f1 = ntk.create_node<std::vector<signal>, true>( { a, b }, 2u );
   CHECK( f1.index == 4u );
-  auto const f2 = ntk.create_node<true>( { f1 }, 0u );
+  auto const f2 = ntk.create_node<std::vector<signal>, true>( { f1 }, 0u );
   CHECK( f2.index == 5u );
 
   CHECK( ntk.num_pis() == 2 );
@@ -225,7 +227,6 @@ TEST_CASE( "Read json to mapped network with multiple output gates", "[json_pars
 
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
-
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
   CHECK( result_lib == lorina::return_code::success );
@@ -304,11 +305,11 @@ TEST_CASE( "Read json to mapped network with multiple output gates", "[json_pars
   auto const a = ntk.make_signal( ntk.pi_at( 0 ) );
   auto const b = ntk.make_signal( ntk.pi_at( 1 ) );
   auto const c = ntk.make_signal( ntk.pi_at( 2 ) );
-  auto const f1 = ntk.create_node<true>( { a, b, c }, { 12u, 13u } );
+  auto const f1 = ntk.create_node<std::vector<signal>, true>( { a, b, c }, { 12u, 13u } );
   CHECK( f1.index == 5u );
-  auto const f2 = ntk.create_node<true>( { signal{ f1.index, 0 } }, 7u );
+  auto const f2 = ntk.create_node<std::vector<signal>, true>( { signal{ f1.index, 0 } }, 7u );
   CHECK( f2.index == 6u );
-  auto const f3 = ntk.create_node<true>( { signal{ f1.index, 1 } }, 7u );
+  auto const f3 = ntk.create_node<std::vector<signal>, true>( { signal{ f1.index, 1 } }, 7u );
   CHECK( f3.index == 7u );
 
   CHECK( ntk.num_pis() == 3 );
@@ -322,6 +323,7 @@ TEST_CASE( "Read json to mapped network with multiple output gates and constants
 
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
+  using signal = bound_network::signal;
 
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
@@ -392,7 +394,6 @@ TEST_CASE( "Read json to mapped network with multiple output gates and constants
 })";
 
   bound_network ntk( gates );
-  using signal = bound_network::signal;
   std::istringstream in_ntk( file );
   const auto result_ntk = rinox::io::json::read_json( in_ntk, rinox::io::reader( ntk ) );
   /* structural checks */
@@ -408,10 +409,10 @@ TEST_CASE( "Read json to mapped network with multiple output gates and constants
   fs["3"] = ntk.make_signal( ntk.pi_at( 1 ) );
   fs["22"] = ntk.make_signal( ntk.pi_at( 2 ) );
   fs["20"] = ntk.make_signal( ntk.pi_at( 3 ) );
-  fs["14"] = ntk.create_node<true>( { fs["0"], fs["0"] }, 3u );
-  fs["15"] = ntk.create_node<true>( { fs["20"], fs["22"] }, 4u );
-  fs["30"] = ntk.create_node<true>( { fs["2"] }, 0u );
-  fs["31"] = ntk.create_node<true>( { fs["15"] }, 7u );
+  fs["14"] = ntk.create_node<std::vector<signal>, true>( { fs["0"], fs["0"] }, 3u );
+  fs["15"] = ntk.create_node<std::vector<signal>, true>( { fs["20"], fs["22"] }, 4u );
+  fs["30"] = ntk.create_node<std::vector<signal>, true>( { fs["2"] }, 0u );
+  fs["31"] = ntk.create_node<std::vector<signal>, true>( { fs["15"] }, 7u );
   CHECK( ntk.po_at( 0 ) == fs["1"] );
   CHECK( ntk.po_at( 1 ) == fs["30"] );
   CHECK( ntk.po_at( 2 ) == fs["31"] );
@@ -427,6 +428,7 @@ TEST_CASE( "Yosys syntax - case 1", "[json_parsing]" )
 
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
+  using signal = bound_network::signal;
 
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
@@ -471,7 +473,6 @@ TEST_CASE( "Yosys syntax - case 1", "[json_parsing]" )
 })";
 
   bound_network ntk( gates );
-  using signal = bound_network::signal;
   std::istringstream in_ntk( file );
   const auto result_ntk = rinox::io::json::read_json( in_ntk, rinox::io::reader( ntk ) );
   /* structural checks */
@@ -485,8 +486,8 @@ TEST_CASE( "Yosys syntax - case 1", "[json_parsing]" )
   fs["1"] = ntk.make_signal( 1 );
   fs["2"] = ntk.make_signal( ntk.pi_at( 0 ) );
   fs["3"] = ntk.make_signal( ntk.pi_at( 1 ) );
-  fs["4"] = ntk.create_node<true>( { fs["2"], fs["1"] }, 3u );
-  fs["6"] = ntk.create_node<true>( { fs["4"] }, 0u );
+  fs["4"] = ntk.create_node<std::vector<signal>, true>( { fs["2"], fs["1"] }, 3u );
+  fs["6"] = ntk.create_node<std::vector<signal>, true>( { fs["4"] }, 0u );
   CHECK( ntk.po_at( 0 ) == fs["6"] );
   CHECK( ntk.num_pis() == 2 );
   CHECK( ntk.num_pos() == 1 );
@@ -498,6 +499,7 @@ TEST_CASE( "Yosys syntax - case 2", "[json_parsing]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
+  using signal = bound_network::signal;
 
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
@@ -558,7 +560,6 @@ TEST_CASE( "Yosys syntax - case 2", "[json_parsing]" )
 )";
 
   bound_network ntk( gates );
-  using signal = bound_network::signal;
   std::istringstream in_ntk( file );
   const auto result_ntk = rinox::io::json::read_json( in_ntk, rinox::io::reader( ntk ) );
   /* structural checks */
@@ -574,10 +575,10 @@ TEST_CASE( "Yosys syntax - case 2", "[json_parsing]" )
   fs["22"] = ntk.make_signal( ntk.pi_at( 1 ) );
   fs["21"] = ntk.make_signal( ntk.pi_at( 2 ) );
   fs["20"] = ntk.make_signal( ntk.pi_at( 3 ) );
-  fs["31"] = ntk.create_node<true>( { fs["20"], fs["1"] }, 3u );
-  fs["33"] = ntk.create_node<true>( { fs["0"], fs["22"] }, 4u );
-  fs["30"] = ntk.create_node<true>( { fs["0"] }, 7u );
-  fs["32"] = ntk.create_node<true>( { fs["1"] }, 7u );
+  fs["31"] = ntk.create_node<std::vector<signal>, true>( { fs["20"], fs["1"] }, 3u );
+  fs["33"] = ntk.create_node<std::vector<signal>, true>( { fs["0"], fs["22"] }, 4u );
+  fs["30"] = ntk.create_node<std::vector<signal>, true>( { fs["0"] }, 7u );
+  fs["32"] = ntk.create_node<std::vector<signal>, true>( { fs["1"] }, 7u );
   CHECK( ntk.po_at( 0 ) == fs["30"] );
   CHECK( ntk.po_at( 1 ) == fs["31"] );
   CHECK( ntk.po_at( 2 ) == fs["32"] );
@@ -593,6 +594,7 @@ TEST_CASE( "Read json without port direction", "[json_parsing]" )
 
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
+  using signal = bound_network::signal;
 
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
@@ -653,7 +655,6 @@ TEST_CASE( "Read json without port direction", "[json_parsing]" )
 })";
 
   bound_network ntk( gates );
-  using signal = bound_network::signal;
   std::istringstream in_ntk( file );
   const auto result_ntk = rinox::io::json::read_json( in_ntk, rinox::io::reader( ntk ) );
   /* structural checks */
@@ -666,11 +667,11 @@ TEST_CASE( "Read json without port direction", "[json_parsing]" )
   auto const a = ntk.make_signal( ntk.pi_at( 0 ) );
   auto const b = ntk.make_signal( ntk.pi_at( 1 ) );
   auto const c = ntk.make_signal( ntk.pi_at( 2 ) );
-  auto const f1 = ntk.create_node<true>( { a, b, c }, { 12u, 13u } );
+  auto const f1 = ntk.create_node<std::vector<signal>, true>( { a, b, c }, { 12u, 13u } );
   CHECK( f1.index == 5u );
-  auto const f2 = ntk.create_node<true>( { signal{ f1.index, 0 } }, 7u );
+  auto const f2 = ntk.create_node<std::vector<signal>, true>( { signal{ f1.index, 0 } }, 7u );
   CHECK( f2.index == 6u );
-  auto const f3 = ntk.create_node<true>( { signal{ f1.index, 1 } }, 7u );
+  auto const f3 = ntk.create_node<std::vector<signal>, true>( { signal{ f1.index, 1 } }, 7u );
   CHECK( f3.index == 7u );
 
   CHECK( ntk.num_pis() == 3 );
@@ -684,6 +685,7 @@ TEST_CASE( "Ripple carry Adder", "[json_parsing]" )
 
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
+  using signal = bound_network::signal;
 
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
@@ -719,7 +721,6 @@ TEST_CASE( "Ripple carry Adder", "[json_parsing]" )
 })";
 
   bound_network ntk( gates );
-  using signal = bound_network::signal;
   std::istringstream in_ntk( file );
   const auto result_ntk = rinox::io::json::read_json( in_ntk, rinox::io::reader( ntk ) );
   /* structural checks */
@@ -733,17 +734,17 @@ TEST_CASE( "Ripple carry Adder", "[json_parsing]" )
   rinox::io::verilog::write_verilog( ntk, out );
 
   std::string expected =
-  "module rca3( a , b , sum );\n"
-  "  input [2:0] a ;\n"
-  "  input [2:0] b ;\n"
-  "  output [3:0] sum ;\n"
-  "  wire n0 , n1 , n8_0 , n9_1 ;\n"
-  "  zero  g0( .O (n0) );\n"
-  "  one   g1( .O (n1) );\n"
-  "  fa    g2( .a (a[0]), .b (b[0]), .c (n0), .C (n8_0), .S (sum[0]) );\n"
-  "  fa    g3( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
-  "  fa    g4( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[3]) );\n"
-  "endmodule\n";
+      "module rca3( a , b , sum );\n"
+      "  input [2:0] a ;\n"
+      "  input [2:0] b ;\n"
+      "  output [3:0] sum ;\n"
+      "  wire n0 , n1 , n8_0 , n9_1 ;\n"
+      "  zero  g0( .O (n0) );\n"
+      "  one   g1( .O (n1) );\n"
+      "  fa    g2( .a (a[0]), .b (b[0]), .c (n0), .C (n8_0), .S (sum[0]) );\n"
+      "  fa    g3( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
+      "  fa    g4( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[3]) );\n"
+      "endmodule\n";
 
   CHECK( out.str() == expected );
 }
@@ -752,6 +753,7 @@ TEST_CASE( "Ripple carry Adder with constants", "[json_parsing]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
+  using signal = bound_network::signal;
 
   std::istringstream in_lib( test_library );
   auto result_lib = lorina::read_genlib( in_lib, genlib_reader( gates ) );
@@ -787,7 +789,6 @@ TEST_CASE( "Ripple carry Adder with constants", "[json_parsing]" )
 })";
 
   bound_network ntk( gates );
-  using signal = bound_network::signal;
   std::istringstream in_ntk( file );
   const auto result_ntk = rinox::io::json::read_json( in_ntk, rinox::io::reader( ntk ) );
   /* structural checks */
@@ -801,23 +802,23 @@ TEST_CASE( "Ripple carry Adder with constants", "[json_parsing]" )
   rinox::io::verilog::write_verilog( ntk, out );
 
   std::string expected =
-    "module rca3( a , b , sum );\n"
-    "  input [2:0] a ;\n"
-    "  input [2:0] b ;\n"
-    "  output [7:0] sum ;\n"
-    "  wire n8_0 , n9_1 ;\n"
-    "  zero  g00( .O (n0) );\n"
-    "  zero  g01( .O (sum[5]) );\n"
-    "  zero  g02( .O (sum[3]) );\n"
-    "  one   g03( .O (n1) );\n"
-    "  fa    g04( .a (a[0]), .b (b[0]), .c (n0), .C (n8_0), .S (sum[0]) );\n"
-    "  fa    g05( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
-    "  fa    g06( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[4]) );\n"
-    "  inv2  g07( .O (sum[7]), .a (n0) );\n"
-    "  inv2  g08( .O (sum[6]), .a (n1) );\n"
-    "  inv2  g09( .O (sum[5]), .a (n1) );\n"
-    "  inv2  g10( .O (sum[3]), .a (n1) );\n"
-    "endmodule\n";
+      "module rca3( a , b , sum );\n"
+      "  input [2:0] a ;\n"
+      "  input [2:0] b ;\n"
+      "  output [7:0] sum ;\n"
+      "  wire n8_0 , n9_1 ;\n"
+      "  zero  g00( .O (n0) );\n"
+      "  zero  g01( .O (sum[5]) );\n"
+      "  zero  g02( .O (sum[3]) );\n"
+      "  one   g03( .O (n1) );\n"
+      "  fa    g04( .a (a[0]), .b (b[0]), .c (n0), .C (n8_0), .S (sum[0]) );\n"
+      "  fa    g05( .a (a[1]), .b (b[1]), .c (n8_0), .S (sum[1]), .C (n9_1) );\n"
+      "  fa    g06( .a (a[2]), .b (b[2]), .c (n9_1), .S (sum[2]), .C (sum[4]) );\n"
+      "  inv2  g07( .O (sum[7]), .a (n0) );\n"
+      "  inv2  g08( .O (sum[6]), .a (n1) );\n"
+      "  inv2  g09( .O (sum[5]), .a (n1) );\n"
+      "  inv2  g10( .O (sum[3]), .a (n1) );\n"
+      "endmodule\n";
 
   CHECK( out.str() == expected );
 }

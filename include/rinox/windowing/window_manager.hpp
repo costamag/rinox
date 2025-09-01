@@ -32,6 +32,7 @@
 
 #pragma once
 
+#include "../math/math.hpp"
 #include "../network/visualize.hpp"
 #include <mockturtle/utils/node_map.hpp>
 
@@ -41,24 +42,44 @@ namespace rinox
 namespace windowing
 {
 
-template<class Ntk>
+struct default_window_params_t
+{
+  static constexpr uint32_t tfos_capacity = 16u;
+  static constexpr uint32_t mffc_capacity = 64u;
+  static constexpr uint32_t divs_capacity = 1024u;
+  static constexpr uint32_t outs_capacity = 16u;
+  static constexpr uint32_t inps_capacity = 32u;
+};
+
+template<class Ntk, typename Params = default_window_params_t>
 struct window_t
 {
   using node_index_t = typename Ntk::node;
   using signal_t = typename Ntk::signal;
+  using static_params = Params;
+
+  void clear()
+  {
+    tfos.clear();
+    mffc.clear();
+    divs.clear();
+    outputs.clear();
+    inputs.clear();
+  }
 
   node_index_t pivot;
-  std::vector<node_index_t> tfos;
-  std::vector<node_index_t> mffc;
-  std::vector<signal_t> divs;
-  std::vector<signal_t> outputs;
-  std::vector<signal_t> inputs;
+  rinox::math::static_vector<node_index_t, static_params::tfos_capacity> tfos;
+  rinox::math::static_vector<node_index_t, static_params::mffc_capacity> mffc;
+  rinox::math::static_vector<signal_t, static_params::divs_capacity> divs;
+  rinox::math::static_vector<signal_t, static_params::outs_capacity> outputs;
+  rinox::math::static_vector<signal_t, static_params::inps_capacity> inputs;
 };
 
 struct default_window_manager_params
 {
   static constexpr uint32_t max_num_leaves = 8;
   uint32_t max_num_divisors = 128;
+  uint32_t max_reconvergence = 10;
   bool preserve_depth = true;
   int32_t odc_levels = 0;
   uint32_t skip_fanout_limit_for_divisors{ 100 };
@@ -75,119 +96,548 @@ class window_manager
 public:
   using node_index_t = typename Ntk::node;
   using signal_t = typename Ntk::signal;
+  static constexpr uint32_t tfos_capacity = window_t<Ntk>::static_params::tfos_capacity;
+  static constexpr uint32_t outs_capacity = window_t<Ntk>::static_params::outs_capacity;
+  static constexpr uint32_t mffc_capacity = window_t<Ntk>::static_params::mffc_capacity;
+  static constexpr uint32_t divs_capacity = window_t<Ntk>::static_params::divs_capacity;
+  static constexpr uint32_t inps_capacity = window_t<Ntk>::static_params::inps_capacity;
+  using input_signals_t = rinox::math::static_vector<signal_t, inps_capacity>;
+  using front_signals_t = rinox::math::static_vector<signal_t, inps_capacity + outs_capacity>;
+  using front_nodes_t = rinox::math::static_vector<node_index_t, divs_capacity>;
 
 public:
   window_manager( Ntk& ntk, Params const& ps, window_manager_stats& st )
       : ntk_( ntk ),
-        color_map_( ntk ),
+        color_map_( ntk_ ),
         ps_( ps ),
         st_( st )
   {
   }
-#if 0
-  bool run( node_index_t const& n )
-  {
-    st_.valid = false;
-    init( n );
-
-    // label the MFFC nodes
-    collect_mffc_nodes();
-    for ( auto const& m : window_.mffc )
-    {
-      ntk_.set_visited( m, ntk_.trav_id() );
-      make_alien( m );
-    }
-    window_.mffc.clear();
-
-    window_.inputs.clear();
-    ntk_.foreach_output( n, [&]( auto const& f ) {
-      window_.inputs.push_back( f );
-      window_.divs.push_back( f );
-    } );
-
-    // expand the leaves until reaching the boundary of the MFFC
-    expand_leaves( [&]( node_index_t const& v ) { return ( ntk_.visited( v ) == ntk_.trav_id() ) && !ntk_.is_pi( v ); },
-                   [&]( node_index_t const& v ) { make_mffc( v ); } );
-
-    collect_mffc_nodes();
-
-    window_.divs = window_.inputs;
-    /* expand toward the tfo */
-    if ( ps_.odc_levels > 0 )
-    {
-      collect_nodes_tfo();
-      // expand the divisors set to try removing upper-leaves with reconvergence
-      collect_side_divisors();
-    }
-    else
-    {
-      ntk_.foreach_output( n, [&]( auto f ) {
-        window_.outputs.push_back( f );
-      } );
-    }
-
-    // expand the leaves to find reconvergences
-    expand_leaves( [&]( node_index_t const& n ) { return !ntk_.is_pi( n ); },
-                   [&]( node_index_t const& v ) { make_divisor( v ); } );
-
-    // expand the divisors set to try removing upper-leaves with reconvergence
-    collect_side_divisors();
-
-    if ( ps_.odc_levels > 0 )
-    {
-      topological_sort( window_.tfos );
-      topological_sort( window_.outputs );
-    }
-    topological_sort( window_.mffc );
-    topological_sort( window_.divs );
-    topological_sort( window_.inputs );
-
-    st_.valid = true;
-    return true;
-  }
-#endif
 
   bool run( node_index_t const& n )
   {
     st_.valid = false;
-    init( n );
-
-    ntk_.incr_trav_id();
-
-    window_.pivot = n;
+    clear();
 
     if ( ntk_.fanin_size( n ) == 0 )
       return false;
-    // after this the mffc nodes are collected and marked
-    // and the first nodes not in the mffc are considered as leaves
-    // marked as such, and collected under inputs
-    collect_mffc_nodes();
+    if ( ntk_.is_pi( n ) )
+      return false;
 
-    /* expand toward the tfo
-       mark the tfo nodes, collect the output signals, and add the fanins not yet included as inputs*/
-    collect_tfos_nodes();
-
-    // expand the leaves to find reconvergences
+    init( n );
     bool expanded = true;
-    while ( expanded )
+    tfi_expansion();
+    side_expansion();
+    if ( ps_.odc_levels )
     {
-      expanded = false;
-      expanded &= collect_leaf_nodes();
-      expanded &= collect_divs_nodes();
+      tfo_expansion();
+      tfi_expansion();
+      side_expansion();
     }
-    topological_sort( window_.tfos );
-    topological_sort( window_.outputs );
-    topological_sort( window_.mffc );
-    topological_sort( window_.divs );
-    topological_sort( window_.inputs );
+
+    rinox::graphics::visualize_multioutput_window( ntk_, window_, "win_" + std::to_string( n ) );
+    remove_redundant();
+    topological_sort<tfos_capacity>( window_.tfos );
+    topological_sort<outs_capacity>( window_.outputs );
+    topological_sort<mffc_capacity>( window_.mffc );
+    topological_sort<divs_capacity>( window_.divs );
+    topological_sort<inps_capacity>( window_.inputs );
 
     st_.valid = true;
     st_.valid &= window_.divs.size() <= ps_.max_num_divisors;
     st_.valid &= window_.inputs.size() <= ps_.max_num_leaves;
+
     return st_.valid;
   }
 
-  std::vector<signal_t> const& get_divisors() const
+private:
+  void remove_input( node_index_t const& n )
+  {
+    // erase signals corresponding to n from inputs
+    for ( int i = window_.inputs.size() - 1; i >= 0; --i )
+    {
+      if ( ntk_.get_node( window_.inputs[i] ) == n )
+        window_.inputs.erase( i );
+    }
+
+    // erase signals corresponding to n from divisors
+    for ( int i = window_.divs.size() - 1; i >= 0; --i )
+    {
+      if ( ntk_.get_node( window_.divs[i] ) == n )
+        window_.divs.erase( i );
+    }
+
+    // re-label node as alien before it becomes TFO
+    make_alien( n );
+  }
+
+  void tfo_expansion()
+  {
+    front_nodes_.clear();
+    front_.clear();
+
+    // --- 0) Early budget check for pivot fanouts ---
+    std::vector<node_index_t> pivot_fos;
+    ntk_.foreach_fanout( window_.pivot, [&]( auto const& fo ) {
+      pivot_fos.push_back( fo );
+    } );
+
+    std::set<node_index_t> new_inputs_all;
+    for ( auto const& fo : pivot_fos )
+    {
+      ntk_.foreach_fanin( fo, [&]( auto const& fi, auto ) {
+        auto const ni = ntk_.get_node( fi );
+        if ( !is_contained( ni ) )
+          new_inputs_all.insert( ni );
+      } );
+    }
+
+    if ( window_.inputs.size() + new_inputs_all.size() > ps_.max_num_leaves )
+    {
+      // Pivot must remain sole output cut
+      return;
+    }
+
+    // --- 1) Collect immediate fanouts as TFO ---
+    for ( auto const& fo : pivot_fos )
+    {
+      make_tfo( fo );
+      window_.tfos.insert_unique( fo );
+      front_nodes_.push_back( fo );
+    }
+
+    // Add required inputs
+    for ( auto ni : new_inputs_all )
+    {
+      if ( !is_contained( ni ) )
+      {
+        make_input( ni );
+        ntk_.foreach_output( ni, [&]( auto const& sig ) {
+          window_.inputs.insert_unique( sig );
+          window_.divs.insert_unique( sig );
+        } );
+      }
+    }
+
+    // --- 2) Expand forward guided by cost ---
+    while ( !front_nodes_.empty() )
+    {
+      auto tfo_opt = choose_removable_tfo();
+      if ( !tfo_opt )
+        break;
+      auto const tfo = *tfo_opt;
+
+      // Gather new fanins if we expand tfo
+      std::set<node_index_t> new_inputs;
+      ntk_.foreach_fanout( tfo, [&]( auto const& no ) {
+        ntk_.foreach_fanin( no, [&]( auto const& fi, auto ) {
+          auto const ni = ntk_.get_node( fi );
+          if ( !is_contained( ni ) )
+            new_inputs.insert( ni );
+        } );
+      } );
+
+      // Budget check
+      size_t budget_after = window_.inputs.size();
+      if ( is_input( tfo ) )
+        budget_after -= 1;
+      for ( auto ni : new_inputs )
+      {
+        if ( !is_contained( ni ) )
+          budget_after += 1;
+      }
+
+      if ( budget_after > ps_.max_num_leaves )
+      {
+        // Cannot expand → leave tfo as frontier
+      }
+      else
+      {
+        // Safe to expand
+        if ( is_input( tfo ) )
+          remove_input( tfo );
+        make_tfo( tfo );
+        window_.tfos.insert_unique( tfo );
+
+        // Add fanouts as new TFOs
+        ntk_.foreach_fanout( tfo, [&]( auto const& no ) {
+          if ( !is_contained( no ) )
+          {
+            make_tfo( no );
+            window_.tfos.insert_unique( no );
+            front_nodes_.push_back( no );
+          }
+        } );
+
+        // Promote new inputs
+        for ( auto ni : new_inputs )
+        {
+          if ( !is_contained( ni ) )
+          {
+            make_input( ni );
+            ntk_.foreach_output( ni, [&]( auto const& sig ) {
+              window_.inputs.insert_unique( sig );
+              window_.divs.insert_unique( sig );
+            } );
+          }
+        }
+      }
+
+      // remove processed tfo from frontier
+      for ( int i = (int)front_nodes_.size() - 1; i >= 0; --i )
+      {
+        if ( front_nodes_[i] == tfo )
+        {
+          front_nodes_.erase( i );
+          break;
+        }
+      }
+    }
+
+    window_.outputs.clear();
+    // --- 3) Determine outermost cut outputs ---
+    for ( auto const& n : window_.tfos )
+    {
+      bool external_fanout = false;
+      ntk_.foreach_fanout( n, [&]( auto const& fo ) {
+        if ( !is_tfo( fo ) )
+          external_fanout = true;
+      } );
+      if ( external_fanout || ntk_.is_po( n ) )
+      {
+        ntk_.foreach_output( n, [&]( auto const& sig ) {
+          window_.outputs.insert_unique( sig );
+        } );
+      }
+    }
+    if ( window_.outputs.empty() )
+    {
+      ntk_.foreach_output( window_.pivot, [&]( auto const& f ) {
+        window_.outputs.push_back( f );
+      } );
+    }
+  }
+
+  void tfi_expansion()
+  {
+    bool front_is_inputs = false;
+    front_.clear();
+    for ( auto const& l : window_.inputs )
+      front_.push_back( l );
+
+    while ( front_.size() <= ( ps_.max_num_leaves + ps_.max_reconvergence ) )
+    {
+      auto const leaf = choose_removable_leaf();
+      if ( leaf )
+      {
+        make_contained( *leaf );
+        ntk_.foreach_fanin( *leaf, [&]( auto const& fi, auto ii ) {
+          auto const ni = ntk_.get_node( fi );
+          if ( !is_contained( ni ) )
+          {
+            make_input( ni );
+            ntk_.foreach_output( ni, [&]( auto const& f ) {
+              front_.push_back( f );
+            } );
+          }
+        } );
+
+        for ( int i = front_.size() - 1; i >= 0; --i )
+        {
+          auto const n = ntk_.get_node( front_[i] );
+          if ( !is_input( n ) )
+            front_.erase( i );
+        }
+
+        if ( front_.size() <= ps_.max_num_leaves )
+        {
+          front_is_inputs = true;
+          window_.inputs.clear();
+          for ( auto const& l : front_ )
+            window_.inputs.push_back( l );
+        }
+        else
+        {
+          front_is_inputs = false;
+        }
+      }
+      else
+        break;
+    }
+
+    for ( auto const& f : front_ )
+    {
+      auto const n = ntk_.get_node( f );
+      make_alien( n );
+    }
+    for ( auto const& f : window_.inputs )
+    {
+      auto const n = ntk_.get_node( f );
+      make_contained( n );
+    }
+
+    for ( auto const& f : window_.inputs )
+    {
+      auto const n = ntk_.get_node( f );
+      if ( !is_input( n ) )
+      {
+        make_input( n );
+        ntk_.foreach_output( n, [&]( auto const& fo ) {
+          window_.divs.push_back( fo );
+        } );
+      }
+    }
+
+    if ( !front_is_inputs )
+    {
+      for ( auto const& l : window_.inputs )
+      {
+        auto const n = ntk_.get_node( l );
+        ntk_.foreach_fanin( n, [&]( auto const& fi, auto i ) {
+          auto const ni = ntk_.get_node( fi );
+          cleanup_to_front( ni );
+        } );
+      }
+    }
+
+    ntk_.foreach_fanin( window_.pivot, [&]( auto const& fi, auto ii ) {
+      auto const ni = ntk_.get_node( fi );
+      if ( !is_input( ni ) )
+        label_to_inputs( ni );
+    } );
+  }
+
+  void side_expansion()
+  {
+    int start = 0;
+    while ( start < window_.divs.size() )
+    {
+      int num_divs = window_.divs.size();
+      for ( int i = start; i < num_divs; ++i )
+      {
+        auto const& n = ntk_.get_node( window_.divs[i] );
+        ntk_.foreach_fanout( n, [&]( auto const& no ) {
+          bool add = !is_contained( no );
+          if ( add )
+          {
+            ntk_.foreach_fanin( no, [&]( auto const& fi, auto ii ) {
+              auto const ni = ntk_.get_node( fi );
+              add &= ( is_contained( ni ) && ( !is_mffc( ni ) ) && ( !is_tfo( ni ) ) );
+            } );
+          }
+          if ( add )
+          {
+            make_divisor( no );
+            ntk_.foreach_output( no, [&]( auto const& fo ) {
+              window_.divs.push_back( fo );
+            } );
+          }
+        } );
+      }
+      start = num_divs;
+    }
+  }
+
+  bool is_input_dominated( node_index_t const& n )
+  {
+    bool dominated = true;
+    ntk_.foreach_fanin( n, [&]( auto const& f, auto i ) {
+      dominated &= is_contained( ntk_.get_node( f ) );
+    } );
+    return dominated;
+  }
+
+  void cleanup_to_front( node_index_t const& n )
+  {
+    if ( is_input( n ) )
+      return;
+    if ( !is_contained( n ) )
+      return;
+    if ( is_contained( n ) )
+      make_alien( n );
+
+    ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
+      auto const ni = ntk_.get_node( fi );
+      cleanup_to_front( ni );
+    } );
+  }
+
+  void label_to_inputs( node_index_t const& n )
+  {
+    if ( !is_contained( n ) )
+      return;
+    if ( is_input( n ) )
+      return;
+    if ( is_mffc( n ) )
+      return;
+    if ( is_divisor( n ) )
+      return;
+    if ( in_mffc( n ) )
+    {
+      window_.mffc.push_back( n );
+      make_mffc( n );
+    }
+    else
+    {
+      make_divisor( n );
+      ntk_.foreach_output( n, [&]( auto const& fo ) {
+        window_.divs.push_back( fo );
+      } );
+    }
+    ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
+      auto const ni = ntk_.get_node( fi );
+      label_to_inputs( ni );
+    } );
+  }
+
+  std::optional<node_index_t> choose_removable_leaf()
+  {
+    int best_cost = std::numeric_limits<int>::max();
+    std::optional<node_index_t> best_node;
+    for ( uint32_t i = 0; i < front_.size(); ++i )
+    {
+      auto n = ntk_.get_node( front_[i] );
+      int cost = compute_leaf_cost( n );
+      if ( cost < best_cost )
+      {
+        best_cost = cost;
+        best_node = std::make_optional( n );
+      }
+    }
+    return best_node;
+  }
+
+  std::optional<node_index_t> choose_removable_tfo()
+  {
+    int best_cost = std::numeric_limits<int>::max();
+    bool best_promotes = false;
+    std::optional<node_index_t> best_node;
+
+    for ( uint32_t i = 0; i < front_nodes_.size(); ++i )
+    {
+      auto n = front_nodes_[i];
+      auto c = compute_tfo_cost( n );
+
+      if ( !best_node )
+      {
+        best_node = n;
+        best_cost = c.delta_inputs;
+        best_promotes = c.promotes_input;
+        continue;
+      }
+
+      if ( c.promotes_input && !best_promotes )
+      {
+        // prioritize promotions over non-promotions
+        best_node = n;
+        best_cost = c.delta_inputs;
+        best_promotes = true;
+      }
+      else if ( c.promotes_input == best_promotes && c.delta_inputs < best_cost )
+      {
+        // same promotion status, pick smaller delta
+        best_node = n;
+        best_cost = c.delta_inputs;
+        best_promotes = c.promotes_input;
+      }
+    }
+
+    return best_node;
+  }
+
+  bool in_mffc( node_index_t const& n )
+  {
+    if ( ntk_.is_pi( n ) || ntk_.is_po( n ) )
+      return false;
+
+    bool in = true;
+    ntk_.foreach_fanout( n, [&]( auto const& no ) {
+      in &= is_mffc( no );
+    } );
+    return in;
+  }
+
+  // cost to replace the node with its fanins
+  int compute_leaf_cost( node_index_t const& n )
+  {
+    if ( ntk_.is_pi( n ) )
+      return std::numeric_limits<int>::max();
+
+    int cost = -static_cast<int>( ntk_.num_outputs( n ) );
+    ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
+      auto const ni = ntk_.get_node( fi );
+      if ( !is_contained( ni ) )
+        cost += ntk_.num_outputs( ni );
+    } );
+    return cost;
+  }
+
+  struct tfo_cost_t
+  {
+    int delta_inputs;    // net input change
+    bool promotes_input; // true if this expansion upgrades an input→TFO
+  };
+
+  tfo_cost_t compute_tfo_cost( node_index_t const& n )
+  {
+    std::set<node_index_t> new_inputs;
+
+    ntk_.foreach_fanout( n, [&]( auto const& no ) {
+      ntk_.foreach_fanin( no, [&]( auto const& fi, auto ) {
+        auto const ni = ntk_.get_node( fi );
+        if ( !is_contained( ni ) )
+        {
+          new_inputs.insert( ni );
+        }
+      } );
+    } );
+
+    int delta = static_cast<int>( new_inputs.size() );
+    bool promote = false;
+
+    if ( is_input( n ) )
+    {
+      delta -= 1;     // remove this input, add its fanins
+      promote = true; // this is a reconvergence opportunity
+    }
+
+    return { delta, promote };
+  }
+
+private:
+  void clear()
+  {
+    color_map_.resize();
+    window_.clear();
+  }
+
+  void init( node_index_t const& n )
+  {
+    color_++;
+    window_.pivot = n;
+    // initialize the mffc with the pivot node
+    window_.mffc.push_back( window_.pivot );
+    make_mffc( window_.pivot );
+    // initialize the outputs with the pivot signals
+    ntk_.foreach_output( window_.pivot, [&]( auto const& f ) {
+      window_.outputs.push_back( f );
+    } );
+    // initialize the leaves with the pivot's fanins
+    ntk_.foreach_fanin( window_.pivot, [&]( auto const& fi, auto i ) {
+      (void)i;
+      auto const ni = ntk_.get_node( fi );
+      if ( !is_input( ni ) )
+      {
+        make_input( ni );
+        ntk_.foreach_output( ni, [&]( auto const& fo ) {
+          window_.inputs.push_back( fo );
+        } );
+      }
+    } );
+  }
+
+public:
+  auto const& get_divisors() const
   {
     return window_.divs;
   }
@@ -197,27 +647,27 @@ public:
     return window_.divs[index];
   }
 
-  std::vector<node_index_t> const& get_tfos() const
+  auto const& get_tfos() const
   {
     return window_.tfos;
   }
 
-  std::vector<signal_t> const& get_outputs() const
+  auto const& get_outputs() const
   {
     return window_.outputs;
   }
 
-  std::vector<signal_t> const& get_inputs() const
+  auto const& get_inputs() const
   {
     return window_.inputs;
   }
 
-  std::vector<signal_t> const& get_divs() const
+  auto const& get_divs() const
   {
     return window_.divs;
   }
 
-  std::vector<node_index_t> const& get_mffc() const
+  auto const& get_mffc() const
   {
     return window_.mffc;
   }
@@ -233,20 +683,9 @@ public:
   }
 
 #pragma region Miscellanea
-private:
-  void init( node_index_t const& n )
-  {
-    color_map_.resize();
-    color_++;
-    ntk_.incr_trav_id();
-    window_.outputs.clear();
-    window_.tfos.clear();
-    window_.mffc.clear();
-    window_.divs.clear();
-    window_.inputs.clear();
-  }
 
-  void topological_sort( std::vector<node_index_t>& nodes )
+  template<uint32_t Cap>
+  void topological_sort( rinox::math::static_vector<node_index_t, Cap>& nodes )
   {
     topo_++;
     static constexpr uint32_t maskTag = 0xFFFFF000u;   // upper 20 bits
@@ -265,7 +704,7 @@ private:
     {
       ntk_.foreach_fanin( n, [&]( auto const& fi, auto ) {
         auto const& ni = ntk_.get_node( fi );
-        if ( ( ntk_.value( ni ) >> shiftTag ) == tag )
+        if ( ( ( ntk_.value( ni ) >> shiftTag ) == tag ) )
         {
           uint32_t cnt = ( ntk_.value( n ) & maskCount ) + 1;
           assert( cnt <= maskCount && "indegree overflow (>4095 fanins)" );
@@ -281,8 +720,7 @@ private:
         q.push( n );
     }
 
-    std::vector<node_index_t> result;
-    result.reserve( nodes.size() );
+    rinox::math::static_vector<node_index_t, Cap> result;
 
     while ( !q.empty() )
     {
@@ -311,22 +749,20 @@ private:
     nodes = std::move( result );
   }
 
-  void topological_sort( std::vector<signal_t>& signals )
+  template<uint32_t Cap>
+  void topological_sort( rinox::math::static_vector<signal_t, Cap>& signals )
   {
-    std::vector<node_index_t> nodes;
-    nodes.reserve( signals.size() );
+    rinox::math::static_vector<node_index_t, Cap> nodes;
+
     for ( auto const& s : signals )
     {
       if ( s.output == 0 )
-      {
         nodes.push_back( ntk_.get_node( s ) );
-      }
     }
 
-    topological_sort( nodes );
+    topological_sort<Cap>( nodes );
 
-    std::vector<signal_t> result;
-    result.reserve( signals.size() );
+    rinox::math::static_vector<signal_t, Cap> result;
     for ( auto const& n : nodes )
     {
       ntk_.foreach_output( n, [&]( auto const& f ) {
@@ -337,10 +773,132 @@ private:
     signals = std::move( result );
   }
 
+  void remove_redundant()
+  {
+    static constexpr uint32_t mffc_id = 1u;
+    static constexpr uint32_t divs_id = 2u;
+    static constexpr uint32_t inps_id = 3u;
+    static constexpr uint32_t tfos_id = 4u;
+
+    // mffc
+    front_nodes_.clear();
+    for ( int i = window_.mffc.size() - 1; i >= 0; --i )
+    {
+      auto const n = window_.mffc[i];
+      if ( is_mffc( n ) )
+      {
+        front_nodes_.push_back( n );
+        make_alien( n );
+      }
+    }
+    window_.mffc.clear();
+    for ( auto const& n : front_nodes_ )
+    {
+      window_.mffc.push_back( n );
+      make_mffc( n );
+    }
+    // tfo
+    front_nodes_.clear();
+    for ( int i = window_.tfos.size() - 1; i >= 0; --i )
+    {
+      auto const n = window_.tfos[i];
+      if ( is_tfo( n ) )
+      {
+        front_nodes_.push_back( n );
+        make_alien( n );
+      }
+    }
+    window_.tfos.clear();
+    for ( auto const& n : front_nodes_ )
+    {
+      window_.tfos.push_back( n );
+      make_tfo( n );
+    }
+
+    // inputs
+    front_nodes_.clear();
+    for ( int i = window_.inputs.size() - 1; i >= 0; --i )
+    {
+      auto const n = ntk_.get_node( window_.inputs[i] );
+      if ( is_input( n ) )
+      {
+        front_nodes_.push_back( n );
+        make_alien( n );
+      }
+    }
+    window_.inputs.clear();
+    for ( auto const& n : front_nodes_ )
+    {
+      ntk_.foreach_output( n, [&]( auto const& f ) {
+        window_.inputs.push_back( f );
+      } );
+      make_input( n );
+    }
+    // divisors
+    front_nodes_.clear();
+    for ( int i = window_.divs.size() - 1; i >= 0; --i )
+    {
+      auto const n = ntk_.get_node( window_.divs[i] );
+      if ( is_input( n ) )
+      {
+        front_nodes_.push_back( n );
+        color_map_[n] = inps_id;
+      }
+      else if ( is_divisor( n ) )
+      {
+        front_nodes_.push_back( n );
+        color_map_[n] = divs_id;
+      }
+    }
+    window_.divs.clear();
+    for ( auto const& n : front_nodes_ )
+    {
+      ntk_.foreach_output( n, [&]( auto const& f ) {
+        window_.divs.push_back( f );
+      } );
+      color_map_[n] = ( color_map_[n] | ( color_ << 3u ) );
+    }
+  }
+
 public:
   bool is_tfo( node_index_t const& n ) const
   {
     return is_contained( n ) && ( color_map_[n] == ( 4u | ( color_ << 3u ) ) );
+  }
+
+  bool is_contained( node_index_t const& n ) const
+  {
+    return ( n < color_map_.size() ) && color_map_.has( n ) && ( ( color_map_[n] >> 3u ) == color_ );
+  }
+
+  void make_contained( node_index_t const& n )
+  {
+    color_map_[n] = ( color_ << 3u );
+  }
+  void make_alien( node_index_t const& n )
+  {
+    color_map_[n] = 0;
+  }
+
+  uint32_t get_type( node_index_t const& n )
+  {
+    static constexpr uint32_t mask = 7u;
+    return ( color_map_[n] & mask );
+  }
+
+  void make_mffc( node_index_t const& n )
+  {
+    color_map_[n] = ( 1u | ( color_ << 3u ) );
+  }
+
+  void make_divisor( node_index_t const& n )
+  {
+    color_map_[n] = ( 2u | ( color_ << 3u ) );
+  }
+
+  void make_input( node_index_t const& n )
+  {
+    color_map_[n] = ( 3u | ( color_ << 3u ) );
   }
 
   void make_tfo( node_index_t const& n )
@@ -348,14 +906,23 @@ public:
     color_map_[n] = ( 4u | ( color_ << 3u ) );
   }
 
-  bool is_contained( node_index_t const& n ) const
+  void make_output( node_index_t const& n )
   {
-    return ( n < color_map_.size() ) && color_map_.has( n ) && ( color_map_[n] >> 3u == color_ );
+    color_map_[n] = ( 5u | ( color_ << 3u ) );
+  }
+
+  void make_unknown( node_index_t const& n )
+  {
+    color_map_[n] = ( 7u | ( color_ << 3u ) );
+  }
+
+  bool is_unknown( node_index_t const& n ) const
+  {
+    return is_contained( n ) && ( color_map_[n] == ( ( color_ << 3u ) | 7u ) );
   }
 
   void mark_contained()
   {
-    ntk_.incr_trav_id();
     for ( auto const& f : window_.divs )
     {
       auto const n = ntk_.get_node( f );
@@ -390,24 +957,9 @@ public:
     return is_contained( n ) && ( color_map_[n] == ( 5u | ( color_ << 3u ) ) );
   }
 
-  void make_output( node_index_t const& n )
-  {
-    color_map_[n] = ( 5u | ( color_ << 3u ) );
-  }
-
-  void make_alien( node_index_t const& n )
-  {
-    color_map_[n] = 0;
-  }
-
   bool is_input( node_index_t const& n ) const
   {
     return is_contained( n ) && ( color_map_[n] == ( 3u | ( color_ << 3u ) ) );
-  }
-
-  void make_input( node_index_t const& n )
-  {
-    color_map_[n] = ( 3u | ( color_ << 3u ) );
   }
 
   bool is_mffc( node_index_t const& n ) const
@@ -415,19 +967,9 @@ public:
     return is_contained( n ) && ( color_map_[n] == ( 1u | ( color_ << 3u ) ) );
   }
 
-  void make_mffc( node_index_t const& n )
-  {
-    color_map_[n] = ( 1u | ( color_ << 3u ) );
-  }
-
   bool is_divisor( node_index_t const& n ) const
   {
     return is_contained( n ) && ( color_map_[n] == ( 2u | ( color_ << 3u ) ) );
-  }
-
-  void make_divisor( node_index_t const& n )
-  {
-    color_map_[n] = ( 2u | ( color_ << 3u ) );
   }
 
   bool is_valid() const
@@ -436,366 +978,14 @@ public:
   }
 #pragma endregion
 
-#pragma region TFO
-  void collect_tfos_nodes()
-  {
-    ntk_.foreach_output( window_.pivot, [&]( auto f ) {
-      if ( ntk_.is_po( f ) || ( ps_.odc_levels <= 0 ) )
-        window_.outputs.push_back( f );
-    } );
-    if ( ps_.odc_levels <= 0 )
-    {
-      return;
-    }
-
-    std::vector<node_index_t> fronteer;
-    ntk_.foreach_fanout( window_.pivot, [&]( auto const& no ) {
-      if ( ntk_.visited( no ) != ntk_.trav_id() )
-      {
-        ntk_.set_visited( no, ntk_.trav_id() );
-        fronteer.push_back( no );
-      }
-    } );
-
-    uint32_t level = 0;
-    while ( fronteer.size() > 0 && ( level < ps_.odc_levels ) )
-    {
-      std::vector<node_index_t> new_fronteer;
-      level++;
-      // add the POs to the outputs list
-      for ( auto const& n : fronteer )
-      {
-        window_.tfos.push_back( n );
-        make_tfo( n );
-        ntk_.foreach_output( n, [&]( auto const& f ) {
-          if ( ntk_.is_po( f ) )
-          {
-            window_.outputs.push_back( f );
-          }
-          if ( level == ps_.odc_levels )
-          {
-            bool dep = true;
-            ntk_.foreach_fanout( f, [&]( auto const& no ) {
-              dep &= is_contained( no );
-            } );
-            if ( !dep )
-              window_.outputs.push_back( f );
-          }
-        } );
-      }
-      // expand the fronteer
-      for ( auto const& n : fronteer )
-      {
-        ntk_.foreach_fanout( n, [&]( auto const& no ) {
-          if ( !is_tfo( no ) )
-          {
-            make_tfo( no );
-            new_fronteer.push_back( no );
-          }
-        } );
-      }
-      for ( auto const& n : fronteer )
-      {
-        ntk_.foreach_fanin( n, [&]( auto const& fi ) {
-          auto const ni = ntk_.get_node( fi );
-          if ( !is_contained( ni ) && ( ntk_.visited( ni ) != ntk_.trav_id() ) )
-          {
-            window_.inputs.push_back( fi );
-            ntk_.set_visited( ni, ntk_.trav_id() );
-            make_input( ni );
-          }
-        } );
-      }
-      fronteer = new_fronteer;
-    }
-    window_.inputs.erase( std::remove_if( window_.inputs.begin(), window_.inputs.end(), [&]( auto const& f ) {
-                            auto const ni = ntk_.get_node( f );
-                            return !is_input( ni );
-                          } ),
-                          window_.inputs.end() );
-    window_.divs = window_.inputs;
-  }
-#pragma endregion
-
-  bool collect_divs_nodes()
-  {
-    int cnt = 0;
-    bool done = false, expanded = false;
-    while ( !done )
-    {
-      done = true;
-      auto const num_divs = window_.divs.size();
-      for ( auto i = 0u; i < num_divs; ++i )
-      {
-        ntk_.foreach_fanout( window_.divs[i], [&]( auto const no ) {
-          if ( window_.divs.size() >= ps_.max_num_divisors )
-            return;
-
-          if ( is_input( no ) )
-          {
-            bool all_contained = true;
-            ntk_.foreach_fanin( no, [&]( auto const& fi, auto const ii ) {
-              all_contained &= is_contained( ntk_.get_node( fi ) );
-            } );
-            if ( all_contained )
-              make_divisor( no );
-          }
-          else if ( !is_contained( no ) && ( ntk_.visited( no ) != ntk_.trav_id() ) )
-          {
-            bool in_divs = true;
-            ntk_.foreach_fanin( no, [&]( auto const& fi ) {
-              auto const ni = ntk_.get_node( fi );
-              in_divs &= is_divisor( ni ) || is_input( ni );
-            } );
-            if ( in_divs && ( ( ntk_.num_outputs( no ) + window_.divs.size() ) < ps_.max_num_divisors ) )
-            {
-              ntk_.foreach_output( no, [&]( auto const& fo ) {
-                window_.divs.push_back( fo );
-                make_divisor( no );
-                ntk_.set_visited( no, ntk_.trav_id() );
-              } );
-              done = false;
-              expanded = true;
-            }
-          }
-        } );
-        if ( window_.divs.size() >= ps_.max_num_divisors )
-          done = true;
-      }
-
-      window_.inputs.erase( std::remove_if( window_.inputs.begin(), window_.inputs.end(), [&]( auto const& f ) {
-                              auto const ni = ntk_.get_node( f );
-                              return !is_input( ni );
-                            } ),
-                            window_.inputs.end() );
-    }
-    return expanded;
-  }
-
-  bool collect_leaf_nodes()
-  {
-    bool expanded = false, done = false;
-    while ( !done )
-    {
-      done = true;
-      int best_cost = ps_.max_num_leaves - window_.inputs.size() + 1;
-      std::optional<node_index_t> best_node = std::nullopt;
-      auto const num_inputs = window_.inputs.size();
-      for ( auto i = 0u; i < num_inputs; ++i )
-      {
-        auto const l = window_.inputs[i];
-        node_index_t leaf = ntk_.get_node( l );
-        int cost = compute_leaf_cost( leaf );
-        if ( cost < best_cost )
-        {
-          best_cost = cost;
-          best_node = std::make_optional( leaf );
-        }
-      }
-      if ( best_node )
-      {
-        ntk_.foreach_fanin( *best_node, [&]( auto const& fi, auto ii ) {
-          auto const ni = ntk_.get_node( fi );
-          if ( !is_contained( ni ) )
-          {
-            ntk_.foreach_output( ni, [&]( auto const& fo ) {
-              window_.inputs.push_back( fo );
-              window_.divs.push_back( fo );
-            } );
-            make_input( ni );
-            expanded = true;
-            done = false;
-          }
-        } );
-        make_divisor( *best_node );
-      }
-      window_.inputs.erase( std::remove_if( window_.inputs.begin(), window_.inputs.end(), [&]( auto const& f ) {
-                              auto const ni = ntk_.get_node( f );
-                              return !is_input( ni );
-                            } ),
-                            window_.inputs.end() );
-    }
-    return expanded;
-  }
-
-#pragma region Leaves
-  int compute_leaf_cost( node_index_t const& n )
-  {
-    if ( ntk_.is_pi( n ) )
-      return ps_.max_num_leaves;
-
-    int cost = -static_cast<int>( ntk_.num_outputs( n ) );
-    ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
-      auto const ni = ntk_.get_node( fi );
-      if ( !is_contained( ni ) )
-        cost += ntk_.num_outputs( ni );
-    } );
-    return cost;
-  }
-#pragma endregion Leaves
-
-#pragma region Mffc
-  void collect_mffc_nodes()
-  {
-    make_mffc( window_.pivot );
-    window_.mffc = { window_.pivot };
-    ntk_.set_visited( window_.pivot, ntk_.trav_id() );
-
-    std::vector<node_index_t> fronteer;
-    ntk_.foreach_fanin( window_.pivot, [&]( auto const& fi ) {
-      auto const ni = ntk_.get_node( fi );
-      if ( ntk_.visited( ni ) != ntk_.trav_id() )
-      {
-        ntk_.set_visited( ni, ntk_.trav_id() );
-        fronteer.push_back( ni );
-      }
-    } );
-
-    while ( fronteer.size() > 0 )
-    {
-      std::vector<node_index_t> new_fronteer;
-      for ( auto const& n : fronteer )
-      {
-        bool in_mffc = !ntk_.is_pi( n ) && !is_contained( n ) && !ntk_.is_po( n );
-        if ( in_mffc )
-        {
-          ntk_.foreach_fanout( n, [&]( auto const& no ) {
-            in_mffc &= is_mffc( no );
-          } );
-        }
-        if ( in_mffc )
-        {
-          make_mffc( n );
-          window_.mffc.push_back( n );
-          ntk_.foreach_fanin( n, [&]( auto const& fi ) {
-            auto const ni = ntk_.get_node( fi );
-            if ( ntk_.visited( ni ) != ntk_.trav_id() )
-            {
-              new_fronteer.push_back( ni );
-              ntk_.set_visited( ni, ntk_.trav_id() );
-            }
-          } );
-        }
-        else if ( !is_contained( n ) )
-        {
-          ntk_.foreach_output( n, [&]( auto const& f ) {
-            window_.inputs.push_back( f );
-            window_.divs.push_back( f );
-          } );
-          make_input( n );
-        }
-      }
-      fronteer = new_fronteer;
-    }
-  }
-
-  /* ! \brief Dereference the node's MFFC */
-  void node_deref_rec( node_index_t const& n )
-  {
-    if ( ntk_.is_pi( n ) )
-      return;
-    ntk_.foreach_fanin( n, [&]( const auto& f ) {
-      auto const& p = ntk_.get_node( f );
-      if ( ntk_.is_pi( p ) )
-        return;
-      ntk_.decr_fanout_size( p );
-      if ( ntk_.fanout_size( p ) == 0 )
-      {
-        make_mffc( p );
-        window_.mffc.push_back( p );
-        node_deref_rec( p );
-      }
-    } );
-  }
-
-  /* ! \brief Reference the node's MFFC */
-  void node_ref_rec( node_index_t const& n )
-  {
-    if ( ntk_.is_pi( n ) )
-      return;
-    ntk_.foreach_fanin( n, [&]( const auto& f ) {
-      auto const& p = ntk_.get_node( f );
-      if ( ntk_.is_pi( p ) )
-        return;
-      auto v = ntk_.fanout_size( p );
-      ntk_.incr_fanout_size( p );
-      if ( v == 0 && !ntk_.is_pi( p ) )
-      {
-        node_ref_rec( p );
-      }
-    } );
-  }
-#pragma endregion
-
-#pragma region Divisors
-  void collect_side_divisors()
-  {
-    uint32_t max_level = std::numeric_limits<uint32_t>::min();
-    for ( auto const& f : window_.outputs )
-      max_level = std::max( max_level, ntk_.level( ntk_.get_node( f ) ) );
-
-    bool done = false;
-    while ( !done )
-    {
-      done = true;
-      // check if any leaf is contained by other leaves
-      for ( auto const& f : window_.inputs )
-      {
-        auto const n = ntk_.get_node( f );
-        if ( is_input( n ) && !ntk_.is_pi( n ) )
-        {
-          bool contained = true;
-          ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
-            auto const ni = ntk_.get_node( fi );
-            contained &= is_contained( ni ) && !is_tfo( ni ) && !is_mffc( ni ) && !is_output( ni );
-          } );
-          if ( contained )
-          {
-            make_divisor( n );
-          }
-        }
-      }
-
-      auto& inputs = window_.inputs;
-      inputs.erase( std::remove_if( inputs.begin(),
-                                    inputs.end(),
-                                    [&]( signal_t const& f ) { return is_divisor( ntk_.get_node( f ) ); } ),
-                    inputs.end() );
-
-      std::vector<signal_t> new_divs;
-      for ( auto const& f : window_.divs )
-      {
-        auto const n = ntk_.get_node( f );
-        ntk_.foreach_fanout( n, [&]( auto const& no ) {
-          if ( is_contained( no ) )
-            return;
-          if ( ps_.preserve_depth && ( ntk_.level( no ) >= max_level ) )
-            return;
-          bool add = true;
-          ntk_.foreach_fanin( no, [&]( auto const& fi, auto ii ) {
-            auto ni = ntk_.get_node( fi );
-            add &= is_contained( ni ) && !is_tfo( ni ) && !is_mffc( ni ) && !is_output( ni );
-          } );
-          if ( add )
-          {
-            make_divisor( no );
-            ntk_.foreach_output( no, [&]( auto const& fo ) {
-              new_divs.push_back( fo );
-            } );
-            done = false;
-          }
-          return;
-        } );
-      }
-      for ( auto d : new_divs )
-        window_.divs.push_back( d );
-    }
-  }
-
-public:
   size_t num_inputs() const
   {
     return window_.inputs.size();
+  }
+
+  size_t num_mffc() const
+  {
+    return window_.mffc.size();
   }
 
   size_t num_outputs() const
@@ -933,6 +1123,9 @@ public:
 private:
   Ntk& ntk_;
   window_t<Ntk> window_;
+  std::vector<signal_t> best_inputs_;
+  front_signals_t front_;
+  front_nodes_t front_nodes_;
   mockturtle::incomplete_node_map<uint32_t, Ntk> color_map_;
   uint32_t color_ = 1u;
   uint32_t topo_ = 1u;

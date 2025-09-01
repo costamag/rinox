@@ -4,13 +4,13 @@
 #include <kitty/kitty.hpp>
 #include <kitty/static_truth_table.hpp>
 
+#include <mockturtle/io/genlib_reader.hpp>
+#include <mockturtle/utils/tech_library.hpp>
+#include <mockturtle/views/depth_view.hpp>
 #include <rinox/dependency/window_dependencies.hpp>
 #include <rinox/network/network.hpp>
 #include <rinox/windowing/window_manager.hpp>
 #include <rinox/windowing/window_simulator.hpp>
-#include <mockturtle/io/genlib_reader.hpp>
-#include <mockturtle/utils/tech_library.hpp>
-#include <mockturtle/views/depth_view.hpp>
 
 std::string const test_library = "GATE   and2    1.0 O=a*b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
                                  "GATE   or2     1.0 O=a+b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
@@ -54,7 +54,7 @@ TEST_CASE( "Enumerate dependency cuts", "[window_dependencies]" )
 
   fs.push_back( ntk.create_node( std::vector<signal>{ fs[2], fs[3] }, 2 ) ); // 6
   fs.push_back( ntk.create_node( std::vector<signal>{ fs[4], fs[5] }, 2 ) ); // 7
-  fs.push_back( ntk.create_node( std::vector<signal>{ fs[6], fs[7] }, 2 ) ); // 7
+  fs.push_back( ntk.create_node( std::vector<signal>{ fs[6], fs[7] }, 2 ) ); // 8
 
   ntk.create_po( fs[6] );
   ntk.create_po( fs[7] );

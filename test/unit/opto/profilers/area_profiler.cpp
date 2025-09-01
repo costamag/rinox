@@ -5,13 +5,13 @@
 #include <vector>
 
 #include <lorina/genlib.hpp>
-#include <rinox/network/network.hpp>
-#include <rinox/opto/profilers/area_profiler.hpp>
-#include <rinox/windowing/window_manager.hpp>
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/io/super_reader.hpp>
 #include <mockturtle/utils/tech_library.hpp>
 #include <mockturtle/views/depth_view.hpp>
+#include <rinox/network/network.hpp>
+#include <rinox/opto/profilers/area_profiler.hpp>
+#include <rinox/windowing/window_manager.hpp>
 
 using namespace mockturtle;
 
@@ -71,8 +71,8 @@ TEST_CASE( "Area profiler for resynthesis of mapped networks", "[area_resyn_prof
   } );
 
   CHECK( ntk.area() == 14 );
-  CHECK( sorted_nodes[0] == 11 );
-  CHECK( sorted_nodes[1] == 9 );
+  CHECK( sorted_nodes[0] == 6 );
+  CHECK( sorted_nodes[1] == 7 );
   CHECK( profiler.evaluate( f6.index, std::vector<signal>( { a, b, c, d } ) ) == 8 );
   CHECK( profiler.evaluate( f6.index, std::vector<signal>( { f1, f2, f3 } ) ) == 6 );
   CHECK( profiler.evaluate( f6.index, std::vector<signal>( { f4, f5 } ) ) == 2 );

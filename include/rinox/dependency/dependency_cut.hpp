@@ -33,6 +33,7 @@
 #pragma once
 
 #include "../boolean/simd.hpp"
+#include "../math/math.hpp"
 #include <kitty/kitty.hpp>
 
 namespace rinox
@@ -55,18 +56,18 @@ struct dependency_cut_t
 
 public:
   using signal_t = typename Ntk::signal;
-  using leaves_t = std::vector<signal_t>;
+  using signals_t = rinox::math::static_vector<signal_t, MaxCutSize>;
   using node_index_t = typename Ntk::node;
   using truth_table_t = kitty::static_truth_table<MaxCutSize>;
   using functionality_t = kitty::ternary_truth_table<truth_table_t>;
 
   dependency_cut_t() = default;
 
-  dependency_cut_t( dependency_t const& type, node_index_t const& root, leaves_t const& leaves, functionality_t const& func )
+  dependency_cut_t( dependency_t const& type, node_index_t const& root, signals_t const& leaves, functionality_t const& func )
       : type( type ), root( root ), leaves( leaves ), func( { func } )
   {}
 
-  dependency_cut_t( dependency_t const& type, node_index_t const& root, leaves_t const& leaves )
+  dependency_cut_t( dependency_t const& type, node_index_t const& root, signals_t const& leaves )
       : type( type ), root( root ), leaves( leaves )
   {}
 
@@ -80,22 +81,22 @@ public:
     func.push_back( tt );
   }
 
-  typename std::vector<signal_t>::iterator cbegin()
+  typename signals_t::const_iterator cbegin()
   {
     return leaves.cbegin();
   }
 
-  typename std::vector<signal_t>::iterator cend()
+  typename signals_t::const_iterator cend()
   {
     return leaves.cend();
   }
 
-  typename std::vector<signal_t>::iterator begin()
+  typename signals_t::iterator begin()
   {
     return leaves.begin();
   }
 
-  typename std::vector<signal_t>::iterator end()
+  typename signals_t::iterator end()
   {
     return leaves.end();
   }
@@ -108,7 +109,7 @@ public:
   dependency_t type;
   node_index_t root;
   std::vector<functionality_t> func;
-  std::vector<signal_t> leaves;
+  signals_t leaves;
 };
 
 template<uint32_t NumVars>

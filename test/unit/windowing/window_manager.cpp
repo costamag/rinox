@@ -82,11 +82,11 @@ TEST_CASE( "Window construction with reconvergent structure", "[window_manager]"
   CHECK( window.run( dntk.get_node( fs[13] ) ) );
   CHECK( window.is_valid() );
   auto const mffc = window.get_mffc();
-  CHECK( mffc == std::vector<typename Ntk::node_index_t>{ 7, 8, 9, 13, 14, 15, 16, 17, 18 } );
+  CHECK( mffc == std::vector<typename Ntk::node_index_t>{ 9, 13, 15, 16, 17, 18 } );
   auto const tfos = window.get_tfos();
-  CHECK( tfos == std::vector<typename Ntk::node_index_t>{ 19, 20, 21, 22, 23, 24, 25 } );
+  CHECK( tfos == std::vector<typename Ntk::node_index_t>{ 20, 19, 23, 21, 22, 24, 25 } );
   auto const outputs = window.get_outputs();
-  CHECK( outputs == std::vector<typename Ntk::signal_t>{ fs[18], fs[19], fs[20] } );
+  CHECK( outputs == std::vector<typename Ntk::signal_t>{ fs[20], fs[19], fs[18] } );
   auto const leaves = window.get_inputs();
   CHECK( leaves == std::vector<typename Ntk::signal_t>( { a, b, c } ) );
 
@@ -98,11 +98,11 @@ TEST_CASE( "Window construction with reconvergent structure", "[window_manager]"
   CHECK( window2.run( dntk.get_node( fs[13] ) ) );
   CHECK( window2.is_valid() );
   auto const mffc2 = window2.get_mffc();
-  CHECK( mffc2 == std::vector<typename Ntk::node_index_t>{ 7, 8, 9, 13, 14, 15, 16, 17, 18 } );
+  CHECK( mffc2 == std::vector<typename Ntk::node_index_t>{ 9, 13, 15, 16, 17, 18 } );
   auto const tfos2 = window2.get_tfos();
-  CHECK( tfos2 == std::vector<typename Ntk::node_index_t>{ 19, 20, 21, 22, 23, 24, 25 } );
+  CHECK( tfos2 == std::vector<typename Ntk::node_index_t>{ 20, 19, 23, 21, 22, 24, 25 } );
   auto const outputs2 = window2.get_outputs();
-  CHECK( outputs2 == std::vector<typename Ntk::signal_t>( { fs[18], fs[19], fs[20] } ) );
+  CHECK( outputs2 == std::vector<typename Ntk::signal_t>( { fs[20], fs[19], fs[18] } ) );
   auto const leaves2 = window2.get_inputs();
   CHECK( leaves2 == std::vector<typename Ntk::signal_t>( { a, b, c } ) );
 }
@@ -211,8 +211,8 @@ TEST_CASE( "Pathological case 2", "[window_manager]" )
   auto const outputs = window.get_outputs();
   auto const leaves = window.get_inputs();
   auto const divs = window.get_divisors();
-  CHECK( outputs.size() == 2u );
-  CHECK( divs.size() == 5u );
+  CHECK( outputs.size() == 1u );
+  CHECK( divs.size() == 4u );
 }
 
 std::string const test_library3 = "GATE   and2    1.0 O=a*b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"

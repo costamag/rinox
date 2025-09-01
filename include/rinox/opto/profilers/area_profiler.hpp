@@ -81,11 +81,11 @@ public:
     return arrival_.get_time( f );
   }
 
-  template<class List_t>
-  cost_t evaluate( List_t const& list, std::vector<signal_t> const& leaves, node_index_t const& nold = std::numeric_limits<node_index_t>::max() )
+  template<class List_t, typename Signals>
+  cost_t evaluate( List_t const& list, Signals const& leaves, node_index_t const& nold = std::numeric_limits<node_index_t>::max() )
   {
     (void)nold;
-    signal_t const f = insert( ntk_, leaves, list );
+    signal_t const f = rinox::evaluation::chains::insert<Ntk, Ntk::design_t, Signals, true>( ntk_, leaves, list );
     node_index_t const n = ntk_.get_node( f );
     cost_t const cost_deref = recursive_deref( n );
     cost_t const cost_ref = recursive_ref( n );
@@ -95,13 +95,14 @@ public:
     return cost_deref;
   }
 
-  cost_t evaluate_rewiring( node_index_t const& n, std::vector<signal_t> const& new_children )
+  template<typename Signals>
+  cost_t evaluate_rewiring( node_index_t const& n, Signals const& new_children )
   {
     for ( auto const& f : new_children )
       ntk_.incr_fanout_size( ntk_.get_node( f ) );
 
     auto const& win_inputs = win_manager_.get_inputs();
-    auto const cost = evaluate( n, win_inputs ) - ntk_.get_area( n );
+    auto const cost = evaluate<typename WinMngr::input_signals_t>( n, win_inputs ) - ntk_.get_area( n );
 
     for ( auto const& f : new_children )
       ntk_.decr_fanout_size( ntk_.get_node( f ) );
@@ -109,7 +110,8 @@ public:
     return cost;
   }
 
-  cost_t evaluate( node_index_t const& n, std::vector<signal_t> const& children, node_index_t nold = std::numeric_limits<node_index_t>::max() )
+  template<typename Signals>
+  cost_t evaluate( node_index_t const& n, Signals const& children, node_index_t nold = std::numeric_limits<node_index_t>::max() )
   {
     std::vector<node_index_t> leaves( children.size() );
     std::transform( children.begin(), children.end(), leaves.begin(), [&]( auto const f ) { return ntk_.get_node( f ); } );
