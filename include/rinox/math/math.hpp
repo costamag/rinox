@@ -138,6 +138,39 @@ struct static_vector
       std::swap( data_[i], data_[n - 1] );
     --n;
   }
+
+
+  iterator erase( iterator pos )
+  {
+    if ( pos < begin() || pos >= end() )
+      throw std::out_of_range( "erase iterator out of range" );
+
+    size_t idx = static_cast<size_t>( pos - begin() );
+
+    // shift left
+    for ( size_t i = idx; i + 1 < n; ++i )
+      data_[i] = std::move( data_[i + 1] );
+
+    --n;
+    return begin() + idx; // return iterator to next element
+  }
+
+  iterator erase( iterator first, iterator last )
+  {
+    if ( first < begin() || last > end() || first > last )
+      throw std::out_of_range( "erase range out of range" );
+
+    size_t idx_first = static_cast<size_t>( first - begin() );
+    size_t idx_last  = static_cast<size_t>( last - begin() );
+    size_t count     = idx_last - idx_first;
+
+    for ( size_t i = idx_first; i + count < n; ++i )
+      data_[i] = std::move( data_[i + count] );
+
+    n -= count;
+    return begin() + idx_first; // iterator to next valid element
+  }
+
   void erase_value( T const& v )
   {
     if ( empty() )

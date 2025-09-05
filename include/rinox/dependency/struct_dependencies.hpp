@@ -74,7 +74,6 @@ public:
     assert( ( std::is_same<signature_t, typename WinSim::signature_t>::value && "signatures have different type" ) );
     cuts_.clear();
 
-    window.mark_contained();
     // identify candidates through branch and bound
     struct_enumeration<WinMng, WinSim>( window, simulator );
   }
@@ -189,6 +188,7 @@ public:
     ntk_.foreach_fanin( pivot, [&]( auto const& fi, auto ) {
       init_front.push_back( fi );
     } );
+
     std::stable_sort( init_front.begin(), init_front.end() );
 
     std::vector<front_sigs_t> worklist;
@@ -214,7 +214,9 @@ public:
         // collect simulator signatures
         std::vector<signature_t const*> in_ptrs;
         for ( auto const& l : cut )
+        {
           in_ptrs.push_back( &simulator.get( l ) );
+        }
 
         // collect *all signals* of pivot node (multi-output)
         ntk_.foreach_output( pivot, [&]( auto const& f ) {

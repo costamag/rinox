@@ -81,7 +81,6 @@ public:
   {
     assert( ( std::is_same<signature_t, typename WinSim::signature_t>::value && "signatures have different type" ) );
     cuts_.clear();
-    window.mark_contained();
     // initialize the approximate information manager
     load_information( window, simulator );
     // identify candidates through branch and bound
@@ -158,7 +157,7 @@ private:
     } );
 
     info_from_.resize( divs_info_.size() );
-    if ( !divs_info_.empty() ) // ✅ fix: guard before back()
+    if ( !divs_info_.empty() )
     {
       info_from_.back() = divs_info_.back();
       for ( int i = info_from_.size() - 2; i >= 0; --i )
@@ -268,7 +267,7 @@ private:
       if ( contains( other, cut ) )
         erase.push_back( i );
     }
-    for ( auto it = erase.rbegin(); it != erase.rend(); ++it ) // ✅ fix: use != instead of <
+    for ( auto it = erase.rbegin(); it != erase.rend(); ++it )
     {
       cuts.erase( cuts.begin() + *it );
     }
@@ -381,7 +380,7 @@ private:
     while ( !spfds_.is_covered() && !spfds_.is_saturated() && ( cnt < max_cuts_size ) && iteration_guard-- )
     {
       std::optional<uint32_t> best_div;
-      uint32_t best_num_edges = std::numeric_limits<uint32_t>::max(); // ✅ reset each iteration
+      uint32_t best_num_edges = std::numeric_limits<uint32_t>::max();
       window.foreach_divisor( [&]( auto const& d, auto i ) {
         auto const& sign = simulator.get( d );
         auto const num_edges = spfds_.evaluate( sign );

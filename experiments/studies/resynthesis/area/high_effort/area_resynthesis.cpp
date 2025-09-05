@@ -99,6 +99,13 @@ int main()
     return false;
   mockturtle::tech_library<9> tech_lib( *gates, map.tps );
 
+  auto static constexpr design_t = rinox::network::design_type_t::CELL_BASED;
+  static constexpr uint32_t max_num_outputs = 2u;
+  using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
+  rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( *gates );
+  rinox::databases::mapped_database<Ntk, 4u> db( lib );
+  db.load( rsy.database.path );
+
   bool const success = rinox::experiments::foreach_benchmark( ctx, [&]( std::string const& path, std::string const& name ) {
     rinox::diagnostics::REPORT_DIAG( &diag, lorina::diagnostic_level::note,
                                      "Processing benchmark `{}`", name );
@@ -108,26 +115,21 @@ int main()
     /* ========================================================================== */
     auto sota = evaluate_sota( path, aig_opts, map, tech_lib );
     if ( !sota )
-      return false;
+    return false;
     auto [ntk_sota, st_sota] = *sota;
+    mockturtle::write_verilog_with_cell( ntk_sota, name + ".sota.v" );
 
     /* ========================================================================== */
     /*   New algorithm evaluation                                                 */
     /* ========================================================================== */
-    auto static constexpr design_t = rinox::network::design_type_t::CELL_BASED;
-    static constexpr uint32_t max_num_outputs = 2u;
-    using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
     Ntk ntk_opto = rinox::network::convert_mapped_to_bound( ntk_sota, *gates );
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
 
     rinox::opto::algorithms::resynthesis_stats rst;
-    rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( *gates );
-    rinox::databases::mapped_database<Ntk, 4u> db( lib );
-    db.load( rsy.database.path );
-    mockturtle::write_verilog_with_cell( ntk_sota, name + ".sota.v" );
-    rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
+
     rinox::opto::algorithms::area_resynthesize( dntk_opto, db, rsy.ps, &rst );
+    rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
 
     /* ========================================================================== */
     /*   Equivalence checking                                                     */

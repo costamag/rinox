@@ -69,7 +69,7 @@
 #define RINOX_MAX_NUM_LEAVES 12
 #endif
 
-#define DEBUG_INFO false
+#define DEBUG_INFO true
 
 namespace rinox
 {
@@ -229,12 +229,14 @@ public:
     chain_t best_chain;
     best_chain.add_inputs( Params::max_cuts_size );
 
+    int cnt = 0;
     auto nmax = ntk_.size();
-    profiler_.foreach_gate( [&]( auto n ) {
+    profiler_.foreach_gate( [&]( auto n ) -> bool
+    {
       if ( st_.num_optims >= ps_.stop_after_nth )
         return false;
 
-      if ( n >= nmax )
+      if ( cnt++ >= nmax )
         return false;
       /* Skip nodes which cannot result in optimization */
       if ( skip_node( n ) )
@@ -264,22 +266,10 @@ public:
         } );
         if ( best_cut )
         {
-#if DEBUG_INFO
-          auto const filename1 = "before_" + std::to_string( n );
-          auto const win1 = win_manager_.get_window();
-          win_manager_.print();
-          rinox::graphics::visualize_multioutput_window( ntk_, win1, filename1 );
-#endif
           st_.num_optims++;
           auto const ids = ntk_.get_binding_ids( n );
           auto const fnew = ntk_.template create_node<signals_t, true>( ( *best_cut ).leaves, ids );
           substitute_node( n, fnew );
-          win_manager_.run( fnew.index );
-#if DEBUG_INFO
-          auto const win = win_manager_.get_window();
-          auto const filename = "rewire_" + std::to_string( n ) + "_to_" + std::to_string( fnew.index );
-          rinox::graphics::visualize_multioutput_window( ntk_, win, filename );
-#endif
           return true;
         }
       }
@@ -289,16 +279,7 @@ public:
 
       if ( ps_.try_struct )
       {
-
-#if DEBUG_INFO
-        auto const filename1 = "before_" + std::to_string( n );
-        auto const win1 = win_manager_.get_window();
-        win_manager_.print();
-        rinox::graphics::visualize_multioutput_window( ntk_, win1, filename1 );
-#endif
-
         struct_dependencies.run( win_manager_, win_simulator_ );
-
         struct_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           auto const reward = evaluate( cut, best_chain, best_leaves );
           best_reward = std::max( reward, best_reward );
@@ -306,21 +287,9 @@ public:
 
         if ( best_reward > 0 )
         {
-#if DEBUG_INFO
-          auto const filename1 = "before_" + std::to_string( n );
-          auto const win1 = win_manager_.get_window();
-          rinox::graphics::visualize_multioutput_window( ntk_, win1, filename1 );
-#endif
           st_.num_optims++;
           auto const fnew = rinox::evaluation::chains::insert<Ntk, Ntk::design_t, signals_t, true>( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
-          win_manager_.run( fnew.index );
-
-#if DEBUG_INFO
-          auto const win = win_manager_.get_window();
-          auto const filename = "cut_rewrite_" + std::to_string( n ) + "_to_" + std::to_string( fnew.index );
-          rinox::graphics::visualize_multioutput_window( ntk_, win, filename );
-#endif
           return true;
         }
       }
@@ -333,23 +302,10 @@ public:
 
         if ( best_reward > 0 )
         {
-#if DEBUG_INFO
-          auto const filename1 = "before_" + std::to_string( n );
-          auto const win1 = win_manager_.get_window();
-          rinox::graphics::visualize_multioutput_window( ntk_, win1, filename1 );
-#endif
-
           st_.num_optims++;
           auto const fnew = rinox::evaluation::chains::insert<Ntk, Ntk::design_t, signals_t, true>( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
-
           win_manager_.run( fnew.index );
-#if DEBUG_INFO
-          auto const win = win_manager_.get_window();
-          auto const filename = "window_" + std::to_string( n ) + "_to_" + std::to_string( fnew.index );
-          rinox::graphics::visualize_multioutput_window( ntk_, win, filename );
-#endif
-
           return true;
         }
       }
@@ -361,6 +317,9 @@ public:
 private:
   double evaluate( cut_t const& cut, chain_t& best_chain, signals_t& best_leaves )
   {
+
+    uint32_t size_bef = ntk_.size();
+
     double best_reward = 0;
     if ( cut.func.size() > 1 )
       return 0;
@@ -374,7 +333,7 @@ private:
     auto times = get_times( signals );
     signals.resize( Params::max_cuts_size, std::numeric_limits<uint64_t>::max() );
     times.resize( Params::max_cuts_size, std::numeric_limits<double>::max() );
-    signal_t best_signal;
+    std::optional<signal_t> best_signal;
     if ( !decomposer_.run( cut_func, times ) )
       return 0;
 
@@ -386,27 +345,42 @@ private:
         signals.push_back( signal );
         times.push_back( time );
         specs[lit].sim._bits = sim;
-        best_signal = signal;
+        best_signal = std::make_optional(signal);
         return true;
       }
       return false;
     } );
 
+    uint32_t size_aft = ntk_.size();
     if ( !success )
+    {
+      if ( best_signal && ( size_bef < size_aft ) )
+        ntk_.take_out_node( ntk_.get_node( *best_signal ) );
       return 0;
+    }
 
     chain_t new_chain;
     new_chain.add_inputs( cut.leaves.size() );
-    extract( new_chain, ntk_, cut.leaves, best_signal );
-    double const cost_cand = profiler_.template evaluate<chain_t, signals_t>( new_chain, cut.leaves, cut.root );
-    auto const reward = cost_curr - cost_cand;
-    if ( reward > best_reward )
+    if ( signals.back().index > 0 )
     {
-      best_reward = reward;
-      best_leaves = cut.leaves;
-      best_chain = new_chain;
+      extract( new_chain, ntk_, cut.leaves, *best_signal );
+      if ( size_bef < size_aft )
+        ntk_.take_out_node( ntk_.get_node( *best_signal ) );
+      double const cost_cand = profiler_.template evaluate<chain_t, signals_t>( new_chain, cut.leaves, cut.root );
+      auto const reward = cost_curr - cost_cand;
+      if ( reward > best_reward )
+      {
+        best_reward = reward;
+        best_leaves = cut.leaves;
+        best_chain = new_chain;
+      }
+      return best_reward;
     }
-    return best_reward;
+    else
+    {
+      std::cout << "constant 0 in resub: not implemented yet" << std::endl;
+      return 0;
+    }
   }
 
   std::optional<std::tuple<signal_t, double, func_t>> local_synthesis( cut_t const& cut, typename decomposer_t::specs_t const& specs, uint8_t lit, std::vector<signal_t>& signals, std::vector<double>& times )
@@ -417,6 +391,15 @@ private:
       sim_ptrs.push_back( &specs[i].sim._bits );
 
     auto itt = dependency::extract_function<func_t, Database::max_num_vars>( sim_ptrs, specs[lit].sim._bits, specs[lit].sim._care );
+    // deal with the constant
+    func_t const0;
+    func_t const1 = ~const0;
+    if ( kitty::is_const0( itt._bits&itt._care ) )
+      return std::make_tuple( ntk_.get_constant( false ), 0, const0 );
+    if ( kitty::equal( itt._bits & itt._care, itt._care ) )
+      return std::make_tuple( ntk_.get_constant( true ), 0, const1 );
+
+
     double best_loc_cost = std::numeric_limits<double>::max();
     std::optional<node> best_database_node;
     std::vector<signal_t> best_loc_leaves;

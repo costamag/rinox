@@ -99,9 +99,9 @@ inline resynthesis_t<Params> load_resynthesis_params( rapidjson::Value const& do
     // -----------------------------
     // Parse "database" section
     // -----------------------------
-    if ( params.HasMember( "database" ) && params["database"].IsObject() )
+    if ( rp.HasMember( "database" ) && rp["database"].IsObject() )
     {
-      const auto& db = params["database"];
+      const auto& db = rp["database"];
   
       // Parse "todo"
       if ( db.HasMember("todo") && db["todo"].IsArray() )

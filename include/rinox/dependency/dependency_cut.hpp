@@ -154,6 +154,7 @@ kitty::ternary_truth_table<kitty::static_truth_table<NumVars>> extract_function(
     }
   }
   kitty::ternary_truth_table<truth_table_t> tt( onset, careset );
+
   return tt;
 }
 

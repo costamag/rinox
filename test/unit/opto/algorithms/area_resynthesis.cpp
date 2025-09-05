@@ -108,7 +108,7 @@ TEST_CASE( "Area resynthesis via rewiring - single-output gate with don't cares"
   custom_area_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
   rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_rewire_params>( dntk, db, ps );
-  CHECK( ntk.area() == 5.5 );
+  CHECK( ntk.area() == 5.5);
 }
 
 TEST_CASE( "Area resynthesis via rewiring - multiple-output gate without don't cares", "[area_resynthesis]" )

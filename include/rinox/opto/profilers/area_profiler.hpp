@@ -124,10 +124,12 @@ public:
   template<typename Fn>
   void foreach_gate( Fn&& fn )
   {
-    ntk_.foreach_gate( [&]( node_index_t const& n ) {
-      if ( !ntk_.is_dead( n ) && !ntk_.is_constant( n ) && !ntk_.is_pi( n ) )
-        fn( n );
-    } );
+    sort_nodes();
+    for ( auto const& n : nodes_ )
+    {
+      if ( !fn( n.root ) )
+        return;
+    }
   }
 
 private:

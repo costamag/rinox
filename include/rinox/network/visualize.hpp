@@ -71,16 +71,16 @@ inline void visualize_multioutput_window( Ntk const& ntk, Window const& w, std::
   };
 
   // Assign colors per category
-  for ( auto const& f : w.inputs )
+  for ( auto const& f : w.inps_ )
     register_signal_outputs( f, "#a1d99b" ); // green inputs
-  for ( auto const& f : w.divs )
+  for ( auto const& f : w.divs_ )
     register_signal_outputs( f, "#9ecae1" );   // blue divisors
   register_node_outputs( w.pivot, "#e6550d" ); // pivot = red/orange
-  for ( auto const& n : w.mffc )
+  for ( auto const& n : w.mffc_ )
     register_node_outputs( n, "#fc9272" ); // red mffc
-  for ( auto const& n : w.tfos )
+  for ( auto const& n : w.tfos_ )
     register_node_outputs( n, "#fdae6b" ); // orange tfo
-  for ( auto const& f : w.outputs )
+  for ( auto const& f : w.outs_ )
     register_signal_outputs( f, "#756bb1" ); // purple outputs
 
   // Take a snapshot of the registered outputs
@@ -103,13 +103,13 @@ inline void visualize_multioutput_window( Ntk const& ntk, Window const& w, std::
       // Fanins
       ntk.foreach_fanin( f, [&]( auto const& fi, auto ) {
         NodeOutput src_key{ ntk.get_node( fi ), fi.output };
-        // if (!id_map.count(src_key)) {
-        //   uint32_t node_id = g.add_node();
-        //   id_map[src_key] = node_id;
-        //   labels[node_id] = std::to_string(fi.index) + "_" + std::to_string(fi.output);
-        //   styles[node_id].fill = "#ff8fe9";
-        // }
-        // g.add_edge(id_map[src_key], dst);
+        //if (!id_map.count(src_key)) {
+        //  uint32_t node_id = g.add_node();
+        //  id_map[src_key] = node_id;
+        //  labels[node_id] = std::to_string(fi.index) + "_" + std::to_string(fi.output);
+        //  styles[node_id].fill = "#ff8fe9";
+        //}
+        //g.add_edge(id_map[src_key], dst);
 
         if ( id_map.count( src_key ) )
           g.add_edge( id_map[src_key], dst );
@@ -119,13 +119,13 @@ inline void visualize_multioutput_window( Ntk const& ntk, Window const& w, std::
       ntk.foreach_fanout( f, [&]( auto const& no ) {
         ntk.foreach_output( no, [&]( auto const& fo ) {
           NodeOutput fanout_key{ no, fo.output };
-          // if (!id_map.count(fanout_key)) {
-          //   uint32_t node_id = g.add_node();
-          //   id_map[fanout_key] = node_id;
-          //   labels[node_id] = std::to_string(fo.index) + "_" + std::to_string(fo.output);
-          //   styles[node_id].fill = "#ff8fe9";
-          // }
-          // g.add_edge(dst, id_map[fanout_key]);
+          //if (!id_map.count(fanout_key)) {
+          //  uint32_t node_id = g.add_node();
+          //  id_map[fanout_key] = node_id;
+          //  labels[node_id] = std::to_string(fo.index) + "_" + std::to_string(fo.output);
+          //  styles[node_id].fill = "#ff8fe9";
+          //}
+          //g.add_edge(dst, id_map[fanout_key]);
           if ( id_map.count( fanout_key ) )
             g.add_edge( dst, id_map[fanout_key] );
         } );
@@ -166,16 +166,28 @@ inline void visualize_multioutput_window( Ntk const& ntk, Window const& w, std::
      << "height=\"" << ( max_y - min_y ) << "\">\n";
 
   // Edges
+  // Define arrow marker
+  os << "<defs>\n";
+  os << "  <marker id=\"arrow\" markerWidth=\"10\" markerHeight=\"10\" "
+     << "refX=\"9\" refY=\"3\" orient=\"auto\" markerUnits=\"strokeWidth\">\n";
+  os << "    <path d=\"M0,0 L0,6 L9,3 z\" fill=\"black\" />\n";
+  os << "  </marker>\n";
+  os << "</defs>\n";
+
+  // Draw edges as polylines with arrow at the end
   for ( auto const& path : layout.edges() )
   {
-    auto const& pts = path.points;
-    for ( size_t i = 1; i < pts.size(); ++i )
+    if ( path.points.size() < 2 ) continue;
+
+    os << "<polyline points=\"";
+    for ( auto const& p : path.points )
     {
-      os << "<line x1=\"" << pts[i - 1].x << "\" y1=\"" << pts[i - 1].y
-         << "\" x2=\"" << pts[i].x << "\" y2=\"" << pts[i].y
-         << "\" stroke=\"black\" stroke-width=\"1\" />\n";
+      os << p.x << "," << p.y << " ";
     }
+    os << "\" fill=\"none\" stroke=\"black\" stroke-width=\"1\" "
+       << "marker-end=\"url(#arrow)\" />\n";
   }
+
 
   // Nodes
   for ( auto const& v : verts )

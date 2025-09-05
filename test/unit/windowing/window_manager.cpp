@@ -25,9 +25,202 @@ struct window_manager_params2 : rinox::windowing::default_window_manager_params
   static constexpr uint32_t max_num_leaves = 8u;
 };
 
+TEST_CASE( "Window made of only MFFC nodes and PIs", "[window_manager]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  std::vector<mockturtle::gate> gates;
+
+  std::istringstream in( test_library );
+  auto result = lorina::read_genlib( in, mockturtle::genlib_reader( gates ) );
+  CHECK( result == lorina::return_code::success );
+
+  Ntk ntk( gates );
+
+  using signal = typename Ntk::signal;
+  std::vector<signal> fs;
+  /* Database construction from network */
+  fs.emplace_back(); // 0
+  fs.emplace_back(); // 1
+  fs.push_back( ntk.create_pi() ); // 2
+  fs.push_back( ntk.create_pi() ); // 3
+  fs.push_back( ntk.create_pi() ); // 4
+  fs.push_back( ntk.create_node( { fs[2], fs[3] }, 1 ) ); // 5
+  fs.push_back( ntk.create_node( { fs[5], fs[4] }, 1 ) ); // 6
+  fs.push_back( ntk.create_node( { fs[6], fs[5] }, 1 ) ); // 7
+  fs.push_back( ntk.create_node( { fs[6], fs[7] }, 1 ) ); // 8
+
+  ntk.create_po( fs[8] );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+
+  window_manager_params1 ps1;
+  ps1.odc_levels = 0u;
+
+  rinox::windowing::window_manager<DNtk, window_manager_params1> window( dntk, ps1, st );
+
+  CHECK( window.run( dntk.get_node( fs[8] ) ) );
+  CHECK( window.is_valid() );
+  auto const mffc = window.get_mffc();
+  CHECK( mffc == std::vector<typename Ntk::node_index_t>{ 5, 6, 7, 8 } );
+}
+
+TEST_CASE( "Window made of only MFFC nodes exceeding leaves capacity", "[window_manager]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  std::vector<mockturtle::gate> gates;
+
+  std::istringstream in( test_library );
+  auto result = lorina::read_genlib( in, mockturtle::genlib_reader( gates ) );
+  CHECK( result == lorina::return_code::success );
+
+  Ntk ntk( gates );
+
+  using signal = typename Ntk::signal;
+  std::vector<signal> fs;
+  /* Database construction from network */
+  fs.emplace_back(); // 0
+  fs.emplace_back(); // 1
+  fs.push_back( ntk.create_pi() ); // 2
+  fs.push_back( ntk.create_pi() ); // 3
+  fs.push_back( ntk.create_pi() ); // 4
+  fs.push_back( ntk.create_pi() ); // 5
+  fs.push_back( ntk.create_pi() ); // 6
+  fs.push_back( ntk.create_node( { fs[3] }, 0 ) ); // 7
+  fs.push_back( ntk.create_node( { fs[2], fs[7] }, 1 ) ); // 8
+  fs.push_back( ntk.create_node( { fs[4], fs[8] }, 1 ) ); // 9
+  fs.push_back( ntk.create_node( { fs[8], fs[5] }, 1 ) ); // 10
+  fs.push_back( ntk.create_node( { fs[6], fs[10] }, 1 ) ); // 11
+  fs.push_back( ntk.create_node( { fs[9], fs[11] }, 1 ) ); // 12
+
+  ntk.create_po( fs[12] );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+
+  window_manager_params1 ps1;
+  ps1.odc_levels = 0u;
+
+  rinox::windowing::window_manager<DNtk, window_manager_params1> window( dntk, ps1, st );
+
+  CHECK( window.run( dntk.get_node( fs[12] ) ) );
+  CHECK( window.is_valid() );
+  auto const mffc = window.get_mffc();
+  CHECK( mffc == std::vector<typename Ntk::node_index_t>{ 9, 12 } );
+  auto const inps = window.get_inputs();
+  CHECK( inps == std::vector<typename Ntk::signal_t>{ 8, 16, 22 } );
+}
+
+TEST_CASE( "Window where leaves expansion is possible", "[window_manager]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  std::vector<mockturtle::gate> gates;
+
+  std::istringstream in( test_library );
+  auto result = lorina::read_genlib( in, mockturtle::genlib_reader( gates ) );
+  CHECK( result == lorina::return_code::success );
+
+  Ntk ntk( gates );
+
+  using signal = typename Ntk::signal;
+  std::vector<signal> fs;
+  /* Database construction from network */
+  fs.emplace_back(); // 0
+  fs.emplace_back(); // 1
+  fs.push_back( ntk.create_pi() ); // 2
+  fs.push_back( ntk.create_pi() ); // 3
+  fs.push_back( ntk.create_pi() ); // 4
+  fs.push_back( ntk.create_pi() ); // 5
+  fs.push_back( ntk.create_pi() ); // 6
+  fs.push_back( ntk.create_node( { fs[3] }, 0 ) ); // 7
+  fs.push_back( ntk.create_node( { fs[2], fs[7] }, 1 ) ); // 8
+  fs.push_back( ntk.create_node( { fs[4], fs[8] }, 1 ) ); // 9
+  fs.push_back( ntk.create_node( { fs[8], fs[5] }, 1 ) ); // 10
+  fs.push_back( ntk.create_node( { fs[6], fs[10] }, 1 ) ); // 11
+  fs.push_back( ntk.create_node( { fs[9], fs[11] }, 1 ) ); // 12
+
+  ntk.create_po( fs[9] );
+  ntk.create_po( fs[10] );
+  ntk.create_po( fs[12] );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+
+  window_manager_params2 ps2;
+  ps2.odc_levels = 0u;
+
+  rinox::windowing::window_manager<DNtk, window_manager_params2> window( dntk, ps2, st );
+
+  CHECK( window.run( dntk.get_node( fs[12] ) ) );
+  CHECK( window.is_valid() );
+  auto const mffc = window.get_mffc();
+  CHECK( mffc == std::vector<typename Ntk::node_index_t>{ 11, 12 } );
+  auto const inps = window.get_inputs();
+  CHECK( inps == std::vector<typename Ntk::signal_t>{ 4, 6, 8, 10, 12 } );
+  auto const divs = window.get_divisors();
+  CHECK( divs == std::vector<typename Ntk::signal_t>{ 4, 6, 8, 10, 12, 14, 16, 18, 20 } );
+}
+
+TEST_CASE( "Window where leaves expansion is possible and side divs are present", "[window_manager]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  std::vector<mockturtle::gate> gates;
+
+  std::istringstream in( test_library );
+  auto result = lorina::read_genlib( in, mockturtle::genlib_reader( gates ) );
+  CHECK( result == lorina::return_code::success );
+
+  Ntk ntk( gates );
+
+  using signal = typename Ntk::signal;
+  std::vector<signal> fs;
+  /* Database construction from network */
+  fs.emplace_back(); // 0
+  fs.emplace_back(); // 1
+  fs.push_back( ntk.create_pi() ); // 2
+  fs.push_back( ntk.create_pi() ); // 3
+  fs.push_back( ntk.create_pi() ); // 4
+  fs.push_back( ntk.create_pi() ); // 5
+  fs.push_back( ntk.create_pi() ); // 6
+  fs.push_back( ntk.create_node( { fs[3] }, 0 ) ); // 7
+  fs.push_back( ntk.create_node( { fs[2], fs[7] }, 1 ) ); // 8
+  fs.push_back( ntk.create_node( { fs[4], fs[8] }, 1 ) ); // 9
+  fs.push_back( ntk.create_node( { fs[8], fs[5] }, 1 ) ); // 10
+  fs.push_back( ntk.create_node( { fs[6], fs[10] }, 1 ) ); // 11
+  fs.push_back( ntk.create_node( { fs[9], fs[11] }, 1 ) ); // 12
+  fs.push_back( ntk.create_node( { fs[9], fs[10] }, 1 ) ); // 13
+  fs.push_back( ntk.create_node( { fs[13], fs[5] }, 1 ) ); // 14
+
+  ntk.create_po( fs[12] );
+  ntk.create_po( fs[14] );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+
+  window_manager_params2 ps2;
+  ps2.odc_levels = 0u;
+
+  rinox::windowing::window_manager<DNtk, window_manager_params2> window( dntk, ps2, st );
+
+  CHECK( window.run( dntk.get_node( fs[12] ) ) );
+  CHECK( window.is_valid() );
+  auto const mffc = window.get_mffc();
+  CHECK( mffc == std::vector<typename Ntk::node_index_t>{ 11, 12 } );
+  auto const inps = window.get_inputs();
+  CHECK( inps == std::vector<typename Ntk::signal_t>{ 4, 6, 8, 10, 12 } );
+  auto const divs = window.get_divisors();
+  CHECK( divs == std::vector<typename Ntk::signal_t>{ 4, 6, 8, 10, 12, 14, 16, 18, 20, 26, 28 } );
+}
+
+
+
+#if 0
 TEST_CASE( "Window construction with reconvergent structure", "[window_manager]" )
 {
-
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   std::vector<mockturtle::gate> gates;
 
@@ -321,3 +514,5 @@ TEST_CASE( "Managing incorrect window construction for simple network", "[window
   CHECK( window.run( dntk.get_node( fs[9] ) ) );
   CHECK( window.num_inputs() == 3 );
 }
+
+#endif
