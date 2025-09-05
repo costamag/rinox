@@ -2,14 +2,124 @@
   {
     "entries": [
       {
-        "Area(opto)": 94.8000000000001,
+        "Area(opto)": 0.5299999999999999,
+        "Area(sota)": 0.53,
+        "Delay(opto)": 58.91,
+        "Delay(sota)": 42.66,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.00031180301448330283,
+        "benchmark": "c17"
+      },
+      {
+        "Area(opto)": 13.989999999999968,
+        "Area(sota)": 18.159999999999982,
+        "Delay(opto)": 524.04,
+        "Delay(sota)": 325.74,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.012171056121587753,
+        "benchmark": "c432"
+      },
+      {
+        "Area(opto)": 31.03999999999994,
+        "Area(sota)": 39.78000000000006,
+        "Delay(opto)": 411.87,
+        "Delay(sota)": 255.61999999999998,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.02349797636270523,
+        "benchmark": "c499"
+      },
+      {
+        "Area(opto)": 20.20999999999997,
+        "Area(sota)": 21.349999999999998,
+        "Delay(opto)": 354.1599999999999,
+        "Delay(sota)": 237.74,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.015630455687642097,
+        "benchmark": "c880"
+      },
+      {
+        "Area(opto)": 32.119999999999905,
+        "Area(sota)": 42.260000000000026,
+        "Delay(opto)": 451.78999999999996,
+        "Delay(sota)": 262.35999999999996,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.028448769822716713,
+        "benchmark": "c1355"
+      },
+      {
+        "Area(opto)": 23.109999999999946,
+        "Area(sota)": 28.910000000000014,
+        "Delay(opto)": 519.66,
+        "Delay(sota)": 327.5199999999999,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.01788928359746933,
+        "benchmark": "c1908"
+      },
+      {
+        "Area(opto)": 33.89,
+        "Area(sota)": 37.05999999999997,
+        "Delay(opto)": 314.83,
+        "Delay(sota)": 215.9,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.041003547608852386,
+        "benchmark": "c2670"
+      },
+      {
+        "Area(opto)": 54.280000000000285,
+        "Area(sota)": 64.63000000000008,
+        "Delay(opto)": 683.2999999999998,
+        "Delay(sota)": 438.15999999999997,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.06076718121767044,
+        "benchmark": "c3540"
+      },
+      {
+        "Area(opto)": 76.71000000000063,
+        "Area(sota)": 89.06000000000026,
+        "Delay(opto)": 658.3,
+        "Delay(sota)": 421.58,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.06996358186006546,
+        "benchmark": "c5315"
+      },
+      {
+        "Area(opto)": 171.42000000000013,
+        "Area(sota)": 218.71999999999946,
+        "Delay(opto)": 1967.8100000000006,
+        "Delay(sota)": 1028.1699999999996,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.11519203335046768,
+        "benchmark": "c6288"
+      },
+      {
+        "Area(opto)": 90.95000000000043,
         "Area(sota)": 96.29999999999967,
-        "Delay(opto)": 356.46000000000004,
+        "Delay(opto)": 507.74,
         "Delay(sota)": 312.42999999999995,
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.19370490312576294,
+        "Time(sota)": 0.08870765566825867,
         "benchmark": "c7552"
       }
     ],

@@ -70,6 +70,6 @@
     "odc_levels": 0,
     "skip_fanout_limit_for_divisors": 200,
     "max_num_divisors": 1000,
-    "max_reconvergence": 2
+    "max_reconvergence": 4
   }
 }
