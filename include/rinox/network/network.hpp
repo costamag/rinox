@@ -208,6 +208,11 @@ public:
     return _storage->is_constant( n );
   }
 
+  bool constant( node_index_t const& n ) const
+  {
+    return _storage->constant( n );
+  }
+
   /*! \brief Check if a node is a combinational input (CI).
    *
    * \param n The node index to check.
@@ -270,52 +275,52 @@ public:
 #pragma endregion
 
 #pragma region Create special functions
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_not( signal_t const& a )
   {
-    return _storage->template create_not<DoStrash>( a );
+    return _storage->template create_not<SignalsVec, DoStrash>( a );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_and( signal_t const& a, signal_t const& b )
   {
-    return _storage->template create_and<DoStrash>( a, b );
+    return _storage->template create_and<SignalsVec, DoStrash>( a, b );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_nand( signal_t const& a, signal_t const& b )
   {
-    return _storage->template create_nand<DoStrash>( a, b );
+    return _storage->template create_nand<SignalsVec, DoStrash>( a, b );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_or( signal_t const& a, signal_t const& b )
   {
-    return _storage->template create_or<DoStrash>( a, b );
+    return _storage->template create_or<SignalsVec, DoStrash>( a, b );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_xor( signal_t const& a, signal_t const& b )
   {
-    return _storage->template create_xor<DoStrash>( a, b );
+    return _storage->template create_xor<SignalsVec, DoStrash>( a, b );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_maj( signal_t const& a, signal_t const& b, signal_t const& c )
   {
-    return _storage->template create_maj<DoStrash>( a, b, c );
+    return _storage->template create_maj<SignalsVec, DoStrash>( a, b, c );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_ite( signal_t const& a, signal_t const& b, signal_t const& c )
   {
-    return _storage->template create_ite<DoStrash>( a, b, c );
+    return _storage->template create_ite<SignalsVec, DoStrash>( a, b, c );
   }
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_xor3( signal_t const& a, signal_t const& b, signal_t const& c )
   {
-    return _storage->template create_xor3<DoStrash>( a, b, c );
+    return _storage->template create_xor3<SignalsVec, DoStrash>( a, b, c );
   }
 
 #pragma endregion
@@ -334,8 +339,8 @@ public:
    * \tparam DoStrash If true, the node will be created with strashing enabled.
    * \return A signal representing the newly created node.
    */
-  template<bool DoStrash = false>
-  signal_t create_node( std::vector<signal_t> const& children,
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
+  signal_t create_node( SignalsVec const& children,
                         std::vector<uint32_t> const& ids )
   {
     node_t const& n = _storage->create_storage_node( children, ids );
@@ -377,14 +382,31 @@ public:
    * \tparam DoStrash If true, the node will be created with strashing enabled.
    * \return A signal representing the newly created node.
    */
-  template<bool DoStrash = false,
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false,
            design_type_t D = DesignType,
            std::enable_if_t<D == design_type_t::ARRAY_BASED, int> = 0>
-  signal_t create_node( std::vector<signal_t> const& children,
+  signal_t create_node( SignalsVec const& children,
                         kitty::dynamic_truth_table const& tt )
   {
     auto const binding_id = _storage->insert( tt );
-    return create_node<DoStrash>( children, binding_id );
+    return create_node<SignalsVec, DoStrash>( children, binding_id );
+  }
+
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false,
+           design_type_t D = DesignType,
+           std::enable_if_t<D == design_type_t::CELL_BASED, int> = 0>
+  signal_t create_node( SignalsVec const& children,
+                        kitty::dynamic_truth_table const& tt )
+  {
+    auto const binding_id = _storage->get_id( tt );
+    if ( !binding_id )
+      throw std::runtime_error( "[ERROR] function not found" );
+    return create_node<SignalsVec, DoStrash>( children, binding_id );
+  }
+
+  unsigned int get_id( kitty::dynamic_truth_table const& tt ) const
+  {
+    return _storage->get_id( tt );
   }
 
   /*! \brief Create a node from the truth table of its functionality.
@@ -399,14 +421,14 @@ public:
    * \tparam DoStrash If true, the node will be created with strashing enabled.
    * \return A signal representing the newly created node.
    */
-  template<bool DoStrash = false,
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false,
            design_type_t D = DesignType,
            std::enable_if_t<D == design_type_t::ARRAY_BASED, int> = 0>
-  signal_t create_node( std::vector<signal_t> const& children,
+  signal_t create_node( SignalsVec const& children,
                         std::vector<kitty::dynamic_truth_table> const& tts )
   {
     std::vector<uint32_t> const binding_ids = _storage->insert( tts );
-    return create_node<DoStrash>( children, binding_ids );
+    return create_node<SignalsVec, DoStrash>( children, binding_ids );
   }
 
   /*! \brief Create a node with a single binding ID.
@@ -420,11 +442,11 @@ public:
    * \tparam DoStrash If true, the node will be created with strashing enabled.
    * \return A signal representing the newly created node.
    */
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_node( std::vector<signal_t> const& children,
                         uint32_t id )
   {
-    return create_node<DoStrash>( children, std::vector<uint32_t>{ id } );
+    return create_node<SignalsVec, DoStrash>( children, std::vector<uint32_t>{ id } );
   }
 
   /*! \brief Clone a node from another bound network.
@@ -439,14 +461,14 @@ public:
    * \return A signal representing the newly cloned node.
    */
 
-  template<bool DoStrash = false>
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t clone_node( bound_network const& other,
                        node_index_t const& source,
                        std::vector<signal_t> const& children )
   {
     assert( !children.empty() );
     std::vector<uint32_t> const ids = other.get_binding_ids( source );
-    return create_node<DoStrash>( children, ids );
+    return create_node<SignalsVec, DoStrash>( children, ids );
   }
 
 #pragma endregion
@@ -1153,6 +1175,18 @@ public:
   std::vector<kitty::dynamic_truth_table> const get_functions( node_index_t const& n ) const
   {
     return _storage->get_functions( n );
+  }
+
+  std::string const get_expression( signal_t const& f ) const
+  {
+    auto const n = get_node( f );
+    if ( is_pi( n ) )
+    {
+      std::string expr = "pi" + std::to_string( pi_index( n ) );
+      return expr;
+    }
+    else
+      return _storage->get_expression( f );
   }
 
   uint32_t get_fanin_number( unsigned int id, std::string const& pin_name ) const

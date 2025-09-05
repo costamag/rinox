@@ -34,7 +34,7 @@
 
 #include "../../analyzers/trackers/arrival_times_tracker.hpp"
 #include "../../analyzers/trackers/required_times_tracker.hpp"
-#include "../../databases/mapped_database.hpp"
+#include "../../evaluation/chains/bound_chain.hpp"
 #include "profilers_utils.hpp"
 
 namespace rinox
@@ -65,7 +65,7 @@ public:
   };
 
 public:
-  delay_profiler( Ntk& ntk, WinMngr & win_manager, profiler_params const& ps )
+  delay_profiler( Ntk& ntk, WinMngr& win_manager, profiler_params const& ps )
       : ntk_( ntk ),
         ps_( ps ),
         nodes_( ntk_.size() ),
@@ -82,11 +82,11 @@ public:
     return arrival_.get_time( f );
   }
 
-  template<class List_t>
-  cost_t evaluate( List_t const& list, std::vector<signal_t> const& leaves, node_index_t const& nold = std::numeric_limits<node_index_t>::max() )
+  template<class List_t, class Signals>
+  cost_t evaluate( List_t const& list, Signals const& leaves, node_index_t const& nold = std::numeric_limits<node_index_t>::max() )
   {
     (void)nold;
-    signal_t const f = insert( ntk_, leaves, list );
+    signal_t const f = rinox::evaluation::chains::insert( ntk_, leaves, list );
     node_index_t const n = ntk_.get_node( f );
     cost_t time = 0.0;
     ntk_.foreach_output( n, [&]( auto const& f ) {
@@ -97,7 +97,8 @@ public:
     return time;
   }
 
-  cost_t evaluate_rewiring( node_index_t const& n, std::vector<signal_t> const& new_children )
+  template<typename Signals>
+  cost_t evaluate_rewiring( node_index_t const& n, Signals const& new_children )
   {
     cost_t curr_cost = 0.0;
     ntk_.foreach_output( n, [&]( auto const& f ) {
@@ -114,7 +115,8 @@ public:
     return curr_cost - cand_cost;
   }
 
-  cost_t evaluate( node_index_t const& n, std::vector<signal_t> const& children, node_index_t nold = std::numeric_limits<node_index_t>::max() )
+  template<typename Signals>
+  cost_t evaluate( node_index_t const& n, Signals const& children, node_index_t nold = std::numeric_limits<node_index_t>::max() )
   {
     cost_t time = 0.0;
     ntk_.foreach_output( n, [&]( auto const& f ) {
@@ -175,8 +177,7 @@ private:
   profiler_params const& ps_;
   std::vector<node_with_cost_t> nodes_;
   analyzers::trackers::arrival_times_tracker<Ntk> arrival_;
-  WinMngr & win_manager_;
-
+  WinMngr& win_manager_;
 };
 
 } /* namespace profilers */

@@ -33,6 +33,7 @@
 #pragma once
 
 #include "../evaluation/chains.hpp"
+#include "../evaluation/chains/bound_chain.hpp"
 #include "../network/utils.hpp"
 #include "../traits.hpp"
 #include <mockturtle/algorithms/node_resynthesis/mig_npn.hpp>

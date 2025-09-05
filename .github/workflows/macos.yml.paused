@@ -7,42 +7,16 @@ on:
     branches: [main]
 
 jobs:
-  build-gcc12:
-    name: GNU GCC 12
-    runs-on: macOS-latest
-
-    steps:
-      - uses: actions/checkout@v1
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Install GCC 12
-        run: |
-          brew update
-          brew install gcc@12
-
-      - name: Build rinox
-        run: |
-          GCC_PREFIX="$(brew --prefix gcc@12)"
-          mkdir build && cd build
-          cmake .. \
-            -DCMAKE_C_COMPILER="${GCC_PREFIX}/bin/gcc-12" \
-            -DCMAKE_CXX_COMPILER="${GCC_PREFIX}/bin/g++-12" \
-            -DRINOX_ENABLE_TESTS=ON
-          make run_unit_tests
-
-      - name: Run tests
-        run: |
-          cd build
-          ./test/run_unit_tests
+  # ---- Removed GCC 12 build on macOS ----
+  # macOS + GCC 12 is broken due to SDK incompatibility.
+  # If you need GCC coverage, test it on Ubuntu instead.
 
   build-clang14:
-    name: Clang 14
+    name: Clang 14 (System)
     runs-on: macOS-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
@@ -62,11 +36,11 @@ jobs:
           ./test/run_unit_tests
 
   build-clang17:
-    name: Clang 17
+    name: Clang 17 (Homebrew)
     runs-on: macOS-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0

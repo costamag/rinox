@@ -4,11 +4,11 @@
 #include <kitty/kitty.hpp>
 #include <kitty/static_truth_table.hpp>
 
-#include <rinox/network/network.hpp>
-#include <rinox/opto/algorithms/resynthesize.hpp>
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/utils/tech_library.hpp>
 #include <mockturtle/views/depth_view.hpp>
+#include <rinox/network/network.hpp>
+#include <rinox/opto/algorithms/resynthesize.hpp>
 
 std::string const test_library = "GATE   and2    1.0 O=a*b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
                                  "GATE   or2     1.0 O=a+b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
@@ -108,7 +108,7 @@ TEST_CASE( "Area resynthesis via rewiring - single-output gate with don't cares"
   custom_area_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
   rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_rewire_params>( dntk, db, ps );
-  CHECK( ntk.area() == 5.5 );
+  CHECK( ntk.area() == 5.5);
 }
 
 TEST_CASE( "Area resynthesis via rewiring - multiple-output gate without don't cares", "[area_resynthesis]" )
@@ -331,7 +331,7 @@ TEST_CASE( "Area resynthesis via window rewriting - single-output gate without d
 
   rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( gates );
 
-  static constexpr uint32_t MaxNumVars = 6u;
+  static constexpr uint32_t MaxNumVars = 3u;
   using Db = rinox::databases::mapped_database<Ntk, MaxNumVars>;
   Db db( lib );
 
@@ -408,3 +408,23 @@ TEST_CASE( "Area resynthesis via window rewriting - single-output gate with don'
   rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_window_params1>( dntk, db, ps );
   CHECK( ntk.area() == 5.5 );
 }
+
+template<uint32_t NumLeaves>
+struct ResynParamsCC : rinox::opto::algorithms::default_resynthesis_params<NumLeaves>
+{
+  static constexpr bool do_strashing = true;
+  static constexpr uint32_t num_vars_sign = 12;
+  static constexpr uint32_t max_cuts_size = 4u;
+  static constexpr uint32_t max_cube_spfd = 10u;
+
+  struct window_manager_params : rinox::windowing::default_window_manager_params
+  {
+    static constexpr uint32_t max_num_leaves = NumLeaves;
+    bool preserve_depth = false;
+    int32_t odc_levels = 0u;
+    uint32_t skip_fanout_limit_for_divisors = 100u;
+    uint32_t max_num_divisors{ 128 };
+  };
+
+  window_manager_params window_manager_ps;
+};

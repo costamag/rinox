@@ -10,3 +10,6 @@
 [submodule "lib/rapidjson"]
 	path = lib/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "lib/drag"]
+	path = lib/drag
+	url = https://github.com/bigno78/drag.git

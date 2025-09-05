@@ -37,6 +37,7 @@
 #include "../../dependency/rewire_dependencies.hpp"
 #include "../../dependency/struct_dependencies.hpp"
 #include "../../dependency/window_dependencies.hpp"
+#include "../../network/visualize.hpp"
 #include "../../synthesis/lut_decomposer.hpp"
 #include "../../windowing/window_manager.hpp"
 #include "../../windowing/window_simulator.hpp"
@@ -68,6 +69,8 @@
 #define RINOX_MAX_NUM_LEAVES 12
 #endif
 
+#define DEBUG_INFO true
+
 namespace rinox
 {
 
@@ -98,6 +101,7 @@ struct resynthesis_stats
   uint32_t num_window{ 0 };
   uint32_t num_simula{ 0 };
   uint32_t num_rewire{ 0 };
+  uint32_t num_optims{ 0 };
 
   void report() const
   {
@@ -127,6 +131,7 @@ struct default_resynthesis_params
   };
 
   window_manager_params window_manager_ps;
+  uint32_t stop_after_nth{ std::numeric_limits<uint32_t>::max() };
 
   static constexpr bool do_strashing = true;
   /*! \brief Use satisfiability don't cares for optimization. */
@@ -175,6 +180,8 @@ class resynthesize_impl
   using data_t = kitty::static_truth_table<Database::max_num_vars>;
   using decomposer_t = synthesis::lut_decomposer<Params::max_cuts_size, Database::max_num_vars>;
   using window_manager_t = windowing::window_manager<Ntk, typename Params::window_manager_params>;
+  using signals_t = rinox::math::static_vector<signal_t, Params::max_cuts_size>;
+  using times_t = rinox::math::static_vector<double, Params::max_cuts_size>;
   // using validator_t = circuit_validator<Ntk, bill::solvers::bsat2, false, true, false>; // last is false
 
   struct rewire_params : dependency::default_rewire_params
@@ -201,17 +208,17 @@ class resynthesize_impl
   // using simula_dependency_t = simula_dependency<Ntk, custom_simula_params>;
 
 public:
-
-  resynthesize_impl( Ntk& ntk, Database& database, Params ps, resynthesis_stats& st)
-    : ntk_( ntk ),
-      win_manager_( ntk, ps.window_manager_ps, st.window_st ),
-      profiler_( ntk, win_manager_, ps.profiler_ps ),
-      database_( database ),
-      win_simulator_( ntk ),
-      chain_simulator_( database.get_library() ),
-      ps_( ps ),
-      st_( st )
+  resynthesize_impl( Ntk& ntk, Database& database, Params ps, resynthesis_stats& st )
+      : ntk_( ntk ),
+        win_manager_( ntk, ps.window_manager_ps, st.window_st ),
+        profiler_( ntk, win_manager_, ps.profiler_ps ),
+        database_( database ),
+        win_simulator_( ntk ),
+        chain_simulator_( database.get_library() ),
+        ps_( ps ),
+        st_( st )
   {}
+
 public:
   void run()
   {
@@ -222,9 +229,14 @@ public:
     chain_t best_chain;
     best_chain.add_inputs( Params::max_cuts_size );
 
+    int cnt = 0;
     auto nmax = ntk_.size();
-    profiler_.foreach_gate( [&]( auto n ) {
-      if ( n >= nmax )
+    profiler_.foreach_gate( [&]( auto n ) -> bool
+    {
+      if ( st_.num_optims >= ps_.stop_after_nth )
+        return false;
+
+      if ( cnt++ >= nmax )
         return false;
       /* Skip nodes which cannot result in optimization */
       if ( skip_node( n ) )
@@ -245,7 +257,7 @@ public:
 
         rewire_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
           auto const& cut_leaves = cut.leaves;
-          auto const reward = profiler_.evaluate_rewiring( n, cut_leaves );
+          auto const reward = profiler_.template evaluate_rewiring<signals_t>( n, cut_leaves );
           if ( reward > best_reward )
           {
             best_reward = reward;
@@ -254,27 +266,29 @@ public:
         } );
         if ( best_cut )
         {
+          st_.num_optims++;
           auto const ids = ntk_.get_binding_ids( n );
-          auto const fnew = ntk_.template create_node<Params::do_strashing>( ( *best_cut ).leaves, ids );
+          auto const fnew = ntk_.template create_node<signals_t, true>( ( *best_cut ).leaves, ids );
           substitute_node( n, fnew );
           return true;
         }
       }
 
       double best_reward = 0;
-      std::vector<signal_t> best_leaves;
+      rinox::math::static_vector<signal_t, Params::max_cuts_size> best_leaves;
 
       if ( ps_.try_struct )
       {
         struct_dependencies.run( win_manager_, win_simulator_ );
-
         struct_dependencies.foreach_cut( [&]( auto& cut, auto i ) {
-          best_reward = std::max( evaluate( cut, best_chain, best_leaves ), best_reward );
+          auto const reward = evaluate( cut, best_chain, best_leaves );
+          best_reward = std::max( reward, best_reward );
         } );
 
         if ( best_reward > 0 )
         {
-          auto const fnew = insert( ntk_, best_leaves, best_chain );
+          st_.num_optims++;
+          auto const fnew = rinox::evaluation::chains::insert<Ntk, Ntk::design_t, signals_t, true>( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
           return true;
         }
@@ -288,8 +302,10 @@ public:
 
         if ( best_reward > 0 )
         {
-          auto const fnew = insert( ntk_, best_leaves, best_chain );
+          st_.num_optims++;
+          auto const fnew = rinox::evaluation::chains::insert<Ntk, Ntk::design_t, signals_t, true>( ntk_, best_leaves, best_chain );
           substitute_node( n, fnew );
+          win_manager_.run( fnew.index );
           return true;
         }
       }
@@ -299,19 +315,25 @@ public:
   }
 
 private:
-  double evaluate( cut_t const& cut, chain_t& best_chain, std::vector<signal_t>& best_leaves )
+  double evaluate( cut_t const& cut, chain_t& best_chain, signals_t& best_leaves )
   {
+
+    uint32_t size_bef = ntk_.size();
+
     double best_reward = 0;
     if ( cut.func.size() > 1 )
       return 0;
-    double const cost_curr = profiler_.evaluate( cut.root, cut.leaves, cut.root );
+    double const cost_curr = profiler_.template evaluate<signals_t>( cut.root, cut.leaves, cut.root );
 
     auto const cut_func = cut.func[0];
-    auto signals = cut.leaves;
+    std::vector<signal_t> signals;
+    for ( auto const& f : cut.leaves )
+      signals.push_back( f );
+
     auto times = get_times( signals );
     signals.resize( Params::max_cuts_size, std::numeric_limits<uint64_t>::max() );
     times.resize( Params::max_cuts_size, std::numeric_limits<double>::max() );
-    signal_t best_signal;
+    std::optional<signal_t> best_signal;
     if ( !decomposer_.run( cut_func, times ) )
       return 0;
 
@@ -323,27 +345,42 @@ private:
         signals.push_back( signal );
         times.push_back( time );
         specs[lit].sim._bits = sim;
-        best_signal = signal;
+        best_signal = std::make_optional(signal);
         return true;
       }
       return false;
     } );
 
+    uint32_t size_aft = ntk_.size();
     if ( !success )
+    {
+      if ( best_signal && ( size_bef < size_aft ) )
+        ntk_.take_out_node( ntk_.get_node( *best_signal ) );
       return 0;
+    }
 
     chain_t new_chain;
     new_chain.add_inputs( cut.leaves.size() );
-    extract( new_chain, ntk_, cut.leaves, best_signal );
-    double const cost_cand = profiler_.evaluate( new_chain, cut.leaves, cut.root );
-    auto const reward = cost_curr - cost_cand;
-    if ( reward > best_reward )
+    if ( signals.back().index > 0 )
     {
-      best_reward = reward;
-      best_leaves = cut.leaves;
-      best_chain = new_chain;
+      extract( new_chain, ntk_, cut.leaves, *best_signal );
+      if ( size_bef < size_aft )
+        ntk_.take_out_node( ntk_.get_node( *best_signal ) );
+      double const cost_cand = profiler_.template evaluate<chain_t, signals_t>( new_chain, cut.leaves, cut.root );
+      auto const reward = cost_curr - cost_cand;
+      if ( reward > best_reward )
+      {
+        best_reward = reward;
+        best_leaves = cut.leaves;
+        best_chain = new_chain;
+      }
+      return best_reward;
     }
-    return best_reward;
+    else
+    {
+      std::cout << "constant 0 in resub: not implemented yet" << std::endl;
+      return 0;
+    }
   }
 
   std::optional<std::tuple<signal_t, double, func_t>> local_synthesis( cut_t const& cut, typename decomposer_t::specs_t const& specs, uint8_t lit, std::vector<signal_t>& signals, std::vector<double>& times )
@@ -354,15 +391,26 @@ private:
       sim_ptrs.push_back( &specs[i].sim._bits );
 
     auto itt = dependency::extract_function<func_t, Database::max_num_vars>( sim_ptrs, specs[lit].sim._bits, specs[lit].sim._care );
+    // deal with the constant
+    func_t const0;
+    func_t const1 = ~const0;
+    if ( kitty::is_const0( itt._bits&itt._care ) )
+      return std::make_tuple( ntk_.get_constant( false ), 0, const0 );
+    if ( kitty::equal( itt._bits & itt._care, itt._care ) )
+      return std::make_tuple( ntk_.get_constant( true ), 0, const1 );
+
+
     double best_loc_cost = std::numeric_limits<double>::max();
     std::optional<node> best_database_node;
-    std::vector<signal> best_loc_leaves;
+    std::vector<signal_t> best_loc_leaves;
     std::vector<typename decomposer_t::cut_func_t const*> best_loc_sims;
     signal_t best_signal;
 
     enumerator_.foreach_dont_care_assignment( itt, sim_ptrs.size(), [&]( auto const& ctt ) {
-      std::vector<signal> loc_leaves( spec.inputs.size() );
-      std::vector<double> loc_times( spec.inputs.size() );
+      std::vector<signal_t> loc_leaves;
+      loc_leaves.resize( spec.inputs.size() );
+      std::vector<double> loc_times;
+      loc_times.resize( spec.inputs.size() );
       std::vector<typename decomposer_t::cut_func_t const*> loc_sims = sim_ptrs;
       std::transform( spec.inputs.begin(), spec.inputs.end(), loc_leaves.begin(), [&]( auto const& lit ) { return signals[lit]; } );
       std::transform( spec.inputs.begin(), spec.inputs.end(), loc_times.begin(), [&]( auto const& lit ) { return times[lit]; } );
@@ -399,12 +447,15 @@ private:
 
   std::tuple<node_index_t, double> evaluate( uint64_t const& row, std::vector<signal_t> const& loc_leaves )
   {
+    signals_t loc_leaves_v;
+    for ( auto const& l : loc_leaves )
+      loc_leaves_v.push_back( l );
     node_index_t best_database_node = std::numeric_limits<node_index_t>::max();
     double best_cost = std::numeric_limits<double>::max();
 
     database_.foreach_entry( row, [&]( auto const& entry ) {
-      auto nnew = database_.write( entry, ntk_, loc_leaves );
-      auto cost_new = profiler_.evaluate( nnew, loc_leaves, win_manager_.get_pivot() );
+      auto nnew = database_.write( entry, ntk_, loc_leaves_v );
+      auto cost_new = profiler_.evaluate( nnew, loc_leaves_v, win_manager_.get_pivot() );
       if ( cost_new < best_cost )
       {
         best_cost = cost_new;
@@ -447,10 +498,11 @@ private:
     win_simulator_.run( win_manager_ );
   }
 
-  std::vector<double> get_times( std::vector<signal> const& leaves )
+  std::vector<double> get_times( std::vector<signal_t> const& leaves )
   {
     assert( Profiler::has_arrival && "[e] The profiler does not have the arrival tracker" );
-    std::vector<double> times( leaves.size() );
+    std::vector<double> times;
+    times.resize( leaves.size() );
     std::transform( leaves.begin(), leaves.end(), times.begin(),
                     [&]( auto const& f ) { return profiler_.get_arrival( f ); } );
     return times;

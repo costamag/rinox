@@ -4,13 +4,13 @@
 #include <kitty/kitty.hpp>
 #include <kitty/static_truth_table.hpp>
 
+#include <mockturtle/io/genlib_reader.hpp>
+#include <mockturtle/utils/tech_library.hpp>
+#include <mockturtle/views/depth_view.hpp>
 #include <rinox/dependency/struct_dependencies.hpp>
 #include <rinox/network/network.hpp>
 #include <rinox/windowing/window_manager.hpp>
 #include <rinox/windowing/window_simulator.hpp>
-#include <mockturtle/io/genlib_reader.hpp>
-#include <mockturtle/utils/tech_library.hpp>
-#include <mockturtle/views/depth_view.hpp>
 
 std::string const test_library = "GATE   and2    1.0 O=a*b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
                                  "GATE   or2     1.0 O=a+b;                 PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
@@ -22,6 +22,7 @@ struct custom_struct_params
 {
   static constexpr uint32_t num_vars_sign = 6u;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_reconv = 2u;
 };
 
 struct window_manager_params : rinox::windowing::default_window_manager_params

@@ -1,7 +1,6 @@
-#pragma once
 #include "tech_map.hpp"
 #include <cstdio>
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include <mockturtle/algorithms/emap.hpp>

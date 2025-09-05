@@ -21,12 +21,12 @@ struct spec_t
 {
   using func_t = kitty::ternary_truth_table<kitty::static_truth_table<NumVars>>;
 
-  std::vector<uint8_t> inputs{};
+  rinox::math::static_vector<uint8_t, NumVars> inputs{};
   func_t sim{};
 
   spec_t() = default;
   explicit spec_t( const func_t& sim_ ) : sim( sim_ ) {}
-  spec_t( std::vector<uint8_t> inputs_, func_t sim_ )
+  spec_t( rinox::math::static_vector<uint8_t, NumVars> inputs_, func_t sim_ )
       : inputs( std::move( inputs_ ) ), sim( std::move( sim_ ) ) {}
 };
 
@@ -47,7 +47,7 @@ struct func_graph
     }
   }
 
-  std::optional<std::vector<char>> run( std::vector<uint8_t> support, std::vector<uint8_t> alive, i_func_t const& func )
+  std::optional<std::vector<char>> run( rinox::math::static_vector<uint8_t, NumVars> support, rinox::math::static_vector<uint8_t, NumVars> alive, i_func_t const& func )
   {
     init_( support, alive, func );
     auto num_covers = ( 1u << alive.size() );
@@ -97,12 +97,12 @@ struct func_graph
     return c >= 4u ? c - 4 : c;
   }
 
-  void init_( std::vector<uint8_t> support, std::vector<uint8_t> alive, i_func_t const& func )
+  void init_( rinox::math::static_vector<uint8_t, NumVars> support, rinox::math::static_vector<uint8_t, NumVars> alive, i_func_t const& func )
   {
     auto index = support.size() - 1;
     x0 = support[index];
     x1 = support[index - 1];
-    std::vector<uint8_t> dead;
+    rinox::math::static_vector<uint8_t, NumVars> dead;
     auto it = alive.begin();
     uint8_t i = 0;
     while ( ( i < 4u ) && ( it != alive.end() ) )
@@ -213,11 +213,19 @@ public:
     }
   }
 
-  template<class TimesLike>
-  [[nodiscard]] bool run( incomplete_cut_func_t func, const TimesLike& times )
+  [[nodiscard]] bool run( incomplete_cut_func_t func, const std::vector<double>& times )
+  {
+    rinox::math::static_vector<double, MaxCutSize> static_times;
+    for ( auto t : times )
+      static_times.push_back( t );
+    return run( func, static_times );
+  }
+
+  [[nodiscard]] bool run( incomplete_cut_func_t func, const rinox::math::static_vector<double, MaxCutSize>& times )
   {
     specs_.resize( MaxCutSize );
-    std::vector<uint8_t> support( times.size() );
+    rinox::math::static_vector<uint8_t, MaxCutSize> support;
+    support.resize( times.size() );
     std::iota( support.begin(), support.end(), 0 ); // Fill with 0, 1, 2, ..., N-1
 
     std::stable_sort( support.begin(), support.end(), [&]( uint8_t a, uint8_t b ) {
@@ -239,7 +247,7 @@ public:
   }
 
 private:
-  [[nodiscard]] std::optional<uint8_t> decompose_( std::vector<uint8_t> support, std::vector<double> const& times, incomplete_cut_func_t func )
+  [[nodiscard]] std::optional<uint8_t> decompose_( rinox::math::static_vector<uint8_t, MaxCutSize> support, rinox::math::static_vector<double, MaxCutSize> const& times, incomplete_cut_func_t func )
   {
     supp_minimizer_.run( func, support );
     if ( support.size() <= MaxNumVars )
@@ -256,7 +264,7 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  termine_decompose_( std::vector<uint8_t> support, incomplete_cut_func_t func )
+  termine_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize> support, incomplete_cut_func_t func )
   {
     const auto lit = static_cast<uint8_t>( specs_.size() );
     specs_.emplace_back( std::move( support ), std::move( func ) ); // now actually moves
@@ -264,7 +272,7 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  spfd_decompose_( std::vector<uint8_t> support, const std::vector<double>& times, incomplete_cut_func_t func )
+  spfd_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize> support, rinox::math::static_vector<double, MaxCutSize> const& times, incomplete_cut_func_t func )
   {
     spfd_.init( func._bits, func._care );
 
@@ -277,8 +285,7 @@ private:
 
     const uint8_t num_masks = static_cast<uint8_t>( spfd_.get_num_masks() );
 
-    std::vector<uint8_t> alive;
-    alive.reserve( 4 );
+    rinox::math::static_vector<uint8_t, MaxCutSize> alive;
     for ( uint8_t i = 0; i < num_masks; ++i )
     {
       if ( !spfd_.is_killed( i ) )
@@ -309,9 +316,12 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  spfd_graph_decompose_( std::vector<uint8_t> support, std::vector<uint8_t> alive, std::vector<double> const& times, uint32_t index, incomplete_cut_func_t const& func )
+  spfd_graph_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize> support,
+                         rinox::math::static_vector<uint8_t, MaxCutSize> alive,
+                         rinox::math::static_vector<double, MaxCutSize> const& times,
+                         uint32_t index, incomplete_cut_func_t const& func )
   {
-    std::vector<uint8_t> supp{ support[index], support[index - 1] };
+    rinox::math::static_vector<uint8_t, MaxCutSize> supp{ support[index], support[index - 1] };
     incomplete_cut_func_t fn = func;
     while ( supp.size() < MaxNumVars )
     {
@@ -349,18 +359,18 @@ private:
 
   [[nodiscard]] std::optional<uint8_t>
   try_and_record( incomplete_cut_func_t f,
-                  const std::vector<uint8_t>& support,
+                  const rinox::math::static_vector<uint8_t, MaxCutSize>& support,
                   uint32_t index,
-                  const std::vector<double>& times,
+                  const rinox::math::static_vector<double, MaxCutSize>& times,
                   const incomplete_cut_func_t& parent_func )
   {
-    std::vector<uint8_t> supp = support;
+    rinox::math::static_vector<uint8_t, MaxCutSize> supp = support;
     supp_minimizer_.run( f, supp );
     if ( supp.size() < support.size() )
     {
       if ( auto res = decompose_( supp, times, f ) )
       {
-        specs_.emplace_back( std::vector<uint8_t>{ *res, support[index - 1], support[index] }, parent_func );
+        specs_.emplace_back( rinox::math::static_vector<uint8_t, MaxCutSize>{ *res, support[index - 1], support[index] }, parent_func );
         return static_cast<uint8_t>( specs_.size() - 1 );
       }
     }
@@ -368,14 +378,14 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  spfd1_decompose_( std::vector<uint8_t> support, std::vector<uint8_t> alive, std::vector<double> const& times, uint32_t index, incomplete_cut_func_t const& func )
+  spfd1_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize> support, rinox::math::static_vector<uint8_t, MaxCutSize> alive, rinox::math::static_vector<double, MaxCutSize> const& times, uint32_t index, incomplete_cut_func_t const& func )
   {
     incomplete_cut_func_t reminder = spfd_.get_function( alive, { '+' } );
     return try_and_record( reminder, support, index, times, func );
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  spfd2_decompose_( std::vector<uint8_t>& support, const std::vector<uint8_t>& alive, const std::vector<double>& times, uint32_t index, incomplete_cut_func_t const& func )
+  spfd2_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize>& support, const rinox::math::static_vector<uint8_t, MaxCutSize>& alive, const rinox::math::static_vector<double, MaxCutSize>& times, uint32_t index, incomplete_cut_func_t const& func )
   {
     // Try combined decompositions
     for ( const auto& polarity : { std::vector<char>{ '+', '+' }, std::vector<char>{ '+', '-' } } )
@@ -389,10 +399,10 @@ private:
     if constexpr ( MaxNumVars >= 4u )
     {
       std::array<incomplete_cut_func_t, 2> funcs = {
-          spfd_.get_function( { alive[0] }, { '+' } ),
-          spfd_.get_function( { alive[1] }, { '+' } ) };
+          spfd_.get_function( std::vector<uint8_t>{ alive[0] }, std::vector<char>{ '+' } ),
+          spfd_.get_function( std::vector<uint8_t>{ alive[1] }, std::vector<char>{ '+' } ) };
 
-      std::array<std::vector<uint8_t>, 2> supps = { support, support };
+      std::array<rinox::math::static_vector<uint8_t, MaxCutSize>, 2> supps = { support, support };
       supp_minimizer_.run( funcs[0], supps[0] );
       supp_minimizer_.run( funcs[1], supps[1] );
 
@@ -403,7 +413,7 @@ private:
 
         if ( res0 && res1 )
         {
-          specs_.emplace_back( std::vector<uint8_t>{ *res0, *res1, support[index - 1], support[index] }, func );
+          specs_.emplace_back( rinox::math::static_vector<uint8_t, MaxCutSize>{ *res0, *res1, support[index - 1], support[index] }, func );
           return static_cast<uint8_t>( specs_.size() - 1 );
         }
       }
@@ -413,9 +423,9 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  spfd3_decompose_( std::vector<uint8_t>& support,
-                    const std::vector<uint8_t>& alive,
-                    const std::vector<double>& times,
+  spfd3_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize>& support,
+                    const rinox::math::static_vector<uint8_t, MaxCutSize>& alive,
+                    const rinox::math::static_vector<double, MaxCutSize>& times,
                     uint32_t index, incomplete_cut_func_t const& func )
   {
     // ---- 1) Try combined decompositions (one function of 3 vars) ----
@@ -463,7 +473,7 @@ private:
     uint32_t best_cost = ( support.size() - 1 ) * ( support.size() - 1 );
 
     // We keep these to reuse after picking best candidate (no re-minimize).
-    std::vector<uint8_t> best_s0, best_s1;
+    rinox::math::static_vector<uint8_t, MaxCutSize> best_s0, best_s1;
     incomplete_cut_func_t best_f0, best_f1;
 
     for ( size_t i = 0; i < candidates.size(); ++i )
@@ -480,8 +490,8 @@ private:
       auto f1 = spfd_.get_function( two, pol2 );
 
       // Minimize both supports once
-      std::vector<uint8_t> s0 = support;
-      std::vector<uint8_t> s1 = support;
+      rinox::math::static_vector<uint8_t, MaxCutSize> s0 = support;
+      rinox::math::static_vector<uint8_t, MaxCutSize> s1 = support;
       supp_minimizer_.run( f0, s0 );
       supp_minimizer_.run( f1, s1 );
 
@@ -510,7 +520,7 @@ private:
     auto res1 = decompose_( best_s1, times, best_f1 );
     if ( res0 && res1 )
     {
-      specs_.emplace_back( std::vector<uint8_t>{ *res0, *res1, support[index - 1], support[index] }, func );
+      specs_.emplace_back( rinox::math::static_vector<uint8_t, MaxCutSize>{ *res0, *res1, support[index - 1], support[index] }, func );
       return static_cast<uint8_t>( specs_.size() - 1 );
     }
 
@@ -518,9 +528,9 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  spfd4_decompose_( std::vector<uint8_t>& support,
-                    const std::vector<uint8_t>& alive,
-                    const std::vector<double>& times,
+  spfd4_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize>& support,
+                    const rinox::math::static_vector<uint8_t, MaxCutSize>& alive,
+                    const rinox::math::static_vector<double, MaxCutSize>& times,
                     uint32_t index, incomplete_cut_func_t const& func )
   {
     // Build function without re-alloc noise. If you can add an overload of
@@ -541,7 +551,7 @@ private:
     struct Best
     {
       uint32_t cost = std::numeric_limits<uint32_t>::max();
-      std::vector<uint8_t> suppL, suppR;
+      rinox::math::static_vector<uint8_t, MaxCutSize> suppL, suppR;
       incomplete_cut_func_t fL, fR;
       bool valid = false;
     };
@@ -552,8 +562,8 @@ private:
       auto fL = get_fn( varsL, polL );
       auto fR = get_fn( varsR, polR );
 
-      std::vector<uint8_t> sL = support;
-      std::vector<uint8_t> sR = support;
+      rinox::math::static_vector<uint8_t, MaxCutSize> sL = support;
+      rinox::math::static_vector<uint8_t, MaxCutSize> sR = support;
 
       // Minimize left; if no shrink, we can early prune (can’t beat best)
       supp_minimizer_.run( fL, sL );
@@ -640,7 +650,7 @@ private:
       auto res1 = decompose_( best13.suppR, times, best13.fR );
       if ( res0 && res1 )
       {
-        specs_.emplace_back( std::vector<uint8_t>{ *res0, *res1, support[index - 1], support[index] }, func );
+        specs_.emplace_back( rinox::math::static_vector<uint8_t, MaxCutSize>{ *res0, *res1, support[index - 1], support[index] }, func );
         return static_cast<uint8_t>( specs_.size() - 1 );
       }
     }
@@ -674,7 +684,7 @@ private:
       auto res1 = decompose_( best22.suppR, times, best22.fR );
       if ( res0 && res1 )
       {
-        specs_.emplace_back( std::vector<uint8_t>{ *res0, *res1, support[index - 1], support[index] }, func );
+        specs_.emplace_back( rinox::math::static_vector<uint8_t, MaxCutSize>{ *res0, *res1, support[index - 1], support[index] }, func );
         return static_cast<uint8_t>( specs_.size() - 1 );
       }
     }
@@ -683,8 +693,8 @@ private:
   }
 
   [[nodiscard]] std::optional<uint8_t>
-  shannon_decompose_( std::vector<uint8_t> support,
-                      std::vector<double> const& times,
+  shannon_decompose_( rinox::math::static_vector<uint8_t, MaxCutSize> support,
+                      rinox::math::static_vector<double, MaxCutSize> const& times,
                       incomplete_cut_func_t func )
   {
 
@@ -697,7 +707,7 @@ private:
     auto res0 = decompose_( support, times, std::move( func0 ) );
     auto res1 = decompose_( support, times, std::move( func1 ) );
 
-    std::vector<uint8_t> supp;
+    rinox::math::static_vector<uint8_t, MaxCutSize> supp;
     if ( kitty::is_const0( func0._bits & func0._care ) || kitty::equal( func0._bits & func0._care, func0._care ) )
     {
       if ( res1 )

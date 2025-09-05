@@ -1,10 +1,11 @@
 {
-  "techlib": {
-    "type": "genlib",
-    "names": ["asap7"]
+  "technology":
+  {
+    "extension" : "genlib",
+    "name" : "asap7"
   },
   "parameters": {
-    "method" : "map-p-classes",
+    "method" : "mapp",
     "num_vars" : 4,
     "multiple_candidates" : false,
     "verbose" : false,

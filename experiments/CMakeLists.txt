@@ -31,7 +31,7 @@ foreach(SRC ${EXPERIMENT_CPP})
 target_link_libraries(rinox_exp_common PUBLIC mockturtle)
 
   target_link_libraries(${NAME_WE} PRIVATE
-    rinox_diagnostics
+    rinox_inspect
     rho_cli
     rinox_exp_common
     rinox_build_options

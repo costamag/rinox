@@ -70,19 +70,11 @@ public:
     {}
 
     node_info_t()
-        : data( 0 ) // zero init
-    {}
+        : node_info_t( 0 ){}
 
-    union
-    {
-      struct
-      {
-        uint64_t index : 62u;
-        uint64_t ready : 1u;
-        uint64_t seen : 1u;
-      };
-      uint64_t data;
-    };
+      uint64_t index;
+      uint64_t ready;
+      uint64_t seen ;
   };
 
 public:
@@ -105,7 +97,8 @@ public:
   bool belongs_to_tfo( node_index_t const& n )
   {
     ensure_safe_access( n, "belongs_to_tfo" );
-    return map_[n].index == node_info_t( root_ ).index;
+    auto const nindex = map_[n].index;
+    return nindex == root_;
   }
 
   bool is_marked_ready( node_index_t const& n )
@@ -115,6 +108,7 @@ public:
 
   void mark_ready( node_index_t const& n )
   {
+    map_[n].index = root_;
     map_[n].ready = 1;
   }
 
@@ -125,7 +119,9 @@ public:
 
   void mark_seen( node_index_t const& n )
   {
+    map_[n].index = root_;
     map_[n].seen = 1;
+    map_[n].ready = 0;
   }
 
 private:
@@ -136,7 +132,7 @@ private:
     if ( ntk_.is_pi( n ) || belongs_to_tfo( n ) || ntk_.is_dead( n ) )
       return;
 
-    if ( !map_.has( n ) || map_[n].index != node_info_t( root_ ).index )
+    if ( !map_.has( n ) || !belongs_to_tfo( n ) )
     {
       make_tfo( n );
     }
@@ -151,7 +147,7 @@ private:
   void make_tfo( node_index_t const& n )
   {
     ensure_safe_access( n, "make_tfo" );
-    map_[n] = node_info_t( static_cast<uint64_t>( root_ ) );
+    map_[n] = node_info_t( root_, 0, 0 );
   }
 
   void ensure_map_capacity( node_index_t const& n )
@@ -165,7 +161,7 @@ private:
 
   void ensure_safe_access( node_index_t const& n, const char* caller )
   {
-    auto idx = ntk_.node_to_index( n );
+    auto idx = n;
     if ( idx >= map_.size() )
     {
       std::cerr << "[DEBUG] Out-of-bounds access in " << caller

@@ -81,7 +81,6 @@ public:
   {
     assert( ( std::is_same<signature_t, typename WinSim::signature_t>::value && "signatures have different type" ) );
     cuts_.clear();
-    window.mark_contained();
     // initialize the approximate information manager
     load_information( window, simulator );
     // identify candidates through branch and bound
@@ -158,10 +157,13 @@ private:
     } );
 
     info_from_.resize( divs_info_.size() );
-    info_from_.back() = divs_info_.back();
-    for ( int i = info_from_.size() - 2; i >= 0; --i )
+    if ( !divs_info_.empty() )
     {
-      info_from_[i] = info_from_[i + 1] | divs_info_[i];
+      info_from_.back() = divs_info_.back();
+      for ( int i = info_from_.size() - 2; i >= 0; --i )
+      {
+        info_from_[i] = info_from_[i + 1] | divs_info_[i];
+      }
     }
 
     certain_from_.resize( divs_info_.size() );
@@ -265,7 +267,7 @@ private:
       if ( contains( other, cut ) )
         erase.push_back( i );
     }
-    for ( auto it = erase.rbegin(); it < erase.rend(); ++it )
+    for ( auto it = erase.rbegin(); it != erase.rend(); ++it )
     {
       cuts.erase( cuts.begin() + *it );
     }
@@ -313,7 +315,7 @@ private:
     cuts_.clear();
     for ( auto const& cut : cuts )
     {
-      std::vector<signal_t> leaves;
+      rinox::math::static_vector<signal_t, max_cuts_size> leaves;
       for ( auto const& index : cut )
       {
         leaves.push_back( window.get_divisor( index ) );
@@ -362,7 +364,6 @@ private:
       }
     }
 
-    int ialive = cuts_.size() - 1;
     for ( int i = erase.size() - 1; i >= 0; i-- )
       cuts_.erase( cuts_.begin() + erase[i] );
   }
@@ -375,11 +376,11 @@ private:
       spfds_.update( simulator.get( l ) );
 
     auto cnt = cut.size();
-    uint32_t best_num_edges = spfds_.get_num_edges();
     uint32_t iteration_guard = 1000; // safety cutoff
     while ( !spfds_.is_covered() && !spfds_.is_saturated() && ( cnt < max_cuts_size ) && iteration_guard-- )
     {
       std::optional<uint32_t> best_div;
+      uint32_t best_num_edges = std::numeric_limits<uint32_t>::max();
       window.foreach_divisor( [&]( auto const& d, auto i ) {
         auto const& sign = simulator.get( d );
         auto const num_edges = spfds_.evaluate( sign );
@@ -396,7 +397,11 @@ private:
         return false;
       }
       if ( best_div )
+      {
         cut.add_leaf( *best_div );
+        auto const& sign = simulator.get( *best_div );
+        spfds_.update( sign );
+      }
       else
         return false;
       cnt++;

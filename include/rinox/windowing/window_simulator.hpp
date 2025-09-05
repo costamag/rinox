@@ -1,5 +1,5 @@
 /* rinox: C++ logic network library
- * Copyright (C) 2018-2022  EPFL
+ * Copyright (C) 2025 EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -162,8 +162,27 @@ public:
   template<typename WinMngr>
   void compute( WinMngr const& window, node_index_t const& n )
   {
+    static const signature_t const0 = sims_[0].construct();
     if ( window.is_input( n ) )
       return;
+    if ( ntk_.is_constant( n ) )
+    {
+      if ( ntk_.constant( n ) )
+      {
+        ntk_.foreach_output( n, [&]( auto const& fo ) {
+          sig_to_sim_[fo] = sims_.size();
+          sims_.emplace_back( ( ~const0 ) ^ const0 );
+        } );
+      }
+      else
+      {
+        ntk_.foreach_output( n, [&]( auto const& fo ) {
+          sig_to_sim_[fo] = sims_.size();
+          sims_.emplace_back( const0 ^ const0 );
+        } );
+      }
+      return;
+    }
 
     std::vector<signature_t const*> sim_ptrs;
     ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
@@ -222,7 +241,6 @@ private:
   template<typename WinMngr>
   void assign_inputs( WinMngr const& window )
   {
-    sims_.resize( CubeSizeLeaves );
     window.foreach_input( [&]( auto const& f, auto i ) {
       sig_to_sim_[f] = i;
     } );

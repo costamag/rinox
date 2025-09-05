@@ -176,7 +176,9 @@ TEST_CASE( "Termination condition for LUT decomposition", "[xaig_synthesis]" )
   kitty::create_from_binary_string( care1, "10001100" );
   kitty::create_from_binary_string( mask1, "11111011" );
   ISTT func1( care1, mask1 );
-  std::vector<double> times{ 0.0, 0.0, 0.0 };
+  rinox::math::static_vector<double, MaxCutSize> times;
+  for ( int i = 0; i < MaxCutSize; ++i )
+    times.push_back( 0 );
   CHECK( decomposer.run( func1, times ) );
   kitty::static_truth_table<2u> expected;
   kitty::create_from_binary_string( expected, "1000" );

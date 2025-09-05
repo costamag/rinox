@@ -71,8 +71,11 @@ inline void report_diagnostic( lorina::diagnostic_engine* diag,
       ( (void)rep.add_argument( std::forward<Args>( args ) ), 0 )... };
 
   // clickable location as a separate note
-  auto note_code = diag->create_id( level, "  ↪ {}:{}" );
-  diag->report( note_code ).add_argument( std::string( file ) ).add_argument( std::to_string( line ) );
+  if ( level != lorina::diagnostic_level::note )
+  {
+    auto note_code = diag->create_id( level, "  ↪ {}:{}" );
+    diag->report( note_code ).add_argument( std::string( file ) ).add_argument( std::to_string( line ) );
+  }
 }
 
 template<typename... Args>

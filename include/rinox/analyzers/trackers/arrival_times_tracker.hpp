@@ -233,7 +233,10 @@ private:
         bool ready = true;
         ntk_.foreach_fanin( u, [&]( auto f, auto i ) {
           node_index_t ni = ntk_.get_node( f );
-          ready &= ntk_.is_pi( ni ) || !tfo_.belongs_to_tfo( ni ) || tfo_.is_marked_ready( ni );
+          bool const cond1 = ntk_.is_pi( ni );
+          bool const cond2 = !tfo_.belongs_to_tfo( ni );
+          bool const cond3 = (tfo_.belongs_to_tfo( ni ) && tfo_.is_marked_ready( ni ));
+          ready &= ( cond1 || cond2 || cond3 ); 
         } );
         tfo_.mark_seen( u );
         if ( ready )
@@ -243,16 +246,13 @@ private:
           ntk_.foreach_output( u, [&]( auto const& fu ) {
             double old_arrival = times_[fu];
             compute_arrival_time_at_pin( fu );
-            if ( std::abs( times_[fu] - old_arrival ) > std::numeric_limits<double>::epsilon() )
-            {
-              ntk_.foreach_fanout( fu, [&]( node_index_t const& o ) {
-                if ( !tfo_.is_marked_seen( o ) ) // only insert if not seen
-                {
-                  new_worklist.push_back( o );
-                  tfo_.mark_seen( o );
-                }
-              } );
-            }
+            ntk_.foreach_fanout( fu, [&]( node_index_t const& o ) {
+              if ( (tfo_.belongs_to_tfo( o ) && !tfo_.is_marked_seen( o ) ) ) // only insert if not seen
+              {
+                new_worklist.push_back( o );
+                tfo_.mark_seen( o );
+              }
+            } );
           } );
         }
         else

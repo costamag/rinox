@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include "../utils/reader.hpp"
 #include "verilog_parser.hpp"
 #include "write_verilog.hpp"

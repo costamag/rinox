@@ -1,0 +1,75 @@
+{
+  "meta":
+  {
+    "experiment": "Comparing windowing algorithms",
+    "author": "Andrea Costamagna",
+    "date": "08-29-2025",
+    "version": "0.0"
+  },
+  "context":
+  {
+    "input":
+    {
+      "extension": "aiger",
+      "benchmarks": ["iscas"],
+      "excluded": []
+    },
+    "output":
+    {
+      "extension": "verilog"
+    },
+    "technology":
+    {
+      "extension" : "genlib",
+      "name" : "asap7"
+    }
+  },
+  "aig-opto":
+  {
+    "balancing":
+    {
+      "algorithm" : "balance",
+      "iterations" : 2,
+      "params" :
+      {
+        "minimize_levels" : false,
+        "fast_mode" : true
+      }
+    }
+  },
+  "tech-map":
+  {
+    "algorithm": "emap",
+    "lib-params":
+    {
+      "ignore_symmetries" : false,
+      "verbose" : true
+    },
+    "map-params":
+    {
+      "cut_limit" : 8,
+      "minimize_truth_table" : true,
+      "matching_mode": "hybrid",
+      "area_oriented_mapping" : false,
+      "map_multioutput" : false,
+      "relax_required" : 0,
+      "required_time" : 0,
+      "area_flow_rounds" : 1,
+      "ela_rounds" : 1,
+      "eswp_rounds" : 0,
+      "switching_activity_patterns" : 2048,
+      "use_match_alternatives" : true,
+      "remove_dominated_cuts" : false,
+      "remove_overlapping_multicuts" : false,
+      "verbose" : false
+    }
+  },
+  "windowing":
+  {
+    "preserve_depth": false,
+    "odc_levels": 0,
+    "skip_fanout_limit_for_divisors": 200,
+    "max_num_divisors": 1000,
+    "max_reconvergence": 4
+  }
+}

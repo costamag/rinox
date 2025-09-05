@@ -48,7 +48,8 @@
 #include <fmt/format.h>
 #include <mockturtle/io/write_bench.hpp>
 #include <mockturtle/io/write_verilog.hpp>
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
+#include <rinox/io/verilog/write_verilog.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include <nlohmann/json.hpp>
@@ -480,9 +481,52 @@ inline bool abc_cec_mapped_cell_impl( Ntk const& ntk, std::string const& benchma
 }
 
 template<class Ntk>
+inline bool abc_cec_rinox_impl( Ntk const& ntk, std::string const& benchmark_full_path, std::string const& library_full_path )
+{
+  rinox::io::verilog::write_verilog( ntk, "/tmp/test.v" );
+  std::string command = fmt::format( "abc -q \"read_genlib {}; read -m /tmp/test.v; cec -n {}\"", library_full_path, benchmark_full_path );
+
+  std::array<char, 128> buffer;
+  std::string result;
+  using file_deleter_t = int ( * )( FILE* );
+#if WIN32
+  std::unique_ptr<FILE, file_deleter_t> pipe( _popen( command.c_str(), "r" ), _pclose );
+#else
+  std::unique_ptr<FILE, file_deleter_t> pipe( popen( command.c_str(), "r" ), pclose );
+#endif
+  if ( !pipe )
+  {
+    throw std::runtime_error( "popen() failed" );
+  }
+  while ( fgets( buffer.data(), buffer.size(), pipe.get() ) != nullptr )
+  {
+    result += buffer.data();
+  }
+
+  /* search for one line which says "Networks are equivalent" and ignore all other debug output from ABC */
+  std::stringstream ss( result );
+  std::string line;
+  while ( std::getline( ss, line, '\n' ) )
+  {
+    if ( line.size() >= 23u && line.substr( 0u, 23u ) == "Networks are equivalent" )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template<class Ntk>
 inline bool abc_cec_mapped_cell( Ntk const& ntk, std::string const& path, std::string const& library )
 {
   return abc_cec_mapped_cell_impl( ntk, path, library );
+}
+
+template<class Ntk>
+inline bool abc_cec_rinox( Ntk const& ntk, std::string const& path, std::string const& library )
+{
+  return abc_cec_rinox_impl( ntk, path, library );
 }
 
 std::optional<rapidjson::Document> load_json_doc( std::string const& path, lorina::diagnostic_engine * diag )

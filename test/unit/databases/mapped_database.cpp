@@ -100,7 +100,10 @@ std::string const symmetric_library =
     "    PIN  D  UNKNOWN   1 999    65.00     0.00    25.00     0.00     \n"
     "GATE OR2                        2.00  Y=(A + B);                    \n"
     "    PIN  A  UNKNOWN   1 999    10.00     0.00    10.00     0.00     \n"
-    "    PIN  B  UNKNOWN   1 999    10.00     0.00    10.00     0.00     \n";
+    "    PIN  B  UNKNOWN   1 999    10.00     0.00    10.00     0.00     \n"
+    "GATE const0                        0.00  Y=CONST0;                  \n"
+    "GATE const1                        0.00  Y=CONST1;                  \n";
+
 
 TEST_CASE( "Inserting chains with one-input node in mapped databases", "[mapped_database]" )
 {
@@ -471,23 +474,26 @@ TEST_CASE( "Saving a mapped database", "[mapped_database]" )
   std::stringstream out;
   db.commit( out );
   std::string const expected =
-      "module top( x0 , x1 , x2 , x3 , x4 , x5 , y0 , y1 );\n"
-      "  input x0 ;\n"
-      "  input x1 ;\n"
-      "  input x2 ;\n"
-      "  input x3 ;\n"
-      "  input x4 ;\n"
-      "  input x5 ;\n"
-      "  output y0 ;\n"
-      "  output y1 ;\n"
-      "  wire n14 , n15 ;\n"
-      "  XOR2   g0( .A (x4), .B (x5), .Y (y0) );\n"
-      "  AND4   g1( .A (x3), .B (x4), .C (x5), .D (x2), .Y (n14) );\n"
-      "  INV    g2( .A (n14), .Y (n15) );\n"
-      "  AND2   g3( .A (x0), .B (n15), .Y (y1) );\n"
-      "endmodule\n";
+"module top( x0 , x1 , x2 , x3 , x4 , x5 , y0 , y1 );\n"
+"  input x0 ;\n"
+"  input x1 ;\n"
+"  input x2 ;\n"
+"  input x3 ;\n"
+"  input x4 ;\n"
+"  input x5 ;\n"
+"  output y0 ;\n"
+"  output y1 ;\n"
+"  wire n0 , n1 , n14 , n15 ;\n"
+"  const0 g00( .Y (n0) );\n"
+"  const1 g01( .Y (n1) );\n"
+"  XOR2   g02( .A (x4), .B (x5), .Y (y0) );\n"
+"  AND4   g03( .A (x3), .B (x4), .C (x5), .D (x2), .Y (n14) );\n"
+"  INV    g04( .A (n14), .Y (n15) );\n"
+"  AND2   g05( .A (x0), .B (n15), .Y (y1) );\n"
+"endmodule\n";
   CHECK( out.str() == expected );
 }
+
 TEST_CASE( "Database look-up with 2-input completely specified function", "[mapped_database]" )
 {
   using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
@@ -615,4 +621,42 @@ TEST_CASE( "Database look-up with 3-input completely specified function", "[mapp
   } );
 
   CHECK( arrival.worst_delay() == 70 );
+}
+
+TEST_CASE( "Loading a mapped database", "[mapped_database]" )
+{
+  using bound_network = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
+  std::vector<gate> gates;
+
+  std::istringstream in_lib( symmetric_library );
+  auto result = lorina::read_genlib( in_lib, genlib_reader( gates ) );
+  CHECK( result == lorina::return_code::success );
+
+  rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED> lib( gates );
+  static constexpr uint32_t MaxNumVars = 4u;
+
+  std::string const stored =
+      "module top( x0 , x1 , x2 , x3 , y0 , y1 );\n"
+      "  input x0 ;\n"
+      "  input x1 ;\n"
+      "  input x2 ;\n"
+      "  input x3 ;\n"
+      "  output y0 ;\n"
+      "  output y1 ;\n"
+      "  wire n0 , n1 , n7 , n8 ;\n"
+      "  const0 g0( .Y (n0) );\n"
+      "  const1 g1( .Y (n1) );\n"
+      "  XOR2   g2( .A (x2), .B (x3), .Y (y0) );\n"
+      "  INV    g3( .A (x3), .Y (n7) );\n"
+      "  AND2   g4( .A (x2), .B (n7), .Y (n8) );\n"
+      "  MAJ3   g5( .A (x0), .B (x1), .C (n8), .Y (y1) );\n"
+      "endmodule\n";
+
+  rinox::databases::mapped_database<bound_network, 4u> db( lib );
+  std::istringstream in( stored );
+  db.load( in );
+
+  std::ostringstream out;
+  db.commit( out );
+  CHECK( out.str() == stored );
 }

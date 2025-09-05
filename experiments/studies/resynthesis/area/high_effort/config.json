@@ -12,7 +12,7 @@
     {
       "extension": "aiger",
       "benchmarks": ["iscas"],
-      "excluded": ["c7552"]
+      "excluded": []
     },
     "output":
     {
@@ -29,27 +29,11 @@
     "balancing":
     {
       "algorithm" : "balance",
-      "iterations" : 2,
+      "iterations" : 1,
       "params" :
       {
         "minimize_levels" : false,
         "fast_mode" : true
-      }
-    },
-    "cut-rewriting":
-    {
-      "algorithm" : "rewrite",
-      "iterations" : 1,
-      "params" :
-      {
-        "cut_limit" : 8,
-        "minimize_truth_table" : true,
-        "preserve_depth" : false,
-        "allow_multiple_structures" : true,
-        "allow_zero_gain" : false,
-        "use_dont_cares" : false,
-        "window_size" : 8,
-        "verbose" : false
       }
     }
   },
@@ -67,11 +51,11 @@
       "minimize_truth_table" : true,
       "matching_mode": "hybrid",
       "area_oriented_mapping" : false,
-      "map_multioutput" : true,
+      "map_multioutput" : false,
       "relax_required" : 0,
       "required_time" : 0,
-      "area_flow_rounds" : 3,
-      "ela_rounds" : 2,
+      "area_flow_rounds" : 1,
+      "ela_rounds" : 1,
       "eswp_rounds" : 0,
       "switching_activity_patterns" : 2048,
       "use_match_alternatives" : true,
@@ -87,8 +71,8 @@
     "database":
     {
       "todo": ["load"],
-      "type": "verilog",
-      "name": "asap7_area_4"
+      "tech": "asap7",
+      "name": "asap7_mapp_4"
     },
     "params":
     {
@@ -104,14 +88,15 @@
         "preserve_depth": false,
         "odc_levels": 0,
         "skip_fanout_limit_for_divisors": 200,
-        "max_num_divisors": 64
+        "max_num_divisors": 1000
       },
       "try_rewire": true,
-      "try_struct": false,
-      "try_window": false,
+      "try_struct": true,
+      "try_window": true,
       "try_simula": false,
       "dynamic_database": false,
-      "fanout_limit": 20
+      "fanout_limit": 100,
+      "stop_after_nth": 100000
     }
   }
 }

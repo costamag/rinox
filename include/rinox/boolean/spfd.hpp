@@ -164,7 +164,8 @@ public:
     return only_onset || only_ofset;
   }
 
-  kitty::ternary_truth_table<Tt_t> get_function( std::vector<uint8_t> indices, std::vector<char> polarities )
+  template<typename Vec>
+  kitty::ternary_truth_table<Tt_t> get_function( Vec indices, std::vector<char> polarities )
   {
     Tt_t bits;
     Tt_t care = bits ^ bits;

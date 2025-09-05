@@ -33,6 +33,7 @@
 #pragma once
 
 #include "../../boolean/boolean.hpp"
+#include "../../math/math.hpp"
 #include "../../network/utils.hpp"
 #include <cassert>
 #include <mockturtle/networks/block.hpp>
@@ -408,31 +409,33 @@ void perm_canonize( bound_chain<DesignType>& chain, boolean::permutation_t const
   } );
 }
 
-template<typename Ntk, network::design_type_t DesignType, bool DoStrash = true>
+// leaves must be a signal container
+template<typename Ntk, network::design_type_t DesignType, typename Signals, bool DoStrash = true>
 typename Ntk::signal_t insert( Ntk& ntk,
-                               std::vector<typename Ntk::signal_t> const& inputs,
+                               Signals const& inputs,
                                bound_chain<DesignType> const& chain )
 {
-  std::vector<typename Ntk::signal_t> fs;
+  using signals_t = std::vector<typename Ntk::signal_t>;
+  signals_t fs;
 
   for ( auto i = 0; i < chain.num_pis(); ++i )
     fs.emplace_back( inputs[i] );
 
   chain.foreach_gate( [&]( auto const& fanin, auto id, auto i ) {
-    std::vector<typename Ntk::signal_t> children( fanin.size() );
+    signals_t children( fanin.size() );
     for ( auto i = 0u; i < fanin.size(); ++i )
     {
       children[i] = fs[fanin[i]];
     }
-    fs.push_back( ntk.template create_node<DoStrash>( children, id ) );
+    fs.push_back( ntk.template create_node<signals_t, DoStrash>( children, id ) );
   } );
   return fs[chain.po_at( 0 )];
 }
 
-template<typename Ntk, network::design_type_t DesignType>
+template<typename Ntk, network::design_type_t DesignType, typename Signals = std::vector<typename Ntk::signal>>
 void extract( bound_chain<DesignType>& chain,
               Ntk& ntk,
-              std::vector<typename Ntk::signal> const& inputs,
+              Signals const& inputs,
               typename Ntk::signal const& output )
 {
   using signal = typename Ntk::signal;

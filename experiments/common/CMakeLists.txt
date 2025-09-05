@@ -10,7 +10,7 @@ target_include_directories(rinox_exp_common PUBLIC
 )
 
 target_link_libraries(rinox_exp_common PUBLIC
-  rinox_diagnostics
+  rinox_inspect
   mockturtle
   rinox_headers
   rinox_build_options

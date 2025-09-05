@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include <rinox/diagnostics.hpp>
+#include <rinox/diagnostics/diagnostics.hpp>
 #include "../utils/reader.hpp"
 #include "json_parser.hpp"
 #include "json_writer.hpp"
