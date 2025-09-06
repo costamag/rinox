@@ -1,0 +1,16 @@
+    "cut-rewriting":
+    {
+      "algorithm" : "rewrite",
+      "iterations" : 1,
+      "params" :
+      {
+        "cut_limit" : 8,
+        "minimize_truth_table" : true,
+        "preserve_depth" : false,
+        "allow_multiple_structures" : true,
+        "allow_zero_gain" : false,
+        "use_dont_cares" : false,
+        "window_size" : 8,
+        "verbose" : false
+      }
+    }
