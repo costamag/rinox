@@ -1,0 +1,102 @@
+{
+  "meta":
+  {
+    "experiment": "High-effort Area optimization with ASAP7",
+    "author": "Andrea Costamagna",
+    "date": "08-21-2025",
+    "version": "0.0"
+  },
+  "context":
+  {
+    "input":
+    {
+      "extension": "aiger",
+      "benchmarks": ["iscas"],
+      "excluded": []
+    },
+    "output":
+    {
+      "extension": "verilog"
+    },
+    "technology":
+    {
+      "extension" : "genlib",
+      "name" : "asap7"
+    }
+  },
+  "aig-opto":
+  {
+    "balancing":
+    {
+      "algorithm" : "balance",
+      "iterations" : 1,
+      "params" :
+      {
+        "minimize_levels" : false,
+        "fast_mode" : true
+      }
+    }
+  },
+  "tech-map":
+  {
+    "algorithm": "emap",
+    "lib-params":
+    {
+      "ignore_symmetries" : false,
+      "verbose" : true
+    },
+    "map-params":
+    {
+      "cut_limit" : 8,
+      "minimize_truth_table" : true,
+      "matching_mode": "hybrid",
+      "area_oriented_mapping" : true,
+      "map_multioutput" : false,
+      "relax_required" : 0,
+      "required_time" : 1000000,
+      "area_flow_rounds" : 1,
+      "ela_rounds" : 1,
+      "eswp_rounds" : 0,
+      "switching_activity_patterns" : 2048,
+      "use_match_alternatives" : true,
+      "remove_dominated_cuts" : false,
+      "remove_overlapping_multicuts" : false,
+      "verbose" : false
+    }
+  },
+  "resynthesis":
+  {
+    "algorithm": "delay_resynthesize",
+    "input" : "mapped",
+    "database":
+    {
+      "todo": ["load"],
+      "tech": "asap7",
+      "name": "asap7_mapp_4"
+    },
+    "params":
+    {
+      "profiler_ps":
+      {
+        "max_num_roots": 1000000,
+        "input_arrivals": 0,
+        "output_required": 10000000,
+        "eps": 0.001
+      },
+      "window_manager_ps":
+      {
+        "preserve_depth": false,
+        "odc_levels": 0,
+        "skip_fanout_limit_for_divisors": 200,
+        "max_num_divisors": 1000
+      },
+      "try_rewire": true,
+      "try_struct": true,
+      "try_window": true,
+      "try_simula": false,
+      "dynamic_database": false,
+      "fanout_limit": 100,
+      "stop_after_nth": 100000
+    }
+  }
+}

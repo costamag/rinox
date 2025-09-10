@@ -1,0 +1,128 @@
+[
+  {
+    "entries": [
+      {
+        "Area(opto)": 0.32,
+        "Area(sota)": 0.32,
+        "Delay(opto)": 45.76,
+        "Delay(sota)": 45.76,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.00030542901367880404,
+        "benchmark": "c17"
+      },
+      {
+        "Area(opto)": 17.899999999999952,
+        "Area(sota)": 10.149999999999991,
+        "Delay(opto)": 483.27,
+        "Delay(sota)": 502.4099999999999,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.012491646222770214,
+        "benchmark": "c432"
+      },
+      {
+        "Area(opto)": 27.729999999999965,
+        "Area(sota)": 22.880000000000006,
+        "Delay(opto)": 378.24,
+        "Delay(sota)": 392.27,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.02482822723686695,
+        "benchmark": "c499"
+      },
+      {
+        "Area(opto)": 21.019999999999957,
+        "Area(sota)": 17.809999999999995,
+        "Delay(opto)": 369.57,
+        "Delay(sota)": 371.63,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.015766698867082596,
+        "benchmark": "c880"
+      },
+      {
+        "Area(opto)": 30.059999999999928,
+        "Area(sota)": 22.82,
+        "Delay(opto)": 333.96000000000004,
+        "Delay(sota)": 391.68999999999994,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.03970683738589287,
+        "benchmark": "c1355"
+      },
+      {
+        "Area(opto)": 22.91999999999995,
+        "Area(sota)": 19.139999999999993,
+        "Delay(opto)": 426.46999999999997,
+        "Delay(sota)": 528.3399999999999,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.017644153907895088,
+        "benchmark": "c1908"
+      },
+      {
+        "Area(opto)": 35.12000000000004,
+        "Area(sota)": 31.149999999999977,
+        "Delay(opto)": 298.09,
+        "Delay(sota)": 320.38,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.04557637870311737,
+        "benchmark": "c2670"
+      },
+      {
+        "Area(opto)": 54.36000000000052,
+        "Area(sota)": 48.4200000000001,
+        "Delay(opto)": 607.3000000000001,
+        "Delay(sota)": 686.5599999999997,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.0623151995241642,
+        "benchmark": "c3540"
+      },
+      {
+        "Area(opto)": 91.60000000000167,
+        "Area(sota)": 72.84999999999988,
+        "Delay(opto)": 506.47999999999996,
+        "Delay(sota)": 609.04,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.07161561399698257,
+        "benchmark": "c5315"
+      },
+      {
+        "Area(opto)": 198.4100000000023,
+        "Area(sota)": 134.4899999999994,
+        "Delay(opto)": 1350.1800000000005,
+        "Delay(sota)": 1541.66,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.11259578913450241,
+        "benchmark": "c6288"
+      },
+      {
+        "Area(opto)": 116.8700000000025,
+        "Area(sota)": 89.03999999999944,
+        "Delay(opto)": 429.3399999999999,
+        "Delay(sota)": 445.1799999999999,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.0914691761136055,
+        "benchmark": "c7552"
+      }
+    ],
+    "version": "##GITHUB##"
+  }
+]
