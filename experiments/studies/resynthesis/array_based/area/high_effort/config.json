@@ -1,0 +1,93 @@
+{
+  "meta":
+  {
+    "experiment": "High-effort Area optimization with Array-based designs",
+    "author": "Andrea Costamagna",
+    "date": "09-10-2025",
+    "version": "0.0"
+  },
+  "context":
+  {
+    "input":
+    {
+      "extension": "aiger",
+      "benchmarks": ["iscas"],
+      "excluded": []
+    },
+    "output":
+    {
+      "extension": "verilog"
+    },
+    "technology":
+    {
+      "name" : "virtual"
+    }
+  },
+  "aig-opto":
+  {
+    "balancing":
+    {
+      "algorithm" : "balance",
+      "iterations" : 1,
+      "params" :
+      {
+        "minimize_levels" : false,
+        "fast_mode" : true
+      }
+    }
+  },
+  "lut-map":
+  {
+    "algorithm": "lut_map",
+    "map-params":
+    {
+      "cut_size" : "6u",
+      "cut_limit" : "8u",
+      "minimize_truth_table" : "true",
+      "area_oriented_mapping" : "false",
+      "required_delay" : "0u",
+      "relax_required" : "0u",
+      "recompute_cuts" : "true",
+      "area_share_rounds" : "2u",
+      "area_flow_rounds" : "1u",
+      "ela_rounds" : "2u",
+      "edge_optimization" : "true",
+      "cut_expansion" : "true",
+      "remove_dominated_cuts" : "true",
+      "collapse_mffcs" : "false",
+      "sop_balancing" : "false",
+      "esop_balancing" : "false",
+      "cost_cache_vars" : "3u",
+      "verbose" : "false"
+    }
+  },
+  "resynthesis":
+  {
+    "algorithm": "area_resynthesize",
+    "input" : "mapped",
+    "params":
+    {
+      "profiler_ps":
+      {
+        "max_num_roots": 1000000,
+        "input_arrivals": 0,
+        "output_required": 10000000,
+        "eps": 0.001
+      },
+      "window_manager_ps":
+      {
+        "preserve_depth": false,
+        "odc_levels": 0,
+        "skip_fanout_limit_for_divisors": 200,
+        "max_num_divisors": 1000
+      },
+      "try_rewire": true,
+      "try_struct": true,
+      "try_window": true,
+      "try_simula": false,
+      "dynamic_database": false,
+      "fanout_limit": 100,
+      "stop_after_nth": 100000
+    }
+  }
+}

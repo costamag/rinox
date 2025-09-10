@@ -1178,10 +1178,23 @@ public:
     return library.get_chain( id );
   }
 
+
+  template<
+      network::design_type_t D = DesignType,
+      std::enable_if_t<D == network::design_type_t::CELL_BASED, int> = 0>
   double const& get_area( node_index_t const& n ) const
   {
     auto const& g = get_binding( signal_t{ n, 0 } );
     return g.area;
+  }
+
+  template<
+      network::design_type_t D = DesignType,
+      std::enable_if_t<D == network::design_type_t::ARRAY_BASED, int> = 0>
+  double const& get_area( node_index_t const& n ) const
+  {
+    static constexpr double array_unit_area = 1;
+    return array_unit_area;
   }
 
   std::vector<kitty::dynamic_truth_table> get_functions( node_index_t const& n ) const

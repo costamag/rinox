@@ -229,7 +229,7 @@ technology_t parse_context_technology( const rapidjson::Value& jb, lorina::diagn
     std::string const name = jb["name"].GetString();
     std::string const file = name + tech.extension;
     tech.path = default_root() / "techlib" / file_type / file;
-    if ( !std::filesystem::exists( tech.path ) )
+    if ( !std::filesystem::exists( tech.path ) && name != "virtual" )
     {
       rinox::diagnostics::REPORT_DIAG(diag, lorina::diagnostic_level::fatal, "`{}` library not found", tech.path);
     }

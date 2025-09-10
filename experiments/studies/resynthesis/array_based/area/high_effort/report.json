@@ -1,0 +1,128 @@
+[
+  {
+    "entries": [
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 2.0,
+        "Delay(opto)": 1.0,
+        "Delay(sota)": 2.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.0009989150566980243,
+        "benchmark": "c17"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 76.0,
+        "Delay(opto)": 7.0,
+        "Delay(sota)": 76.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.016416531056165695,
+        "benchmark": "c432"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 61.0,
+        "Delay(opto)": 4.0,
+        "Delay(sota)": 61.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.044580355286598206,
+        "benchmark": "c499"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 90.0,
+        "Delay(opto)": 6.0,
+        "Delay(sota)": 90.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.03327849134802818,
+        "benchmark": "c880"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 61.0,
+        "Delay(opto)": 4.0,
+        "Delay(sota)": 61.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.06449525058269501,
+        "benchmark": "c1355"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 75.0,
+        "Delay(opto)": 5.0,
+        "Delay(sota)": 75.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.0338793508708477,
+        "benchmark": "c1908"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 129.0,
+        "Delay(opto)": 5.0,
+        "Delay(sota)": 115.0,
+        "EQ(opto)": false,
+        "EQ(sota)": false,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.08713211864233017,
+        "benchmark": "c2670"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 291.0,
+        "Delay(opto)": 8.0,
+        "Delay(sota)": 291.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.13873063027858734,
+        "benchmark": "c3540"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 279.0,
+        "Delay(opto)": 6.0,
+        "Delay(sota)": 270.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.16343972086906433,
+        "benchmark": "c5315"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 517.0,
+        "Delay(opto)": 16.0,
+        "Delay(sota)": 517.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.2908247709274292,
+        "benchmark": "c6288"
+      },
+      {
+        "Area(opto)": 0.0,
+        "Area(sota)": 349.0,
+        "Delay(opto)": 6.0,
+        "Delay(sota)": 348.0,
+        "EQ(opto)": false,
+        "EQ(sota)": true,
+        "Time(opto)": 0.0,
+        "Time(sota)": 0.18020284175872803,
+        "benchmark": "c7552"
+      }
+    ],
+    "version": "##GITHUB##"
+  }
+]

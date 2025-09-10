@@ -1,8 +1,8 @@
-#include "../common/baseline/mapping/tech_map.hpp"
-#include "../common/baseline/preprocessing/aig_opto.hpp"
-#include "../common/context.hpp"
-#include "../common/env.hpp"
-#include "../common/rinox/opto/algorithms/resynthesis.hpp"
+#include "../../../../../common/baseline/mapping/tech_map.hpp"
+#include "../../../../../common/baseline/preprocessing/aig_opto.hpp"
+#include "../../../../../common/context.hpp"
+#include "../../../../../common/env.hpp"
+#include "../../../../../common/rinox/opto/algorithms/resynthesis.hpp"
 #include <iostream>
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
 #include <rinox/databases/mapped_database.hpp>
@@ -62,7 +62,7 @@ int main()
   /* ========================================================================== */
   /*   Experimental setup                                                       */
   /* ========================================================================== */
-  std::string const exp_path = std::string( RINOX_EXPERIMENTS_DIR ) + "/studies/resynthesis/area/high_effort/";
+  std::string const exp_path = std::string( RINOX_EXPERIMENTS_DIR ) + "/studies/resynthesis/cell_based/delay/high_effort/";
   std::string const config_path = exp_path + "config.json";
 
   rinox::experiments::experiment<
@@ -128,7 +128,7 @@ int main()
 
     rinox::opto::algorithms::resynthesis_stats rst;
 
-    rinox::opto::algorithms::area_resynthesize( dntk_opto, db, rsy.ps, &rst );
+    rinox::opto::algorithms::delay_resynthesize( dntk_opto, db, rsy.ps, &rst );
     rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
 
     /* ========================================================================== */
