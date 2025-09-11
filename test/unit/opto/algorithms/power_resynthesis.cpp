@@ -33,6 +33,7 @@ struct custom_power_rewire_params : rinox::opto::algorithms::default_resynthesis
   bool dynamic_database = false;
   int32_t odc_levels = 0;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_num_vars = 6u;
 };
 
 TEST_CASE( "Power resynthesis via rewiring - single-output gate without don't cares", "[power_resynthesis]" )
@@ -83,7 +84,7 @@ TEST_CASE( "Power resynthesis via rewiring - single-output gate without don't ca
   power.run( workload );
   auto const power_before = st.dyn_power;
   custom_power_rewire_params ps;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_rewire_params>( ntk, &db, ps );
   power.run( workload );
   auto const power_after = st.dyn_power;
   CHECK( dntk.area() == 2.5 );
@@ -141,7 +142,7 @@ TEST_CASE( "Power resynthesis via rewiring - single-output gate with don't cares
   auto const power_before = st.dyn_power;
   custom_power_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_rewire_params>( ntk, &db, ps );
 
   power.run( workload );
   auto const power_after = st.dyn_power;
@@ -198,7 +199,7 @@ TEST_CASE( "Power resynthesis via rewiring - multiple-output gate without don't 
   power.run( workload );
   auto const power_before = st.dyn_power;
   custom_power_rewire_params ps;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_rewire_params>( ntk, &db, ps );
 
   power.run( workload );
   auto const power_after = st.dyn_power;
@@ -259,7 +260,7 @@ TEST_CASE( "Power resynthesis via rewiring - multiple-output gate with don't car
   auto const power_before = st.dyn_power;
   custom_power_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_rewire_params>( ntk, &db, ps );
 
   power.run( workload );
   auto const power_after = st.dyn_power;
@@ -277,6 +278,7 @@ struct custom_power_struct_params1 : rinox::opto::algorithms::default_resynthesi
   bool dynamic_database = false;
   int32_t odc_levels = 0;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_num_vars = 6u;
 };
 
 struct custom_power_struct_params2 : rinox::opto::algorithms::default_resynthesis_params<8u>
@@ -339,7 +341,7 @@ TEST_CASE( "Power resynthesis via cut rewriting - single-output gate without don
   auto const power_before = st.dyn_power;
   custom_power_struct_params1 ps;
   ps.window_manager_ps.odc_levels = 0;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_struct_params1>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_struct_params1>( ntk, &db, ps );
 
   power.run( workload );
 
@@ -357,6 +359,7 @@ struct custom_power_struct_params3 : rinox::opto::algorithms::default_resynthesi
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 3u;
+  static constexpr uint32_t max_num_vars = 3u;
 };
 
 TEST_CASE( "Power resynthesis via cut rewriting - single-output gate with don't cares", "[power_resynthesis]" )
@@ -411,7 +414,7 @@ TEST_CASE( "Power resynthesis via cut rewriting - single-output gate with don't 
   auto const power_before = st.dyn_power;
   custom_power_struct_params3 ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_struct_params3>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_struct_params3>( ntk, &db, ps );
 
   power.run( workload );
 
@@ -429,6 +432,7 @@ struct custom_power_window_params1 : rinox::opto::algorithms::default_resynthesi
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 3u;
+  static constexpr uint32_t max_num_vars = 3u;
 };
 
 TEST_CASE( "Power resynthesis via window rewriting - single-output gate without don't cares", "[power_resynthesis]" )
@@ -485,7 +489,7 @@ TEST_CASE( "Power resynthesis via window rewriting - single-output gate without 
   auto const power_before = st.dyn_power;
   custom_power_window_params1 ps;
   ps.window_manager_ps.odc_levels = 0;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_window_params1>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_window_params1>( ntk, &db, ps );
 
   power.run( workload );
 
@@ -552,7 +556,7 @@ TEST_CASE( "Power resynthesis via window rewriting - single-output gate with don
   auto const power_before = st.dyn_power;
   custom_power_window_params1 ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::power_resynthesize<DNtk, Db, custom_power_window_params1>( dntk, db, ps );
+  rinox::opto::algorithms::power_resynthesize<Ntk, custom_power_window_params1>( ntk, &db, ps );
 
   power.run( workload );
 

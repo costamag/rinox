@@ -9,7 +9,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.0002409229928161949,
+        "Time(sota)": 0.000468560989247635,
         "benchmark": "c17"
       },
       {
@@ -20,7 +20,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.008343181572854519,
+        "Time(sota)": 0.008310835808515549,
         "benchmark": "c432"
       },
       {
@@ -31,7 +31,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.016621148213744164,
+        "Time(sota)": 0.016664892435073853,
         "benchmark": "c499"
       },
       {
@@ -42,7 +42,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.017155883833765984,
+        "Time(sota)": 0.014805513434112072,
         "benchmark": "c880"
       },
       {
@@ -53,7 +53,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.02675481140613556,
+        "Time(sota)": 0.027376757934689522,
         "benchmark": "c1355"
       },
       {
@@ -64,7 +64,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.014150179922580719,
+        "Time(sota)": 0.013963215053081512,
         "benchmark": "c1908"
       },
       {
@@ -75,7 +75,7 @@
         "EQ(opto)": true,
         "EQ(sota)": false,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.034831453114748,
+        "Time(sota)": 0.034088969230651855,
         "benchmark": "c2670"
       },
       {
@@ -86,7 +86,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.06162649020552635,
+        "Time(sota)": 0.059793464839458466,
         "benchmark": "c3540"
       },
       {
@@ -97,7 +97,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.08746883273124695,
+        "Time(sota)": 0.08494973927736282,
         "benchmark": "c5315"
       },
       {
@@ -108,7 +108,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.18232440948486328,
+        "Time(sota)": 0.15718941390514374,
         "benchmark": "c6288"
       },
       {
@@ -119,7 +119,7 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.0957372859120369,
+        "Time(sota)": 0.09370455890893936,
         "benchmark": "c7552"
       }
     ],

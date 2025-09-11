@@ -82,8 +82,8 @@
         "max_num_divisors": 1000
       },
       "try_rewire": true,
-      "try_struct": true,
-      "try_window": true,
+      "try_struct": false,
+      "try_window": false,
       "try_simula": false,
       "dynamic_database": false,
       "fanout_limit": 100,

@@ -35,6 +35,7 @@ struct ResynParams : rinox::opto::algorithms::default_resynthesis_params<NumLeav
   static constexpr uint32_t num_vars_sign = 12;
   static constexpr uint32_t max_cuts_size = 4u;
   static constexpr uint32_t max_cube_spfd = 10u;
+  static constexpr uint32_t max_num_vars = 4u;
 
   struct window_manager_params : rinox::windowing::default_window_manager_params
   {
@@ -115,7 +116,7 @@ int main()
     /* ========================================================================== */
     auto sota = evaluate_sota( path, aig_opts, map, tech_lib );
     if ( !sota )
-    return false;
+      return false;
     auto [ntk_sota, st_sota] = *sota;
     mockturtle::write_verilog_with_cell( ntk_sota, name + ".sota.v" );
 
@@ -128,7 +129,7 @@ int main()
 
     rinox::opto::algorithms::resynthesis_stats rst;
 
-    rinox::opto::algorithms::delay_resynthesize( dntk_opto, db, rsy.ps, &rst );
+    rinox::opto::algorithms::delay_resynthesize( ntk_opto, &db, rsy.ps, &rst );
     rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
 
     /* ========================================================================== */

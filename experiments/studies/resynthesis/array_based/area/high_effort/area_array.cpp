@@ -102,7 +102,7 @@ int main()
     /* ========================================================================== */
     auto sota = evaluate_sota( path, aig_opts, map );
     if ( !sota )
-    return false;
+      return false;
     auto [ntk_sota, st_sota] = *sota;
 
     /* ========================================================================== */
@@ -111,8 +111,8 @@ int main()
     Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::klut_network, rinox::network::design_type_t::ARRAY_BASED, 2u>( ntk_sota );
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
-    //rinox::opto::algorithms::resynthesis_stats rst;
-    //rinox::opto::algorithms::area_resynthesize( dntk_opto, db, rsy.ps, &rst );
+    rinox::opto::algorithms::resynthesis_stats rst;
+    rinox::opto::algorithms::area_resynthesize( dntk_opto, {}, rsy.ps, &rst );
 
     /* ========================================================================== */
     /*   Equivalence checking                                                     */

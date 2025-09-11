@@ -30,9 +30,10 @@ struct custom_area_rewire_params : rinox::opto::algorithms::default_resynthesis_
   bool dynamic_database = false;
   int32_t odc_levels = 0;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_num_vars = 6u;
 };
 
-TEST_CASE( "Area resynthesis via rewiring - single-output gate without don't cares", "[area_resynthesis]" )
+TEST_CASE( "Area resynthesis via rewiring - single-output gate without don't cares - Cell-based", "[area_resynthesis]" )
 {
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   using signal = typename Ntk::signal;
@@ -66,11 +67,42 @@ TEST_CASE( "Area resynthesis via rewiring - single-output gate without don't car
   using DNtk = mockturtle::depth_view<Ntk>;
   DNtk dntk( ntk );
   custom_area_rewire_params ps;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, &db, ps );
   CHECK( ntk.area() == 3 );
 }
 
-TEST_CASE( "Area resynthesis via rewiring - single-output gate with don't cares", "[area_resynthesis]" )
+TEST_CASE( "Area resynthesis via rewiring - single-output gate without don't cares - Array-based", "[area_resynthesis]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename Ntk::signal;
+
+  static constexpr uint32_t MaxNumVars = 6u;
+  Ntk ntk;
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  auto const e = ntk.create_pi();
+  kitty::dynamic_truth_table and2( 2u );
+  kitty::dynamic_truth_table and3( 3u );
+  kitty::create_from_binary_string( and2, "1000" );
+  kitty::create_from_binary_string( and3, "10000000" );
+  auto const f1 = ntk.create_node( { c, d, e }, and3 );
+  auto const f2 = ntk.create_node( { a, b }, and2 );
+  auto const f3 = ntk.create_node( { c, d }, and2 );
+  auto const f4 = ntk.create_node( { e, f3 }, and2 );
+  auto const f5 = ntk.create_node( { f2, f4 }, and2 );
+  ntk.create_po( f1 );
+  ntk.create_po( f5 );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  DNtk dntk( ntk );
+  custom_area_rewire_params ps;
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, {}, ps );
+  CHECK( ntk.area() == 3 );
+}
+
+TEST_CASE( "Area resynthesis via rewiring - single-output gate with don't cares - Cell Based", "[area_resynthesis]" )
 {
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   using signal = typename Ntk::signal;
@@ -107,11 +139,48 @@ TEST_CASE( "Area resynthesis via rewiring - single-output gate with don't cares"
   DNtk dntk( ntk );
   custom_area_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_rewire_params>( dntk, db, ps );
-  CHECK( ntk.area() == 5.5);
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, &db, ps );
+  CHECK( ntk.area() == 5.5 );
 }
 
-TEST_CASE( "Area resynthesis via rewiring - multiple-output gate without don't cares", "[area_resynthesis]" )
+TEST_CASE( "Area resynthesis via rewiring - single-output gate with don't cares - Array Based", "[area_resynthesis]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename Ntk::signal;
+  std::vector<mockturtle::gate> gates;
+
+  static constexpr uint32_t MaxNumVars = 6u;
+
+  Ntk ntk;
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  kitty::dynamic_truth_table and2( 2u ), or2( 2u ), xor2( 2u );
+  kitty::create_from_binary_string( and2, "1000" );
+  kitty::create_from_binary_string( or2, "1110" );
+  kitty::create_from_binary_string( xor2, "0110" );
+  auto const f1 = ntk.create_node( { a, b }, and2 );
+  auto const f2 = ntk.create_node( { c, d }, or2 );
+  auto const f3 = ntk.create_node( { c, d }, and2 );
+  auto const f4 = ntk.create_node( { c, d }, xor2 );
+  auto const f5 = ntk.create_node( { f1, f2 }, and2 );
+  auto const f6 = ntk.create_node( { f3, f5 }, or2 );
+  auto const f7 = ntk.create_node( { f3, f4 }, and2 );
+
+  ntk.create_po( f6 );
+  ntk.create_po( f7 );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+  custom_area_rewire_params ps;
+  ps.window_manager_ps.odc_levels = 3;
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, {}, ps );
+  CHECK( ntk.area() == 6.0 );
+}
+
+TEST_CASE( "Area resynthesis via rewiring - multiple-output gate without don't cares - Cell based", "[area_resynthesis]" )
 {
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   using signal = typename Ntk::signal;
@@ -147,11 +216,48 @@ TEST_CASE( "Area resynthesis via rewiring - multiple-output gate without don't c
   rinox::windowing::window_manager_stats st;
   DNtk dntk( ntk );
   custom_area_rewire_params ps;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, &db, ps );
   CHECK( ntk.area() == 3 );
 }
 
-TEST_CASE( "Area resynthesis via rewiring - multiple-output gate with don't cares", "[area_resynthesis]" )
+TEST_CASE( "Area resynthesis via rewiring - multiple-output gate without don't cares - Array based", "[area_resynthesis]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename Ntk::signal;
+  std::vector<mockturtle::gate> gates;
+
+  static constexpr uint32_t MaxNumVars = 6u;
+
+  Ntk ntk;
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  auto const e = ntk.create_pi();
+  kitty::dynamic_truth_table and3( 3u ), and2( 2u ), maj3( 3u ), xor3( 3u );
+  kitty::create_from_binary_string( and3, "10000000" );
+  kitty::create_from_binary_string( and2, "1000" );
+  kitty::create_from_binary_string( maj3, "11101000" );
+  kitty::create_from_binary_string( xor3, "10010110" );
+  auto const f1 = ntk.create_node( { c, d, e }, and3 );
+  auto const f2 = ntk.create_node( { a, b }, and2 );
+  auto const f3 = ntk.create_node( { c, d }, and2 );
+  auto const f4 = ntk.create_node( { e, f3 }, and2 );
+  auto const f5 = ntk.create_node( { c, f2, f4 }, { maj3, xor3 } );
+
+  ntk.create_po( f1 );
+  ntk.create_po( { f5.index, 0 } );
+  ntk.create_po( { f5.index, 1 } );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+  custom_area_rewire_params ps;
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, {}, ps );
+  CHECK( ntk.area() == 3 );
+}
+
+TEST_CASE( "Area resynthesis via rewiring - multiple-output gate with don't cares - Cell based", "[area_resynthesis]" )
 {
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   using signal = typename Ntk::signal;
@@ -189,8 +295,46 @@ TEST_CASE( "Area resynthesis via rewiring - multiple-output gate with don't care
   rinox::windowing::window_manager_stats st;
   DNtk dntk( ntk );
   custom_area_rewire_params ps;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, &db, ps );
   CHECK( ntk.area() == 7.5 );
+}
+
+TEST_CASE( "Area resynthesis via rewiring - multiple-output gate with don't cares - Array based", "[area_resynthesis]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename Ntk::signal;
+  static constexpr uint32_t MaxNumVars = 6u;
+
+  Ntk ntk;
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  auto const e = ntk.create_pi();
+  kitty::dynamic_truth_table and2( 2u ), or2( 2u ), xor2( 2u ), maj3( 3u ), xor3( 3u );
+  kitty::create_from_binary_string( and2, "1000" );
+  kitty::create_from_binary_string( or2, "1110" );
+  kitty::create_from_binary_string( xor2, "0110" );
+  kitty::create_from_binary_string( xor3, "10010110" );
+  kitty::create_from_binary_string( maj3, "11101000" );
+  auto const f1 = ntk.create_node( { a, b }, and2 );
+  auto const f2 = ntk.create_node( { c, d }, or2 );
+  auto const f3 = ntk.create_node( { c, d }, and2 );
+  auto const f4 = ntk.create_node( { c, d }, xor2 );
+  auto const f5 = ntk.create_node( { e, f1, f2 }, { maj3, xor3 } );
+  auto const f6 = ntk.create_node( { { f5.index, 0 }, e }, and2 );
+  auto const f7 = ntk.create_node( { { f5.index, 1 }, f4 }, and2 );
+  auto const f8 = ntk.create_node( { f6, f7 }, and2 );
+  auto const f9 = ntk.create_node( { f3, f8 }, or2 );
+
+  ntk.create_po( f9 );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk( ntk );
+  custom_area_rewire_params ps;
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_rewire_params>( ntk, {}, ps );
+  CHECK( ntk.area() == 8.0 );
 }
 
 struct custom_area_struct_params1 : rinox::opto::algorithms::default_resynthesis_params<8u>
@@ -202,6 +346,7 @@ struct custom_area_struct_params1 : rinox::opto::algorithms::default_resynthesis
   bool dynamic_database = false;
   int32_t odc_levels = 0;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_num_vars = 6u;
 };
 
 struct custom_area_struct_params2 : rinox::opto::algorithms::default_resynthesis_params<8u>
@@ -215,7 +360,7 @@ struct custom_area_struct_params2 : rinox::opto::algorithms::default_resynthesis
   static constexpr uint32_t max_cuts_size = 6u;
 };
 
-TEST_CASE( "Area resynthesis via cut rewriting - single-output gate without don't cares", "[area_resynthesis]" )
+TEST_CASE( "Area resynthesis via cut rewriting - single-output gate without don't cares - Cell based", "[area_resynthesis]" )
 {
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   using signal = typename Ntk::signal;
@@ -251,7 +396,7 @@ TEST_CASE( "Area resynthesis via cut rewriting - single-output gate without don'
   rinox::windowing::window_manager_stats st;
   DNtk dntk( ntk );
   custom_area_struct_params1 ps;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_struct_params1>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_struct_params1>( ntk, &db, ps );
   CHECK( ntk.area() == 2.0 );
 }
 
@@ -263,6 +408,7 @@ struct custom_area_struct_params3 : rinox::opto::algorithms::default_resynthesis
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 3u;
+  static constexpr uint32_t max_num_vars = 3u;
 };
 
 TEST_CASE( "Area resynthesis via cut rewriting - single-output gate with don't cares", "[area_resynthesis]" )
@@ -305,7 +451,7 @@ TEST_CASE( "Area resynthesis via cut rewriting - single-output gate with don't c
   DNtk dntk( ntk );
   custom_area_struct_params3 ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_struct_params3>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_struct_params3>( ntk, &db, ps );
   CHECK( ntk.area() == 3.5 );
 }
 
@@ -317,6 +463,7 @@ struct custom_area_window_params1 : rinox::opto::algorithms::default_resynthesis
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 3u;
+  static constexpr uint32_t max_num_vars = 3u;
 };
 
 TEST_CASE( "Area resynthesis via window rewriting - single-output gate without don't cares", "[area_resynthesis]" )
@@ -359,7 +506,7 @@ TEST_CASE( "Area resynthesis via window rewriting - single-output gate without d
   rinox::windowing::window_manager_stats st;
   DNtk dntk( ntk );
   custom_area_window_params1 ps;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_window_params1>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_window_params1>( ntk, &db, ps );
   CHECK( ntk.area() == 4.0 );
 }
 
@@ -405,7 +552,7 @@ TEST_CASE( "Area resynthesis via window rewriting - single-output gate with don'
   DNtk dntk( ntk );
   custom_area_window_params1 ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::area_resynthesize<DNtk, Db, custom_area_window_params1>( dntk, db, ps );
+  rinox::opto::algorithms::area_resynthesize<Ntk, custom_area_window_params1>( ntk, &db, ps );
   CHECK( ntk.area() == 5.5 );
 }
 

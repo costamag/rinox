@@ -115,7 +115,7 @@ int main()
     /* ========================================================================== */
     auto sota = evaluate_sota( path, aig_opts, map, tech_lib );
     if ( !sota )
-    return false;
+      return false;
     auto [ntk_sota, st_sota] = *sota;
     mockturtle::write_verilog_with_cell( ntk_sota, name + ".sota.v" );
 
@@ -128,7 +128,7 @@ int main()
 
     rinox::opto::algorithms::resynthesis_stats rst;
 
-    rinox::opto::algorithms::area_resynthesize( dntk_opto, db, rsy.ps, &rst );
+    rinox::opto::algorithms::area_resynthesize( ntk_opto, &db, rsy.ps, &rst );
     rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
 
     /* ========================================================================== */
