@@ -250,6 +250,7 @@ public:
   /*! \brief Check if the node is a constant */
   bool is_constant( node_index_t const& n ) const
   {
+    if ( n <= 1 ) return true;
     auto const& pins = nodes[n].outputs;
     bool const inter = has_intersection( pins[0].type, pin_type_t::CONSTANT );
     bool const exter = inter || ( !is_pi( n ) && library.is_constant( get_binding_ids( n ) ) );
@@ -830,9 +831,8 @@ public:
 #pragma region Functional properties
   kitty::dynamic_truth_table signal_function( const signal_t& f ) const
   {
-    auto const& outputs = nodes[f.index].outputs;
-    auto const& id = outputs[f.output].id;
-    return library[id].function;
+    auto const& g = get_binding( f );
+    return g.function;
   }
 #pragma endregion
 
@@ -1201,7 +1201,7 @@ public:
   {
     std::vector<kitty::dynamic_truth_table> tts;
     foreach_output( n, [&]( auto const& f ) {
-      auto const& g = get_binding( signal_t{ n, 0 } );
+      auto const& g = get_binding( f );
       tts.push_back( g.function );
     } );
     return tts;

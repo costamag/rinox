@@ -409,6 +409,12 @@ public:
     return _storage->get_id( tt );
   }
 
+  uint32_t insert( kitty::dynamic_truth_table const& function )
+  {
+    return _storage->insert( function );
+  }
+
+
   /*! \brief Create a node from the truth table of its functionality.
    *
    * This method creates a new node from its functionality. If no function

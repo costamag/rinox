@@ -89,8 +89,6 @@ int main()
   /* ========================================================================== */
   /*   Technology setup                                                         */
   /* ========================================================================== */
-  rinox::diagnostics::REPORT_DIAG_RAW( &diag, lorina::diagnostic_level::note,
-                                       "Processing technology library" );
   auto static constexpr design_t = rinox::network::design_type_t::ARRAY_BASED;
   static constexpr uint32_t max_num_outputs = 2u;
   using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
@@ -110,7 +108,7 @@ int main()
     /* ========================================================================== */
     /*   New algorithm evaluation                                                 */
     /* ========================================================================== */
-    Ntk ntk_opto;// = rinox::network::convert_lut_to_bound( ntk_sota );
+    Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::klut_network, rinox::network::design_type_t::ARRAY_BASED, 2u>( ntk_sota );
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
     //rinox::opto::algorithms::resynthesis_stats rst;
@@ -120,14 +118,14 @@ int main()
     /*   Equivalence checking                                                     */
     /* ========================================================================== */
     bool const cec_sota = rinox::experiments::abc_cec( ntk_sota, path );
-    bool const cec_opto = false; //rinox::experiments::abc_cec_rinox( ntk_opto, path, ctx.technology.path );
+    bool const cec_opto = rinox::experiments::abc_cec_rinox( ntk_opto, path );
 
     /* ========================================================================== */
     /*   Results storage                                                          */
     /* ========================================================================== */
     exp( name,
-         ntk_sota.num_gates(), ntk_opto.area(),
-         st_sota.area, st_sota.delay,
+         st_sota.area, ntk_opto.area(),
+         st_sota.delay, times_track.worst_delay(),
          mockturtle::to_seconds( st_sota.time_total ), 0,
          cec_sota, cec_opto );
     return true;

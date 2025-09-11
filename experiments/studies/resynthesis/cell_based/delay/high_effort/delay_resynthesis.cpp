@@ -122,7 +122,7 @@ int main()
     /* ========================================================================== */
     /*   New algorithm evaluation                                                 */
     /* ========================================================================== */
-    Ntk ntk_opto = rinox::network::convert_mapped_to_bound( ntk_sota, *gates );
+    Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::cell_view<mockturtle::block_network>, design_t, max_num_outputs>( ntk_sota, *gates );
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
 

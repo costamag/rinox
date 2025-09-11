@@ -52,12 +52,25 @@ void convert_mapped_to_bound_tfi( bound_network<DesignType, MaxNumOutputs>& ntk,
   ntk_src.foreach_fanin( n_src, [&]( auto fi_src ) {
     auto const ni_src = ntk_src.get_node( fi_src );
     convert_mapped_to_bound_tfi( ntk, ntk_src, old_to_new, fi_src );
-    children.push_back( old_to_new[ni_src][fi_src.output] );
+    if constexpr ( DesignType == design_type_t::CELL_BASED )
+      children.push_back( old_to_new[ni_src][fi_src.output] );
+    else if constexpr ( DesignType == design_type_t::ARRAY_BASED )
+      children.push_back( old_to_new[ni_src][0] );
+    else throw std::runtime_error( "[ERROR] invalid design type" );
+
   } );
-  auto cell = ntk_src.get_cell( n_src );
+
   std::vector<unsigned int> ids;
-  for ( auto const& g : cell.gates )
-    ids.push_back( g.id );
+  if constexpr ( DesignType == design_type_t::CELL_BASED )
+  {
+    auto cell = ntk_src.get_cell( n_src );
+    for ( auto const& g : cell.gates )
+      ids.push_back( g.id );
+  }
+  else if constexpr ( DesignType == design_type_t::ARRAY_BASED )
+    ids = { ntk.insert( ntk_src.node_function( n_src ) ) };
+  else
+    throw std::runtime_error( "[ERROR] invalid design type" );
 
   auto f = ntk.create_node( children, ids );
   std::vector<typename BndNtk::signal> fs;
@@ -68,11 +81,15 @@ void convert_mapped_to_bound_tfi( bound_network<DesignType, MaxNumOutputs>& ntk,
 }
 
 template<class Ntk, design_type_t DesignType = design_type_t::CELL_BASED, uint32_t MaxNumOutputs = 2u>
-void convert_mapped_to_bound( bound_network<DesignType, MaxNumOutputs>& ntk, Ntk const& ntk_src, std::vector<mockturtle::gate> const& gates )
+void convert_mapped_to_bound( bound_network<DesignType, MaxNumOutputs>& ntk, Ntk const& ntk_src )
 {
   using node = typename bound_network<DesignType, MaxNumOutputs>::node;
   using signal = typename bound_network<DesignType, MaxNumOutputs>::signal;
   mockturtle::unordered_node_map<std::vector<signal>, Ntk> old_to_new( ntk_src );
+
+  /* create te constants */
+  old_to_new[ntk_src.get_node( ntk_src.get_constant( false ) )] = { ntk.get_constant( false ) };
+  old_to_new[ntk_src.get_node( ntk_src.get_constant( true ) )] = { ntk.get_constant( true ) };
   /* create the pis */
   ntk_src.incr_trav_id();
   ntk_src.foreach_pi( [&]( auto f_src ) {
@@ -87,20 +104,16 @@ void convert_mapped_to_bound( bound_network<DesignType, MaxNumOutputs>& ntk, Ntk
   kitty::create_from_binary_string( buf, "10" );
   kitty::create_from_binary_string( inv, "01" );
   /* create the other nodes */
+  
   ntk_src.foreach_po( [&]( auto fo_src ) {
+    convert_mapped_to_bound_tfi( ntk, ntk_src, old_to_new, fo_src );
     auto no_src = ntk_src.get_node( fo_src );
-//    if ( ntk_src.is_constant( no_src ) )
-//    {
-//      node n;
-//      if ( ntk_src.constant_value( no_src ) )
-//        
-//      else
-//    }
-//    else
-    {
-      convert_mapped_to_bound_tfi( ntk, ntk_src, old_to_new, fo_src );
-      ntk.create_po( old_to_new[no_src][fo_src.output] );
-    }
+      if constexpr ( DesignType == design_type_t::CELL_BASED )
+        ntk.create_po( old_to_new[no_src][fo_src.output] );
+      else if constexpr ( DesignType == design_type_t::ARRAY_BASED )
+        ntk.create_po( old_to_new[no_src][0] );
+      else
+        throw std::runtime_error( "[ERROR] invalid design type" );
   } );
 }
 
@@ -121,12 +134,29 @@ void convert_mapped_to_bound( bound_network<DesignType, MaxNumOutputs>& ntk, Ntk
  * \param ntk_src Input k-lut network
  * \return An equivalent AIG, XAG, MIG or XMG network
  */
-template<class Ntk, design_type_t DesignType = design_type_t::CELL_BASED, uint32_t MaxNumOutputs = 2u>
+template<
+    class Ntk,
+    network::design_type_t DesignType,
+    std::enable_if_t<DesignType == network::design_type_t::CELL_BASED, int> = 0,
+    uint32_t MaxNumOutputs = 2u>
 bound_network<DesignType, MaxNumOutputs> convert_mapped_to_bound( Ntk const& ntk_src, std::vector<mockturtle::gate> const& gates )
 {
   bound_network<DesignType, MaxNumOutputs> ntk( gates );
-  convert_mapped_to_bound( ntk, ntk_src, gates );
+  convert_mapped_to_bound( ntk, ntk_src );
   return ntk;
 }
+
+template<
+    class Ntk,
+    network::design_type_t DesignType,
+    std::enable_if_t<DesignType == network::design_type_t::ARRAY_BASED, int> = 0,
+    uint32_t MaxNumOutputs = 2u>
+bound_network<DesignType, MaxNumOutputs> convert_mapped_to_bound( Ntk const& ntk_src )
+{
+  bound_network<DesignType, MaxNumOutputs> ntk;
+  convert_mapped_to_bound( ntk, ntk_src );
+  return ntk;
+}
+
 
 } // namespace rinox::network

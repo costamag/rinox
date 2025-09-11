@@ -22,7 +22,7 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
   Ps ps;
 
   for ( size_t i = 1; i < args.size(); ++i )
-  {
+  {     
     const auto& arg = args[i];
 
     if ( arg == "--target" && i + 1 < args.size() )
