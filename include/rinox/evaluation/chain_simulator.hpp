@@ -169,11 +169,7 @@ public:
     {
       return { &const0, chain.is_complemented( lit ) };
     }
-    if ( chain.num_pis() > inputs.size() )
-    {
-      std::cout << chain.num_pis() << " != " << inputs.size() << std::endl;
-      std::cout << "Mismatch between number of PIs and input simulations." << std::endl;
-    }
+    assert( chain.num_pis() == inputs.size() && "Mismatch between number of PIs and input simulations." );
     if ( chain.is_pi( lit ) )
     {
       uint32_t index = chain.get_pi_index( lit );

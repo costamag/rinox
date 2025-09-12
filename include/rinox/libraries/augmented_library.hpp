@@ -352,6 +352,7 @@ public:
 
     chain_t aig_chain;
     unsigned int id;
+    double area = 1.0;
   };
 
   /*! \brief Construction via specification of the simpler library.

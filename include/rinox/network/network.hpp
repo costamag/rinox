@@ -386,8 +386,9 @@ public:
            design_type_t D = DesignType,
            std::enable_if_t<D == design_type_t::ARRAY_BASED, int> = 0>
   signal_t create_node( SignalsVec const& children,
-                        kitty::dynamic_truth_table const& tt )
+                        kitty::dynamic_truth_table& tt )
   {
+    kitty::min_base_inplace( tt );
     auto const binding_id = _storage->insert( tt );
     return create_node<SignalsVec, DoStrash>( children, binding_id );
   }
@@ -413,7 +414,6 @@ public:
   {
     return _storage->insert( function );
   }
-
 
   /*! \brief Create a node from the truth table of its functionality.
    *
@@ -772,7 +772,8 @@ public:
   {
     double total_area = 0;
     foreach_gate( [&]( auto const& n ) {
-      total_area += get_area( n );
+      if ( !is_dead( n ) )
+        total_area += get_area( n );
     } );
     return total_area;
   }
@@ -974,6 +975,7 @@ public:
   template<typename TT>
   std::vector<TT> compute( node_index_t const& n, std::vector<TT const*> sim_ptrs ) const
   {
+    auto tts = get_functions( n );
     std::vector<TT> res;
     compute( res, n, sim_ptrs );
     return res;
@@ -1153,7 +1155,7 @@ public:
     return _storage->get_fanins( n );
   }
 
-  double const& get_area( node_index_t const& n ) const
+  double get_area( node_index_t const& n ) const
   {
     return _storage->get_area( n );
   }

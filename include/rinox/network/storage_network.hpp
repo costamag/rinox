@@ -250,7 +250,8 @@ public:
   /*! \brief Check if the node is a constant */
   bool is_constant( node_index_t const& n ) const
   {
-    if ( n <= 1 ) return true;
+    if ( n <= 1 )
+      return true;
     auto const& pins = nodes[n].outputs;
     bool const inter = has_intersection( pins[0].type, pin_type_t::CONSTANT );
     bool const exter = inter || ( !is_pi( n ) && library.is_constant( get_binding_ids( n ) ) );
@@ -1178,7 +1179,6 @@ public:
     return library.get_chain( id );
   }
 
-
   template<
       network::design_type_t D = DesignType,
       std::enable_if_t<D == network::design_type_t::CELL_BASED, int> = 0>
@@ -1191,10 +1191,10 @@ public:
   template<
       network::design_type_t D = DesignType,
       std::enable_if_t<D == network::design_type_t::ARRAY_BASED, int> = 0>
-  double const& get_area( node_index_t const& n ) const
+  double get_area( node_index_t const& n ) const
   {
     static constexpr double array_unit_area = 1;
-    return array_unit_area;
+    return fanin_size( n ) == 1 ? 0 : array_unit_area;
   }
 
   std::vector<kitty::dynamic_truth_table> get_functions( node_index_t const& n ) const

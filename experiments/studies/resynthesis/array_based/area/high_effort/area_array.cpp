@@ -19,6 +19,7 @@
 #include <mockturtle/algorithms/lut_mapper.hpp>
 #include <mockturtle/io/aiger_reader.hpp>
 #include <mockturtle/io/genlib_reader.hpp>
+#include <mockturtle/io/write_blif.hpp>
 #include <mockturtle/io/write_verilog.hpp>
 #include <mockturtle/networks/aig.hpp>
 #include <mockturtle/networks/klut.hpp>
@@ -109,10 +110,11 @@ int main()
     /*   New algorithm evaluation                                                 */
     /* ========================================================================== */
     Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::klut_network, rinox::network::design_type_t::ARRAY_BASED, 2u>( ntk_sota );
+    double const area_before = ntk_opto.area();
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
     rinox::opto::algorithms::resynthesis_stats rst;
-    rinox::opto::algorithms::area_resynthesize( dntk_opto, {}, rsy.ps, &rst );
+    rinox::opto::algorithms::area_resynthesize( ntk_opto, {}, rsy.ps, &rst );
 
     /* ========================================================================== */
     /*   Equivalence checking                                                     */
@@ -124,7 +126,7 @@ int main()
     /*   Results storage                                                          */
     /* ========================================================================== */
     exp( name,
-         st_sota.area, ntk_opto.area(),
+         area_before, ntk_opto.area(),
          st_sota.delay, times_track.worst_delay(),
          mockturtle::to_seconds( st_sota.time_total ), 0,
          cec_sota, cec_opto );

@@ -188,6 +188,7 @@ public:
     ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
       sim_ptrs.push_back( &sims_[sig_to_sim_[fi]] );
     } );
+
     auto const tts = ntk_.compute( n, sim_ptrs );
     uint32_t io = 0;
     ntk_.foreach_output( n, [&]( auto const& fo ) {
