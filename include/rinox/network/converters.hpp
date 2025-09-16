@@ -70,9 +70,8 @@ void convert_mapped_to_bound_tfi( bound_network<DesignType, MaxNumOutputs>& ntk,
   else if constexpr ( DesignType == design_type_t::ARRAY_BASED )
   {
     auto tt = ntk_src.node_function( n_src );
-    auto supp = kitty::min_base_inplace( tt );
-    auto shrinked = kitty::shrink_to( tt, children.size() );
-    ids = { ntk.insert( shrinked ) };
+    //auto shrinked = kitty::shrink_to( tt, children.size() );
+    ids = { ntk.insert( tt ) };
   }
   else
     throw std::runtime_error( "[ERROR] invalid design type" );
@@ -122,6 +121,101 @@ void convert_mapped_to_bound( bound_network<DesignType, MaxNumOutputs>& ntk, Ntk
   } );
 }
 
+template<class Ntk>
+void convert_bound_to_klut(mockturtle::klut_network& klut, Ntk const& ntk)
+{
+  using node        = typename Ntk::node;
+  using klut_signal = mockturtle::klut_network::signal;
+
+  // Signal -> klut signal map (no implicit default-insert!)
+  rinox::network::incomplete_signal_map<klut_signal, Ntk> old_to_new(ntk);
+
+  auto fanins_all_mapped = [&](node n) -> bool {
+    bool ok = true;
+    ntk.foreach_fanin(n, [&](auto fi, auto){
+      ok &= old_to_new.has(fi);
+    });
+    return ok;
+  };
+
+  // 1) Seed constants and PIs
+  old_to_new[ ntk.get_constant(false) ] = klut.get_constant(false);
+  old_to_new[ ntk.get_constant(true)  ] = klut.get_constant(true);
+
+  ntk.foreach_pi([&](auto n_pi){
+    old_to_new[ ntk.make_signal(n_pi) ] = klut.create_pi();
+  });
+
+  // 2) Worklist: gates whose fanins are all mapped
+  std::queue<node> q;
+  std::vector<uint8_t> enqueued(ntk.size(), 0);
+  std::vector<uint8_t> done(ntk.size(), 0);
+
+  ntk.foreach_gate([&](auto n){
+    if (fanins_all_mapped(n)) {
+      q.push(n);
+      enqueued[n] = 1;
+    }
+  });
+
+  uint32_t mapped_gates = 0;
+
+  auto try_enqueue_fanouts = [&](node n) {
+    // Only enqueue *gates* whose *all* fanins now map to klut signals
+    std::unordered_set<node> uniq;
+    ntk.foreach_fanout(n, [&](auto g){
+      if (!ntk.is_pi(g) && !ntk.is_constant(g)) uniq.insert(g);
+    });
+    for (auto g : uniq) {
+      if (!done[g] && !enqueued[g] && fanins_all_mapped(g)) {
+        q.push(g);
+        enqueued[g] = 1;
+      }
+    }
+  };
+
+  // 3) Process the queue
+  while (!q.empty()) {
+    auto n = q.front(); q.pop();
+    if (done[n]) continue;
+
+    // Build children in the given fanin order; refuse to proceed if any missing
+    std::vector<klut_signal> children;
+    ntk.foreach_fanin(n, [&](auto fi, auto){
+      if (!old_to_new.has(fi)) {
+        throw std::runtime_error("convert_bound_to_klut: fanin not mapped (cycle or scheduling bug)");
+      }
+      children.push_back(old_to_new[fi]);
+    });
+
+    // Create all outputs of this (possibly multi-output) node
+    auto const tts = ntk.get_functions(n);
+    ntk.foreach_output(n, [&](auto const& f){
+      old_to_new[f] = klut.create_node(children, tts[f.output]);
+    });
+
+    done[n] = 1;
+    ++mapped_gates;
+
+    // See if this unlocks any fanouts
+    try_enqueue_fanouts(n);
+  }
+
+  // 4) If not all gates were mapped, there’s a real cycle
+  //if (mapped_gates < ntk.num_gates()) {
+  //  throw std::runtime_error("Cycle detected in network");
+  // /}
+
+  // 5) POs
+  ntk.foreach_po([&](auto f){
+    if (!old_to_new.has(f))
+      throw std::runtime_error("convert_bound_to_klut: PO unmapped");
+    klut.create_po(old_to_new[f]);
+  });
+}
+
+
+
 /*! \brief Convert a mapped network into a bound nework
  *
  * This function is a wrapper function for resynthesizing a k-LUT network (type `NtkSrc`) into a
@@ -161,6 +255,13 @@ bound_network<DesignType, MaxNumOutputs> convert_mapped_to_bound( Ntk const& ntk
   bound_network<DesignType, MaxNumOutputs> ntk;
   convert_mapped_to_bound( ntk, ntk_src );
   return ntk;
+}
+
+mockturtle::klut_network convert_bound_to_klut( network::bound_network<network::design_type_t::ARRAY_BASED, 2> & ntk )
+{
+  mockturtle::klut_network klut;
+  convert_bound_to_klut( klut, ntk );
+  return klut;
 }
 
 } // namespace rinox::network

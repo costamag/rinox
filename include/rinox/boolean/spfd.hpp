@@ -67,6 +67,12 @@ public:
     num_kills_ = static_cast<uint32_t>( is_killed );
   }
 
+  void init( Tt_t const& func )
+  {
+    Tt_t const care = ~func.construct();
+    init( func, care );
+  }
+
   void reset()
   {
     masks_[0] = care_;
@@ -278,6 +284,84 @@ public:
 
 private:
   std::vector<spfd<Tt_t, MaxNumMasks>> spfds_;
+};
+
+template<typename Tt_t, uint32_t MaxNumMasks, uint32_t MaxNumOutputs = 2>
+class spfds_manager
+{
+public:
+  spfds_manager()
+  {
+    Tt_t tmp;
+    if constexpr ( math::log2_ceil( MaxNumMasks ) > 6u )
+    {
+      boolean::test_avx2_advantage( tmp, tmp.num_vars() );
+    }
+  }
+
+  void reset()
+  {
+    for ( auto& spfd : spfds_ )
+      spfd.reset();
+  }
+
+  void init( std::vector<Tt_t const*> const& targets, std::vector<Tt_t const*> const& cares )
+  {
+    num_outputs_ = targets.size();
+    reset();
+    for ( int i = 0; i < num_outputs_; ++i )
+      spfds_[i].init( *targets[i], *cares[i] );
+  }
+
+  void init( std::vector<Tt_t const*> const& targets )
+  {
+    num_outputs_ = targets.size();
+    reset();
+    for ( int i = 0; i < num_outputs_; ++i )
+      spfds_[i].init( *targets[i] );
+  }
+
+  void update( Tt_t const& tt )
+  {
+    for ( auto& spfd : spfds_ )
+      spfd.update( tt );
+  }
+
+  bool is_covered()
+  {
+    for ( auto const& spfd : spfds_ )
+      if ( !spfd.is_covered() )
+        return false;
+    return true;
+  }
+
+  bool is_saturated()
+  {
+    for ( auto const& spfd : spfds_ )
+      if ( spfd.is_saturated() )
+        return true;
+    return false;
+  }
+
+  uint32_t get_num_edges() const
+  {
+    uint32_t res = 0;
+    for ( auto const& spfd : spfds_ )
+      res += spfd.get_num_edges();
+    return res;
+  }
+
+  uint32_t evaluate( Tt_t const& tt ) const
+  {
+    uint32_t res = 0;
+    for ( auto const& spfd : spfds_ )
+      res += spfd.evaluate( tt );
+    return res;
+  }
+
+private:
+  std::array<spfd<Tt_t, MaxNumMasks>, MaxNumOutputs> spfds_;
+  int num_outputs_;
 };
 
 } // namespace boolean

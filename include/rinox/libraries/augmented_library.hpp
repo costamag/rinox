@@ -420,6 +420,11 @@ public:
     return 1.0;
   }
 
+  kitty::dynamic_truth_table const get_function( uint32_t id ) const
+  {
+    return gates_[id].function;
+  }
+
   /*! \brief Getter of the augmented gate. */
   gate_t const& get_gate( uint32_t id ) const
   {

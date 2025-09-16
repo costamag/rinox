@@ -228,9 +228,11 @@ public:
    * \param n The node index to check.
    * \return True if the node is a primary input, false otherwise.
    */
-  bool is_pi( node_index_t const& n ) const
+  bool is_pi( node_index_t n ) const
   {
-    return _storage->is_pi( n );
+    assert(_storage);
+    bool const res = _storage->is_pi( n );;
+    return res;
   }
 
   /*! \brief Check if a node is a primary output (PO).
@@ -388,9 +390,20 @@ public:
   signal_t create_node( SignalsVec const& children,
                         kitty::dynamic_truth_table& tt )
   {
-    kitty::min_base_inplace( tt );
     auto const binding_id = _storage->insert( tt );
     return create_node<SignalsVec, DoStrash>( children, binding_id );
+  }
+
+  template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false,
+           design_type_t D = DesignType,
+           std::enable_if_t<D == design_type_t::ARRAY_BASED, int> = 0>
+  signal_t create_node( SignalsVec const& children,
+                        std::vector<kitty::dynamic_truth_table>& tts )
+  {
+    std::vector<unsigned int> ids;
+    for ( auto const& tt : tts )
+      ids.push_back(_storage->insert( tt ) );
+    return create_node<SignalsVec, DoStrash>( children, ids );
   }
 
   template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false,
@@ -690,7 +703,7 @@ public:
 
   auto signal_size() const
   {
-    return max_num_outputs * size();
+    return size() << (NumBitsOutputs+2);
   }
 
   auto num_cis() const

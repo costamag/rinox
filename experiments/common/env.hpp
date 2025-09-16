@@ -522,7 +522,7 @@ template<class Ntk>
 inline bool abc_cec_rinox_impl( Ntk const& ntk, std::string const& benchmark_full_path )
 {
   mockturtle::write_blif( ntk, "/tmp/test.blif" );
-  std::string command = fmt::format( "abc -q \"read /tmp/test.blif; cec -n {}\"", benchmark_full_path );
+  std::string command = fmt::format( "abc -q \"read /tmp/test.blif; cec {}\"", benchmark_full_path );
 
   std::array<char, 128> buffer;
   std::string result;

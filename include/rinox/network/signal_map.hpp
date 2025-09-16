@@ -65,121 +65,86 @@ namespace network
  * - `signal_to_index`
  *
  */
-template<class T, class Ntk>
-class incomplete_signal_map
-{
-public:
-  using node = typename Ntk::node;
-  using signal = typename Ntk::signal;
 
+template<class T, class Ntk>
+class incomplete_signal_map {
+public:
+  using node   = typename Ntk::node;
+  using signal = typename Ntk::signal;
   using container_type = std::vector<std::variant<std::monostate, T>>;
 
-public:
-  /*! \brief Default constructor. */
-  explicit incomplete_signal_map( Ntk const& ntk )
-      : ntk( &ntk ),
-        data( std::make_shared<container_type>( ntk.signal_size() ) )
-  {
-    static_assert( !std::is_same_v<T, std::monostate>, "T cannot be std::monostate" );
-    static_assert( mockturtle::is_network_type_v<Ntk>, "Ntk is not a network type" );
-    static_assert( traits::has_signal_size_v<Ntk>, "Ntk does not implement the signal size method" );
-    static_assert( traits::has_signal_to_index_v<Ntk>, "Ntk does not implement the signal_to_index method" );
+  explicit incomplete_signal_map(Ntk const& ntk) noexcept
+      : ntk_(&ntk), data_(std::make_shared<container_type>(ntk.signal_size())) {
+    static_assert(!std::is_same_v<T, std::monostate>, "T cannot be std::monostate");
+    static_assert(mockturtle::is_network_type_v<Ntk>, "Ntk is not a network type");
+    static_assert(traits::has_signal_size_v<Ntk>, "Ntk lacks signal_size()");
+    static_assert(traits::has_signal_to_index_v<Ntk>, "Ntk lacks signal_to_index()");
   }
 
-  /*! \brief Constructor with default value.
-   *
-   * Initializes all values in the container to `init_value`.
-   */
-  incomplete_signal_map( Ntk const& ntk, T const& init_value )
-      : ntk( &ntk ),
-        data( std::make_shared<container_type>( ntk.signal_size(), init_value ) )
-  {
-    static_assert( !std::is_same_v<T, std::monostate>, "T cannot be std::monostate" );
-    static_assert( mockturtle::is_network_type_v<Ntk>, "Ntk is not a network type" );
-    static_assert( traits::has_signal_size_v<Ntk>, "Ntk does not implement the signal size method" );
-    static_assert( traits::has_signal_to_index_v<Ntk>, "Ntk does not implement the signal_to_index method" );
+  incomplete_signal_map(Ntk const& ntk, T const& init_value)
+      : ntk_(&ntk),
+        data_(std::make_shared<container_type>(ntk.signal_size(), init_value)) {
+    static_assert(!std::is_same_v<T, std::monostate>, "T cannot be std::monostate");
+    static_assert(mockturtle::is_network_type_v<Ntk>, "Ntk is not a network type");
+    static_assert(traits::has_signal_size_v<Ntk>, "Ntk lacks signal_size()");
+    static_assert(traits::has_signal_to_index_v<Ntk>, "Ntk lacks signal_to_index()");
   }
 
-  /*! \brief Number of keys stored in the data structure. */
-  auto size() const
-  {
-    return data->size();
+  [[nodiscard]] auto size() const noexcept -> std::size_t {
+    return data_->size();
   }
 
-  /*! \brief Check if a key is already defined. */
-  bool has( signal const& f ) const
-  {
-    return std::holds_alternative<T>( ( *data )[ntk->signal_to_index( f )] );
+  [[nodiscard]] bool has(signal const& f) const noexcept {
+    assert(ntk_ && "incomplete_signal_map constructed with null network pointer");
+    const auto idx = ntk_->signal_to_index(f);
+    if (idx >= data_->size()) return false;
+    return std::holds_alternative<T>((*data_)[idx]);
   }
 
-  /*! \brief Erase a key (if it exists). */
-  void erase( signal const& f )
-  {
-    ( *data )[ntk->signal_to_index( f )] = std::monostate();
+  void erase(signal const& f) noexcept {
+    const auto idx = ntk_->signal_to_index(f);
+    if (idx >= data_->size()) return;
+    (*data_)[idx] = std::monostate();
   }
 
-  /*! \brief Mutable access to value by signal. */
-  T& operator[]( signal const& f )
-  {
-    assert( ntk->signal_to_index( f ) < data->size() && "index out of bounds" );
-    if ( !has( f ) )
-    {
-      ( *data )[ntk->signal_to_index( f )] = T();
+  T& operator[](signal const& f) {
+    const auto idx = ntk_->signal_to_index(f);
+    if (idx >= data_->size()) data_->resize(idx + 1);
+    if (!std::holds_alternative<T>((*data_)[idx])) {
+      (*data_)[idx] = T{};
     }
-    return std::get<T>( ( *data )[ntk->signal_to_index( f )] );
+    return std::get<T>((*data_)[idx]);
   }
 
-  /*! \brief Constant access to value by signal. */
-  T const& operator[]( signal const& f ) const
-  {
-    assert( ntk->signal_to_index( f ) < data->size() && "index out of bounds" );
-    assert( has( f ) );
-    return std::get<T>( ( *data )[ntk->signal_to_index( f )] );
+  T const& operator[](signal const& f) const {
+    const auto idx = ntk_->signal_to_index(f);
+    assert(idx < data_->size() && "index out of bounds");
+    assert(std::holds_alternative<T>((*data_)[idx]) && "uninitialized value");
+    return std::get<T>((*data_)[idx]);
   }
 
-  /*! \brief Resets the size of the map.
-   *
-   * This function should be called, if the network changed in size.  Then, the
-   * map is cleared, and resized to the current network's size.  All values are
-   * initialized with the place holder (empty) element.
-   */
-  void reset()
-  {
-    data->clear();
-    data->resize( ntk->signal_size() );
+  void reset() {
+    data_->clear();
+    data_->resize(ntk_->signal_size());
   }
 
-  /*! \brief Resets the size of the map.
-   *
-   * This function should be called, if the network changed in size.  Then, the
-   * map is cleared, and resized to the current network's size.  All values are
-   * initialized with `init_value`.
-   *
-   * \param init_value Initialization value after resize
-   */
-  void reset( T const& init_value )
-  {
-    data->clear();
-    data->resize( ntk->signal_size(), init_value );
+  void reset(T const& init_value) {
+    data_->clear();
+    data_->resize(ntk_->signal_size(), init_value);
   }
 
-  /*! \brief Resizes the map.
-   *
-   * This function should be called, if the signal_map's size needs to
-   * be changed without clearing its data.
-   */
-  void resize()
-  {
-    if ( ntk->signal_size() > data->size() )
-    {
-      data->resize( ntk->signal_size() );
+  void resize() {
+    if (ntk_->signal_size() > data_->size()) {
+      data_->resize(ntk_->signal_size());
     }
   }
 
 private:
-  Ntk const* ntk;
-  std::shared_ptr<container_type> data;
+  Ntk const* ntk_;
+  std::shared_ptr<container_type> data_;
 };
+
+
 
 } /* namespace network */
 
