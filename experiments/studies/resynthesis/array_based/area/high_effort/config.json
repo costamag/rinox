@@ -61,33 +61,8 @@
       "verbose" : "false"
     }
   },
-  "resynthesis":
+  "resyn":
   {
-    "algorithm": "area_resynthesize",
-    "input" : "mapped",
-    "params":
-    {
-      "profiler_ps":
-      {
-        "max_num_roots": 1000000,
-        "input_arrivals": 0,
-        "output_required": 10000000,
-        "eps": 0.001
-      },
-      "window_manager_ps":
-      {
-        "preserve_depth": false,
-        "odc_levels": 0,
-        "skip_fanout_limit_for_divisors": 200,
-        "max_num_divisors": 1000
-      },
-      "try_rewire": true,
-      "try_struct": false,
-      "try_window": false,
-      "try_simula": false,
-      "dynamic_database": false,
-      "fanout_limit": 100,
-      "stop_after_nth": 100000
-    }
+    "kStopAfterNth": -1
   }
 }

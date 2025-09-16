@@ -280,7 +280,12 @@ public:
   template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t create_not( signal_t const& a )
   {
-    return _storage->template create_not<SignalsVec, DoStrash>( a );
+    signal_t const fnew = _storage->template create_not<SignalsVec, DoStrash>( a );
+    for ( auto const& fn : _events->on_add )
+    {
+      ( *fn )( fnew.index );
+    }
+    return fnew;
   }
 
   template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>

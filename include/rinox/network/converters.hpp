@@ -70,8 +70,8 @@ void convert_mapped_to_bound_tfi( bound_network<DesignType, MaxNumOutputs>& ntk,
   else if constexpr ( DesignType == design_type_t::ARRAY_BASED )
   {
     auto tt = ntk_src.node_function( n_src );
-    //auto shrinked = kitty::shrink_to( tt, children.size() );
-    ids = { ntk.insert( tt ) };
+    auto shrinked = kitty::shrink_to( tt, children.size() );
+    ids = { ntk.insert( shrinked ) };
   }
   else
     throw std::runtime_error( "[ERROR] invalid design type" );

@@ -2,12 +2,13 @@
 #include "../../../../../common/baseline/preprocessing/aig_opto.hpp"
 #include "../../../../../common/context.hpp"
 #include "../../../../../common/env.hpp"
-#include "../../../../../common/rinox/opto/algorithms/resynthesis.hpp"
+#include "../../../../../common/rinox/opto/algorithms/array/area_resyn.hpp"
 #include <iostream>
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
 #include <rinox/databases/mapped_database.hpp>
 #include <rinox/network/converters.hpp>
 #include <rinox/opto/algorithms/resynthesize.hpp>
+#include <rinox/opto/algorithms/array/area_resyn.hpp>
 #include <rinox/windowing/window_manager.hpp>
 #include <string>
 #include <vector>
@@ -27,24 +28,18 @@
 #include <mockturtle/views/depth_view.hpp>
 #include <mockturtle/views/names_view.hpp>
 
-template<uint32_t NumLeaves>
-struct ResynParams : rinox::opto::algorithms::default_resynthesis_params<NumLeaves>
+struct ResynParams : rinox::opto::algorithms::array::DefaultAreaResynParams
 {
-  static constexpr bool do_strashing = true;
-  static constexpr uint32_t num_vars_sign = 12;
-  static constexpr uint32_t max_cuts_size = 4u;
-  static constexpr uint32_t max_cube_spfd = 10u;
-
-  struct window_manager_params : rinox::windowing::default_window_manager_params
-  {
-    static constexpr uint32_t max_num_leaves = NumLeaves;
-    bool preserve_depth = false;
-    int32_t odc_levels = 0u;
-    uint32_t skip_fanout_limit_for_divisors = 100u;
-    uint32_t max_num_divisors{ 128 };
-  };
-
-  window_manager_params window_manager_ps;
+  // static parameters
+  static constexpr uint32_t kMaxNumOutputs = 2u;
+  static constexpr uint32_t kMaxNumLeaves = 12u;
+  static constexpr uint32_t kNumVarsSign = 12u;
+  static constexpr uint32_t kMaxCutsSize = 8u;
+  static constexpr uint32_t kMaxCubeSpfd = 6u;
+  static constexpr uint32_t kMaxInpsDual = 5u;
+  static constexpr uint32_t kMaxInpsSolo = 6u;
+  // dynamic parameters
+  uint32_t kStopAfterNth = std::numeric_limits<uint32_t>::max();
 };
 
 std::optional<std::tuple<mockturtle::klut_network, mockturtle::lut_map_stats>> evaluate_sota( std::string const&, std::vector<rinox::experiments::aig_opto_t> const&, rinox::experiments::lut_map_t const& );
@@ -85,14 +80,13 @@ int main()
   auto ctx = rinox::experiments::load_context( *doc, &diag );
   auto const aig_opts = rinox::experiments::parse_aig_opto( *doc, &diag );
   auto map = rinox::experiments::load_lut_map_params( *doc, &diag );
-  auto rsy = rinox::experiments::load_resynthesis_params<ResynParams<12>>( *doc, &diag );
+  auto rsy = rinox::experiments::array::load_area_resyn_params<ResynParams>( *doc, &diag );
 
   /* ========================================================================== */
   /*   Technology setup                                                         */
   /* ========================================================================== */
   auto static constexpr design_t = rinox::network::design_type_t::ARRAY_BASED;
-  static constexpr uint32_t max_num_outputs = 2u;
-  using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
+  using Ntk = rinox::network::bound_network<design_t, ResynParams::kMaxNumOutputs>;
 
   bool const success = rinox::experiments::foreach_benchmark( ctx, [&]( std::string const& path, std::string const& name ) {
     rinox::diagnostics::REPORT_DIAG( &diag, lorina::diagnostic_level::note,
@@ -104,23 +98,24 @@ int main()
     auto sota = evaluate_sota( path, aig_opts, map );
     if ( !sota )
       return false;
-    auto [ntk_sota, st_sota] = *sota;
+    auto [klut_sota, st_sota] = *sota;
 
     /* ========================================================================== */
     /*   New algorithm evaluation                                                 */
     /* ========================================================================== */
-    Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::klut_network, rinox::network::design_type_t::ARRAY_BASED, 2u>( ntk_sota );
+    Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::klut_network, design_t, ResynParams::kMaxNumOutputs>( klut_sota );
     double const area_before = ntk_opto.area();
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
-    rinox::opto::algorithms::resynthesis_stats rst;
-    rinox::opto::algorithms::area_resynthesize( ntk_opto, {}, rsy.ps, &rst );
-
+    rinox::opto::algorithms::array::AreaResynStats rst;
+    rinox::opto::algorithms::array::AreaResyn( ntk_opto, rsy.ps, &rst );
+    rst.Report();
     /* ========================================================================== */
     /*   Equivalence checking                                                     */
     /* ========================================================================== */
-    bool const cec_sota = rinox::experiments::abc_cec( ntk_sota, path );
-    bool const cec_opto = rinox::experiments::abc_cec_rinox( ntk_opto, path );
+    mockturtle::klut_network klut_opto = rinox::network::convert_bound_to_klut( ntk_opto );
+    bool const cec_sota = rinox::experiments::abc_cec( klut_sota, path );
+    bool const cec_opto = rinox::experiments::abc_cec( klut_opto, path );
 
     /* ========================================================================== */
     /*   Results storage                                                          */
@@ -128,7 +123,7 @@ int main()
     exp( name,
          area_before, ntk_opto.area(),
          st_sota.delay, times_track.worst_delay(),
-         mockturtle::to_seconds( st_sota.time_total ), 0,
+         mockturtle::to_seconds( st_sota.time_total ), rst.GetTimeTotal(),
          cec_sota, cec_opto );
     return true;
   } );

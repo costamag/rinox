@@ -467,9 +467,7 @@ struct default_window_manager_params
   static constexpr uint32_t max_num_leaves = 8;
   uint32_t max_num_divisors = 128;
   uint32_t max_reconvergence = 10;
-  bool preserve_depth = true;
   int32_t odc_levels = 0;
-  uint32_t skip_fanout_limit_for_divisors{100};
 };
 
 struct window_manager_stats

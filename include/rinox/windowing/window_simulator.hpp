@@ -100,6 +100,11 @@ public:
     return sims_[sig_to_sim_[f]];
   }
 
+  signature_t const& Get( signal_t const& f ) const
+  {
+    return sims_[sig_to_sim_[f]];
+  }
+
   signature_t const get_careset() const
   {
     return care_;
