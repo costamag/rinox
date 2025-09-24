@@ -1,0 +1,236 @@
+/* rinox: C++ logic network library
+ * Copyright (C) 2018-2023  EPFL
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/*!
+  \file array_area_resyn.hpp
+  \brief Resynthesis using multiple output gates
+
+  \author Andrea Costamagna
+*/
+
+#ifndef RINOX_SYNTHESIS_LUT_SHANNON_SOLO_HPP_
+#define RINOX_SYNTHESIS_LUT_SHANNON_SOLO_HPP_
+
+#include <fmt/format.h>
+
+#include <chrono>
+#include <kitty/static_truth_table.hpp>
+#include <mockturtle/utils/stopwatch.hpp>
+#include <optional>
+
+#include "utils.hpp"
+#include "../../analyzers/trackers/arrival_times_tracker.hpp"
+#include "../../windowing/window_manager.hpp"
+#include "../../windowing/window_simulator.hpp"
+
+namespace rinox {
+namespace synthesis {
+namespace lut {
+
+template <class Ntk, typename Manager, typename Simulator,
+          typename Params = DefaultLutSynthParams>
+class TopDecompose {
+  static constexpr uint32_t kMaxNumOutputs = Ntk::max_num_outputs;
+  using Node = typename Ntk::node;
+  using Signal = typename Ntk::signal;
+  using CFunc = kitty::static_truth_table<Params::kNumVarsCube>;
+  using IFunc = kitty::ternary_truth_table<CFunc>;
+  using Arrivals = analyzers::trackers::arrival_times_tracker<Ntk>;
+  using List =
+      LutList<Params::kMaxInpsSolo, kMaxNumOutputs, Params::kNumVarsCube>;
+
+ public:
+  TopDecompose(Ntk& ntk, Manager& manager, Simulator& simulator, LutSynthStats& st)
+      : ntk_(ntk), manager_(manager), simulator_(simulator), st_(st) {}
+
+  bool Run(IFunc const&, std::vector<Signal> const&);
+  bool Run(IFunc const&, std::vector<Signal> const&, Arrivals const&);
+
+  Signal Insert(std::vector<Signal> const&);
+  void Init(std::vector<Signal> const&);
+  void Init(std::vector<Signal> const&, Arrivals const&);
+
+  std::optional<typename List::Signal> Decompose(
+      IFunc const&, math::static_vector<uint8_t, Params::kNumVarsCube>);
+
+  std::tuple<uint8_t, uint8_t> ChooseVar(std::vector<uint8_t> const&);
+
+  size_t NumGates() const{ return list_.NumGates(); }
+ private:
+  Ntk& ntk_;
+  Manager& manager_;
+  Simulator& simulator_;
+  LutSynthStats& st_;
+  List list_;
+  boolean::support_minimizer<Params::kNumVarsCube> minimizer_;
+};
+
+// Implementation of Run without timing information
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+bool TopDecompose<Ntk, Manager, Simulator, Params>::Run(
+    IFunc const& func, std::vector<Signal> const& cut) {
+  bool success = mockturtle::call_with_stopwatch(st_.time, [&]() {
+    Init(cut);
+    math::static_vector<uint8_t, Params::kNumVarsCube> vars;
+    auto const num_vars = std::min(Params::kNumVarsCube, cut.size());
+    for (uint8_t v = 0u; v < num_vars; ++v) vars.push_back(v);
+    auto s = Decompose(func, vars);
+    if (s) {
+      list_.CreateOutput(*s);
+      return true;
+    } else
+      return false;
+  });
+  return success;
+}
+
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+bool TopDecompose<Ntk, Manager, Simulator, Params>::Run(
+    IFunc const& func, std::vector<Signal> const& cut,
+    Arrivals const& arrivals) {
+  bool success = mockturtle::call_with_stopwatch(st_.time, [&]() {
+    Init(cut, arrivals);
+    math::static_vector<uint8_t, Params::kNumVarsCube> vars;
+    auto const num_vars = std::min(Params::kNumVarsCube, cut.size());
+    for (uint8_t v = 0u; v < num_vars; ++v) vars.push_back(v);
+    auto s = Decompose(func, vars);
+    if (s) {
+      list_.CreateOutput(*s);
+      return true;
+    } else
+      return false;
+  });
+  return success;
+}
+
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+void TopDecompose<Ntk, Manager, Simulator, Params>::Init(
+    std::vector<Signal> const& cut) {
+  list_.Reset();
+  // assign the input signatures to the LUT list
+  for (Signal const f : cut) list_.CreateInput(&simulator_.Get(f));
+}
+
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+void TopDecompose<Ntk, Manager, Simulator, Params>::Init(
+    std::vector<Signal> const& cut, Arrivals const& arrivals) {
+  list_.Reset();
+  // assign the input signatures to the LUT list
+  for (Signal const f : cut)
+    list_.CreateInput(&simulator_.Get(f), arrivals.Get(f));
+}
+
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+std::optional<typename TopDecompose<Ntk, Manager, Simulator, Params>::List::Signal>
+TopDecompose<Ntk, Manager, Simulator, Params>::Decompose(
+    IFunc const& func,
+    math::static_vector<uint8_t, Params::kNumVarsCube> vars) {
+  minimizer_.run(func, vars);
+  if (vars.size() < Params::kMaxInpsSolo) {
+    math::static_vector<IFunc, Params::kMaxNumOutputs> funcs{func};
+    math::static_vector<typename List::Signal, Params::kMaxInpsSolo> fanins;
+    for (uint8_t v : vars)
+      fanins.push_back(list_.MakeSignal(static_cast<typename List::Index>(v)));
+
+    return list_.CreateInternal(fanins, funcs);
+  }
+
+  auto [i, v] = ChooseVar(func, vars);
+  vars.erase(vars.begin() + i);
+
+  IFunc func0{kitty::cofactor0(func._bits, v), kitty::cofactor0(func._care, v)};
+  IFunc func1{kitty::cofactor1(func._bits, v), kitty::cofactor1(func._care, v)};
+  typename List::Signal x =
+      list_.MakeSignal(static_cast<typename List::Index>(v));
+
+  IFunc funcr;
+  if ( kitty::equal( func0._bits & func0._care& func1._care, (~func1._bits) & func0._care& func1._care ) )
+  {
+    funcr._bits = (func0._bits & func0._care) | (~func1._bits & func1._care );
+    funcr._care = func0._care | func1._care;
+  }
+  uint32_t num_ones0 = kitty::count_ones( func0._bits & func0._bits );
+  uint32_t num_ones1 = kitty::count_ones( func1._bits & func1._bits );
+  else if ( num_ones0 == 0 ||  )
+  typename List::Signal f0 = Decompose(func0, vars);
+  typename List::Signal f1 = Decompose(func1, vars);
+
+  CFunc const& sim_x = list_.GetSimBits(x);
+  CFunc const& sim_1 = list_.GetSimBits(f1);
+  CFunc const& sim_0 = list_.GetSimBits(f0);
+  IFunc sim((sim_x & sim_1) | ((~sim_x) & sim_0));
+
+  math::static_vector<typename List::Signal, Params::kMaxInpsSolo> fanins{x, f1,
+                                                                         f0};
+  math::static_vector<IFunc, Params::kMaxNumOutputs> funcs{sim};
+
+  return list_.CreateInternal(fanins, funcs);
+}
+
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+std::tuple<uint8_t, uint8_t>
+TopDecompose<Ntk, Manager, Simulator, Params>::ChooseVar(
+    std::vector<uint8_t> const& vars) {
+  uint8_t v = 0;
+  double latest = std::numeric_limits<double>::min();
+  for (uint8_t i = 0; i < vars.size(); ++i) {
+    double const time =
+        list_.NodeTime(static_cast<typename List::Index>(vars[i]));
+    if (time > latest) {
+      latest = time;
+      v = i;
+    }
+  }
+  return std::tuple{v, vars[v]};
+}
+
+template <class Ntk, typename Manager, typename Simulator, typename Params>
+typename Ntk::signal TopDecompose<Ntk, Manager, Simulator, Params>::Insert(
+    std::vector<typename Ntk::signal> cut) {
+
+  std::unordered_map<typename List::Signal, typename Ntk::signal> map;
+  for ( uint32_t i = 0; i < cut.size(); ++i )
+    map[list_.MakeSignal(i,0)] = cut[i];
+
+  list_.ForeachGate( [&]( auto const& internal_node, auto index ){
+    auto const& fanins = internal_node.fanins_;
+    auto const& sims = internal_node.sims_;
+    std::vector<typename List::Func const *> ptrs;
+    for ( auto f : fanins ) ptrs.push_back( &list_.GetSimBits(f) );
+    auto tts = Interpolate( ptrs, sims );
+    auto fnew = ntk_.create_node( children, tts );
+    for ( uint32_t i=0; i<tts.size(); ++i )
+      map[list_.MakeSignal(index,i)] = typename Ntk::signal{ fnew.index, i };
+  } );
+  auto outputs = list_.GetOutputs();
+  assert( outputs.size() == 1u );
+  return map[outputs[0]];
+}
+
+}  // namespace lut
+}  // namespace synthesis
+}  // namespace rinox
+
+#endif
