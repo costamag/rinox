@@ -9,18 +9,18 @@
         "EQ(opto)": true,
         "EQ(sota)": true,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.00033773499308153987,
+        "Time(sota)": 0.00025098599144257605,
         "benchmark": "c17"
       },
       {
-        "Area(opto)": 76.0,
+        "Area(opto)": 68.0,
         "Area(sota)": 76.0,
-        "Delay(opto)": 7.0,
+        "Delay(opto)": 8.0,
         "Delay(sota)": 7.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.0058105639182031155,
-        "Time(sota)": 0.008659187704324722,
+        "Time(opto)": 0.012523001991212368,
+        "Time(sota)": 0.008384481072425842,
         "benchmark": "c432"
       },
       {
@@ -30,8 +30,8 @@
         "Delay(sota)": 4.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.0014472289476543665,
-        "Time(sota)": 0.01638432778418064,
+        "Time(opto)": 0.1610136330127716,
+        "Time(sota)": 0.0166632030159235,
         "benchmark": "c499"
       },
       {
@@ -41,8 +41,8 @@
         "Delay(sota)": 6.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.0023098851088434458,
-        "Time(sota)": 0.018384898081421852,
+        "Time(opto)": 0.04322424530982971,
+        "Time(sota)": 0.015635531395673752,
         "benchmark": "c880"
       },
       {
@@ -52,8 +52,8 @@
         "Delay(sota)": 4.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.0014593489468097687,
-        "Time(sota)": 0.02663780190050602,
+        "Time(opto)": 0.12695126235485077,
+        "Time(sota)": 0.027085546404123306,
         "benchmark": "c1355"
       },
       {
@@ -63,8 +63,8 @@
         "Delay(sota)": 5.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.006215191911906004,
-        "Time(sota)": 0.014366010203957558,
+        "Time(opto)": 0.007163992151618004,
+        "Time(sota)": 0.014471163973212242,
         "benchmark": "c1908"
       },
       {
@@ -75,51 +75,51 @@
         "EQ(opto)": true,
         "EQ(sota)": false,
         "Time(opto)": 0.0,
-        "Time(sota)": 0.03934687748551369,
+        "Time(sota)": 0.03522036224603653,
         "benchmark": "c2670"
       },
       {
-        "Area(opto)": 290.0,
+        "Area(opto)": 286.0,
         "Area(sota)": 291.0,
-        "Delay(opto)": 8.0,
+        "Delay(opto)": 9.0,
         "Delay(sota)": 8.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.14787162840366364,
-        "Time(sota)": 0.06122181564569473,
+        "Time(opto)": 0.27134647965431213,
+        "Time(sota)": 0.06180226802825928,
         "benchmark": "c3540"
       },
       {
-        "Area(opto)": 262.0,
+        "Area(opto)": 260.0,
         "Area(sota)": 264.0,
         "Delay(opto)": 7.0,
         "Delay(sota)": 6.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.023019282147288322,
-        "Time(sota)": 0.08729352056980133,
+        "Time(opto)": 0.17577886581420898,
+        "Time(sota)": 0.08725939691066742,
         "benchmark": "c5315"
       },
       {
-        "Area(opto)": 517.0,
+        "Area(opto)": 511.0,
         "Area(sota)": 517.0,
-        "Delay(opto)": 16.0,
+        "Delay(opto)": 17.0,
         "Delay(sota)": 16.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.2352866232395172,
-        "Time(sota)": 0.15780064463615417,
+        "Time(opto)": 0.2537636458873749,
+        "Time(sota)": 0.1591263711452484,
         "benchmark": "c6288"
       },
       {
-        "Area(opto)": 348.0,
+        "Area(opto)": 344.0,
         "Area(sota)": 348.0,
-        "Delay(opto)": 6.0,
+        "Delay(opto)": 8.0,
         "Delay(sota)": 6.0,
         "EQ(opto)": true,
         "EQ(sota)": true,
-        "Time(opto)": 0.05008458346128464,
-        "Time(sota)": 0.09587515145540237,
+        "Time(opto)": 0.11326095461845398,
+        "Time(sota)": 0.0961790606379509,
         "benchmark": "c7552"
       }
     ],
