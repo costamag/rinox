@@ -172,6 +172,15 @@ public:
     }
   }
 
+  void SetMaxDelay( double delay )
+  {
+    uint32_t i = 0;
+    ntk_.foreach_po( [&]( auto f ) {
+      output_[i++] = delay;
+    } );
+    compute_required_times();
+  }
+
 #pragma region Interface methods
 public:
   [[nodiscard]] double get_time( signal_t const f ) const

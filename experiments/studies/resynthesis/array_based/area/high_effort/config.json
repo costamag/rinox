@@ -11,7 +11,7 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["iscas"],
+      "benchmarks": ["c3540"],
       "excluded": ["hyp", "div", "log2", "square", "i2c", "mem_ctrl"]
     },
     "output":

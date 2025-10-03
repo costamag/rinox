@@ -33,6 +33,7 @@
 #pragma once
 
 #include "network.hpp"
+#include "../analyzers/trackers/topo_sort_tracker.hpp"
 
 namespace rinox::network {
 
@@ -201,9 +202,9 @@ void convert_klut_to_bound(bound_network<DesignType, MaxNumOutputs>& ntk,
       throw std::runtime_error("[ERROR] invalid design type");
   });
 }
-
+#if 0
 template <class Ntk>
-void convert_bound_to_klut(mockturtle::klut_network& klut, Ntk const& ntk) {
+void convert_bound_to_klut(mockturtle::klut_network& klut, Ntk & ntk) {
   using node = typename Ntk::node;
   using klut_signal = mockturtle::klut_network::signal;
 
@@ -293,6 +294,50 @@ void convert_bound_to_klut(mockturtle::klut_network& klut, Ntk const& ntk) {
     klut.create_po(old_to_new[f]);
   });
 }
+#endif
+
+template <class Ntk>
+void convert_bound_to_klut(mockturtle::klut_network& klut, Ntk & ntk) {
+  using node = typename Ntk::node;
+  using signal = typename Ntk::signal;
+  using klut_signal = mockturtle::klut_network::signal;
+
+  rinox::network::incomplete_signal_map<klut_signal, Ntk> old_to_new(ntk);
+
+  old_to_new[ntk.get_constant(false)] = klut.get_constant(false);
+  old_to_new[ntk.get_constant(true)] = klut.get_constant(true);
+
+  ntk.foreach_pi(
+      [&](auto n_pi) { old_to_new[ntk.make_signal(n_pi)] = klut.create_pi(); });
+
+  ntk.incr_trav_id();
+  std::function<void(signal)> convert_bound_to_klut_tfi = [&]( signal const& f ){
+    auto const n = ntk.get_node(f);
+    if (ntk.is_pi(n) || ntk.visited(n)==ntk.trav_id()) return;
+    ntk.set_visited(n, ntk.trav_id());
+
+    ntk.foreach_output( n, [&]( auto const& f ){
+      std::vector<klut_signal> children;
+      ntk.foreach_fanin( f, [&]( auto const& fi, auto ii ){
+        convert_bound_to_klut_tfi(fi);
+        children.push_back( old_to_new[fi] );
+      } );
+      old_to_new[f] = klut.create_node( children, ntk.signal_function(f) );
+    } );
+  };
+
+  ntk.foreach_po([&](auto f) {
+    convert_bound_to_klut_tfi( f );
+  });
+
+      // 5) POs
+  ntk.foreach_po([&](auto f) {
+    if (!old_to_new.has(f))
+      throw std::runtime_error("convert_bound_to_klut: PO unmapped");
+    klut.create_po(old_to_new[f]);
+  });
+}
+
 
 /*! \brief Convert a mapped network into a bound nework
  *

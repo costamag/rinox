@@ -1,0 +1,92 @@
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+#include <kitty/kitty.hpp>
+#include <kitty/static_truth_table.hpp>
+
+#include <mockturtle/io/genlib_reader.hpp>
+#include <mockturtle/utils/tech_library.hpp>
+#include <mockturtle/views/depth_view.hpp>
+#include <rinox/network/network.hpp>
+#include <rinox/opto/algorithms/array/area_resyn.hpp>
+
+struct ResynStaticParams
+    : rinox::opto::algorithms::array::DefaultAreaResynStaticParams {
+  // static parameters
+  static constexpr uint32_t kMaxNumOutputs = 1u;
+  static constexpr uint32_t kMaxNumLeaves = 12u;
+  static constexpr uint32_t kNumVarsSign = 12u;
+  static constexpr uint32_t kMaxCutsSize = 8u;
+  static constexpr uint32_t kMaxCubeSpfd = 6u;
+  static constexpr uint32_t kMaxInpsDual = 5u;
+  static constexpr uint32_t kMaxInpsSolo = 6u;
+  static constexpr rinox::synthesis::lut::LutSynthMethod kLutSynth =
+      rinox::synthesis::lut::LutSynthMethod::kShannonSolo;
+};
+
+TEST_CASE( "Area resynthesis via squeezing - Array-based", "[dual_output]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename Ntk::signal;
+
+  static constexpr uint32_t MaxNumVars = 6u;
+  Ntk ntk;
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  auto const e = ntk.create_pi();
+  kitty::dynamic_truth_table and2( 2u );
+  kitty::dynamic_truth_table and3( 3u );
+  kitty::create_from_binary_string( and3, "10000000" );
+  auto const f1 = ntk.create_node( { c, d, e }, and3 );
+  auto const f2 = ntk.create_node( { a, b, f1 }, and3 );
+  ntk.create_po( f1 );
+  ntk.create_po( f2 );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  DNtk dntk( ntk );
+  rinox::opto::algorithms::array::AreaResynParams ps;
+  ps.stop_after_nth = std::numeric_limits<uint32_t>::max();
+  ps.max_num_divisors = 128;
+  ps.max_reconvergence = 10;
+  ps.odc_levels = 0;
+  ps.try_absorb_solo = true;
+  rinox::opto::algorithms::array::AreaResynStats rst;
+  rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
+  CHECK( ntk.area() == 1 );
+}
+
+TEST_CASE( "Area resynthesis via squeezing - Array-based - case 2", "[dual_output]" )
+{
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2>;
+  using signal = typename Ntk::signal;
+
+  static constexpr uint32_t MaxNumVars = 6u;
+  Ntk ntk;
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  auto const e = ntk.create_pi();
+  kitty::dynamic_truth_table xnor( 2u );
+  kitty::dynamic_truth_table and3( 3u );
+  kitty::create_from_binary_string( and3, "10000000" );
+  kitty::create_from_binary_string( xnor, "1001" );
+  auto const f1 = ntk.create_node( { c, d, e }, and3 );
+  auto const f2 = ntk.create_node( { a, b, f1 }, and3 );
+  auto const f3 = ntk.create_node( { f1, f2 }, xnor );
+  ntk.create_po( f3 );
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  DNtk dntk( ntk );
+  rinox::opto::algorithms::array::AreaResynParams ps;
+  ps.stop_after_nth = std::numeric_limits<uint32_t>::max();
+  ps.max_num_divisors = 128;
+  ps.max_reconvergence = 10;
+  ps.odc_levels = 0;
+  ps.try_absorb_solo = false;
+  rinox::opto::algorithms::array::AreaResynStats rst;
+  rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
+  CHECK( ntk.area() == 2 );
+}

@@ -89,7 +89,6 @@ class ShannonDecSolo {
   Simulator& simulator_;
   LutSynthStats& st_;
   List list_;
-  boolean::support_minimizer<Params::kNumVarsCube> minimizer_;
 };
 
 // Implementation of Run without timing information
@@ -123,7 +122,7 @@ bool ShannonDecSolo<Ntk, Manager, Simulator, Params>::Run(
     auto const num_vars = std::min(Params::kNumVarsCube, static_cast<uint32_t>(cut.size()));
     for (uint8_t v = 0u; v < num_vars; ++v) vars.push_back(v);
     auto s = Decompose(func, vars);
-kitty::print_binary(func); std::cout << std::endl;
+//kitty::print_binary(func); std::cout << std::endl;
     if (s) {
       list_.CreateOutput(*s);
       return true;
@@ -159,11 +158,14 @@ ShannonDecSolo<Ntk, Manager, Simulator, Params>::Decompose(
     std::vector<uint8_t> vars) {
   if ( list_.NumGates() > manager_.num_mffc() ) return std::nullopt;
   if (vars.size() <= Params::kMaxInpsSolo) {
-    math::static_vector<Func, kMaxNumOutputs> funcs;
-    funcs.push_back( func._bits );
+    math::static_vector<IFunc, kMaxNumOutputs> funcs;
+    funcs.push_back( func );
+
     math::static_vector<typename List::Signal, Params::kMaxInpsSolo> fanins;
     for (uint8_t v : vars)
+    {
       fanins.push_back(list_.MakeSignal(static_cast<typename List::Index>(v), 0));
+    }
 
     return list_.CreateInternal(fanins, funcs);
   }
@@ -173,19 +175,23 @@ ShannonDecSolo<Ntk, Manager, Simulator, Params>::Decompose(
   
   typename List::Signal x = list_.MakeSignal(static_cast<typename List::Index>(v), 0);
   Func const& sim_x = list_.GetSimBits(x);
-  IFunc func0 = {func._bits,func._care & ~sim_x};
   IFunc func1 = {func._bits,func._care & sim_x};
-  auto f0 = Decompose(func0, vars);
+  IFunc func0 = {func._bits,func._care & ~sim_x};
   auto f1 = Decompose(func1, vars);
+  auto f0 = Decompose(func0, vars);
   if (!f0 || !f1) return std::nullopt;
   Func const& sim_1 = list_.GetSimBits(*f1);
   Func const& sim_0 = list_.GetSimBits(*f0);
-  Func sim((sim_x & sim_1) | ((~sim_x) & sim_0));
+  Func bits = ((sim_x & sim_1) | ((~sim_x) & sim_0));
+  Func care = func._care;
 
   //assert( kitty::equal( sim & func._care, func._bits & func._care ) );
-  math::static_vector<typename List::Signal, Params::kMaxInpsSolo> fanins{x, *f1, *f0};
-  math::static_vector<Func, kMaxNumOutputs> funcs;
-  funcs.push_back( sim );
+  math::static_vector<typename List::Signal, Params::kMaxInpsSolo> fanins;
+  fanins.push_back(x) ;
+  fanins.push_back(*f1);
+  fanins.push_back(*f0);
+  math::static_vector<IFunc, kMaxNumOutputs> funcs;
+  funcs.push_back( IFunc{bits, care} );
 
   return list_.CreateInternal(fanins, funcs);
 }
@@ -211,10 +217,10 @@ template <class Ntk, typename Manager, typename Simulator, typename Params>
 template<uint32_t kNumInputs>
 typename Ntk::signal ShannonDecSolo<Ntk, Manager, Simulator, Params>::Insert(
     math::static_vector<Signal, kNumInputs> const& cut) {
-std::cout << "inserting: ";
-for ( auto f : cut )
-  std::cout << f.index << "." << f.output << " ";
-std::cout << std::endl;
+//std::cout << "inserting: ";
+//for ( auto f : cut )
+//  std::cout << f.index << "." << f.output << " ";
+//std::cout << std::endl;
 
   std::unordered_map<typename List::Signal, typename Ntk::signal> map;
   for ( uint32_t i = 0; i < cut.size(); ++i )
@@ -224,6 +230,7 @@ std::cout << std::endl;
     std::visit([&](auto const& n) {
       using T = std::decay_t<decltype(n)>;
       if constexpr (std::is_same_v<T, typename List::Internal>) {
+//std::cout << index << ": ";
         auto const& fanins = n.fanins_;
         auto const& sims = n.sims_;
         std::vector<typename List::Func const *> ptrs;
@@ -235,13 +242,18 @@ std::cout << std::endl;
         }
         auto tts = Interpolate<Func, kMaxNumOutputs>( ptrs, sims );
         auto fnew = ntk_.create_node( children, tts );
-for ( auto f : children )
-  std::cout << f.index << "." << f.output << " ";
-std::cout << std::endl;
+//for ( auto f : children )
+//  std::cout << f.index << "." << f.output << " ";
+//std::cout << std::endl;
         for ( uint32_t i=0; i<tts.size(); ++i )
         {
-kitty::print_binary(tts[i]);std::cout << " " << index << "." << i << std::endl;
-          map[list_.MakeSignal(index,i)] = typename Ntk::signal{ fnew.index, i };
+//kitty::print_binary(tts[i]);std::cout << " " << index << "." << i << std::endl;
+          auto s = list_.MakeSignal(index,i);
+          typename Ntk::signal f{ fnew.index, i };
+          map[s] = f;
+          auto const& sim = ntk_.compute( f, ptrs );
+          list_.SetSimBits( s, sim );
+          list_.SetSimCare( s, sim|~sim);
         }
       }
     }, internal_node);

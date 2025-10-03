@@ -91,6 +91,7 @@ public:
   static constexpr auto min_fanin_size = 1;
   static constexpr auto max_fanin_size = 32;
   static constexpr auto max_num_outputs = 1u << NumBitsOutputs;
+  static constexpr auto kMaxNumOutputs = max_num_outputs;
   using base_type = bound_network<DesignType, MaxNumOutputs>;
   using storage = storage_t;
   using signal = signal_t;
@@ -203,12 +204,12 @@ public:
    * \param n The node index to check.
    * \return True if the node is a constant, false otherwise.
    */
-  bool is_constant( node_index_t const& n ) const
+  bool is_constant( node_index_t n ) const
   {
     return _storage->is_constant( n );
   }
 
-  bool constant( node_index_t const& n ) const
+  bool constant( node_index_t n ) const
   {
     return _storage->constant( n );
   }
@@ -218,7 +219,7 @@ public:
    * \param n The node index to check.
    * \return True if the node is a combinational input, false otherwise.
    */
-  bool is_ci( node_index_t const& n ) const
+  bool is_ci( node_index_t n ) const
   {
     return _storage->is_ci( n );
   }
@@ -230,9 +231,23 @@ public:
    */
   bool is_pi( node_index_t n ) const
   {
-    assert(_storage);
+    assert(_storage && "storage unavailable");
     bool const res = _storage->is_pi( n );;
     return res;
+  }
+
+  bool is_inv(node_index_t n) const
+  {
+    if (is_pi(n) || (fanin_size(n)!=1)||(num_outputs(n)>1)) return false;
+    auto const tt = node_function(n,0);
+    return !kitty::is_normal(tt);
+  }
+
+  bool is_buf(node_index_t n) const
+  {
+    if (is_pi(n) || (fanin_size(n)!=1)||(num_outputs(n)>1)) return false;
+    auto const tt = node_function(n,0);
+    return kitty::is_normal(tt);
   }
 
   /*! \brief Check if a node is a primary output (PO).
@@ -241,12 +256,12 @@ public:
    * \param output The output pin index to check (default is 0).
    * \return True if the node is a primary output, false otherwise.
    */
-  bool is_po( node_index_t const& n, uint32_t output ) const
+  bool is_po( node_index_t n, uint32_t output ) const
   {
     return _storage->is_po( n, output );
   }
 
-  bool is_po( node_index_t const& n ) const
+  bool is_po( node_index_t n ) const
   {
     bool po = false;
     foreach_output( n, [&]( auto const& f ) {
@@ -270,7 +285,7 @@ public:
    * \param n The node index to check.
    * \return False if the node represents the constant 0, true otherwise.
    */
-  bool constant_value( node_index_t const& n ) const
+  bool constant_value( node_index_t n ) const
   {
     return _storage->constant_value( n );
   }
@@ -487,7 +502,7 @@ public:
 
   template<typename SignalsVec = std::vector<signal_t>, bool DoStrash = false>
   signal_t clone_node( bound_network const& other,
-                       node_index_t const& source,
+                       node_index_t source,
                        std::vector<signal_t> const& children )
   {
     assert( !children.empty() );
@@ -512,7 +527,7 @@ public:
    * \param old_node The index of the old node to be replaced.
    * \param new_signals The new signals to replace the old node's outputs.
    */
-  void substitute_node( node_index_t const& old_node,
+  void substitute_node( node_index_t old_node,
                         std::vector<signal_t> const& new_signals )
   {
     /* update the signals to be used as primary outputs.
@@ -535,7 +550,7 @@ public:
    * \param old_node The index of the old node to be replaced.
    * \param new_signal The new signal to replace the old node's outputs.
    */
-  void substitute_node( node_index_t const& old_node, signal_t const& new_signal )
+  void substitute_node( node_index_t old_node, signal_t const& new_signal )
   {
     /* fall back to the general case */
     substitute_node( old_node, std::vector<signal_t>{ new_signal } );
@@ -550,7 +565,7 @@ public:
    * \param old_node The index of the old node to be replaced.
    * \param new_signals The new signals to replace the old node's outputs.
    */
-  void replace_in_node( node_index_t const& old_node,
+  void replace_in_node( node_index_t old_node,
                         std::vector<signal_t> const& new_signals )
   {
     auto old_outputs = num_outputs( old_node );
@@ -583,7 +598,7 @@ public:
    * \param old_signal The old signal to be replaced.
    * \param new_signal The new signal to replace the old node.
    */
-  void replace_in_node( node_index_t const& root,
+  void replace_in_node( node_index_t root,
                         signal_t const& old_signal,
                         signal_t new_signal )
   {
@@ -614,7 +629,7 @@ public:
    * \param old_node The index of the old node to be removed.
    * \param new_signals The new signals to replace the old node's outputs.
    */
-  void take_out_node( node_index_t const& old_node,
+  void take_out_node( node_index_t old_node,
                       std::vector<signal_t> const& new_signals )
   {
     /* take out the node if it is not reused in the new nodes */
@@ -629,6 +644,10 @@ public:
     take_out_node( old_node );
   }
 
+  void remove_edge(node_index_t from, node_index_t to)
+  {
+    _storage->remove_edge(from, to);
+  }
   /*! \brief Take out a node from the network.
    *
    * This method removes a node from the network, marking it as dead and
@@ -637,7 +656,7 @@ public:
    *
    * \param n The index of the node to be removed.
    */
-  void take_out_node( node_index_t const& n )
+  void take_out_node( node_index_t n )
   {
     /* we cannot delete CIs, constants, or already dead nodes */
     if ( is_constant( n ) || is_ci( n ) || is_dead( n ) )
@@ -683,7 +702,7 @@ public:
     return true;
   }
 
-  bool is_multioutput( node_index_t const& n ) const
+  bool is_multioutput( node_index_t n ) const
   {
     return _storage->is_multioutput( n );
   }
@@ -696,7 +715,7 @@ public:
     return _storage->is_multioutput( name );
   }
 
-  inline bool is_dead( node_index_t const& n ) const
+  inline bool is_dead( node_index_t n ) const
   {
     return _storage->is_dead( n );
   }
@@ -736,17 +755,17 @@ public:
     return _storage->num_gates();
   }
 
-  uint32_t num_outputs( node_index_t const& n ) const
+  uint32_t num_outputs( node_index_t n ) const
   {
     return _storage->num_outputs( n );
   }
 
-  uint32_t fanin_size( node_index_t const& n ) const
+  uint32_t fanin_size( node_index_t n ) const
   {
     return _storage->fanin_size( n );
   }
 
-  uint32_t fanout_size( node_index_t const& n ) const
+  uint32_t fanout_size( node_index_t n ) const
   {
     return _storage->fanout_size( n );
   }
@@ -756,32 +775,32 @@ public:
     return fanout_size_pin( f.index, f.output );
   }
 
-  uint32_t incr_fanout_size( node_index_t const& n ) const
+  uint32_t incr_fanout_size( node_index_t n ) const
   {
     return _storage->incr_fanout_size( n );
   }
 
-  uint32_t decr_fanout_size( node_index_t const& n ) const
+  uint32_t decr_fanout_size( node_index_t n ) const
   {
     return _storage->decr_fanout_size( n );
   }
 
-  uint32_t incr_fanout_size_pin( node_index_t const& n, uint32_t pin_index ) const
+  uint32_t incr_fanout_size_pin( node_index_t n, uint32_t pin_index ) const
   {
     return _storage->incr_fanout_size_pin( n, pin_index );
   }
 
-  uint32_t decr_fanout_size_pin( node_index_t const& n, uint32_t pin_index ) const
+  uint32_t decr_fanout_size_pin( node_index_t n, uint32_t pin_index ) const
   {
     return _storage->decr_fanout_size_pin( n, pin_index );
   }
 
-  uint32_t fanout_size_pin( node_index_t const& n, uint32_t pin_index ) const
+  uint32_t fanout_size_pin( node_index_t n, uint32_t pin_index ) const
   {
     return _storage->fanout_size_pin( n, pin_index );
   }
 
-  bool is_function( node_index_t const& n ) const
+  bool is_function( node_index_t n ) const
   {
     return _storage->is_function( n );
   }
@@ -794,6 +813,27 @@ public:
         total_area += get_area( n );
     } );
     return total_area;
+  }
+
+  uint32_t CountGates() const
+  {
+    uint32_t count = 0;
+    foreach_gate( [&]( auto const& n ){
+      if ( !is_dead( n ) )
+        count+=1;
+    } );
+    return count;
+  }
+
+
+  uint32_t CountDuals() const
+  {
+    uint32_t count = 0;
+    foreach_gate( [&]( auto const& n ){
+      if ( !is_dead( n ) && (num_outputs(n)==2) )
+        count+=1;
+    } );
+    return count;
   }
 #pragma endregion
 
@@ -816,12 +856,12 @@ public:
     return f.index;
   }
 
-  signal_t make_signal( node_index_t const& n, uint32_t output_pin ) const
+  signal_t make_signal( node_index_t n, uint32_t output_pin ) const
   {
     return signal_t{ n, output_pin };
   }
 
-  signal_t make_signal( node_index_t const& n ) const
+  signal_t make_signal( node_index_t n ) const
   {
     return make_signal( n, 0 );
   }
@@ -877,7 +917,7 @@ public:
     return _storage->po_at( index );
   }
 
-  uint32_t pi_index( node_index_t const& n ) const
+  uint32_t pi_index( node_index_t n ) const
   {
     return _storage->pi_index( n );
   }
@@ -926,7 +966,7 @@ public:
   }
 
   template<typename Fn>
-  void foreach_fanin( node_index_t const& n, Fn&& fn ) const
+  void foreach_fanin( node_index_t n, Fn&& fn ) const
   {
     _storage->foreach_fanin( n, fn );
   }
@@ -939,7 +979,7 @@ public:
   }
 
   template<typename Fn>
-  void foreach_fanout( node_index_t const& n, Fn&& fn ) const
+  void foreach_fanout( node_index_t n, Fn&& fn ) const
   {
     _storage->foreach_fanout( n, fn );
   }
@@ -951,19 +991,19 @@ public:
   }
 
   template<typename Fn>
-  void foreach_tfo_node( node_index_t const& n, Fn&& fn ) const
+  void foreach_tfo_node( node_index_t n, Fn&& fn ) const
   {
     _storage->foreach_tfo_node( n, fn );
   }
 
   template<typename Fn>
-  void foreach_output_pin( node_index_t const& n, Fn&& fn ) const
+  void foreach_output_pin( node_index_t n, Fn&& fn ) const
   {
     _storage->foreach_output_pin( n, fn );
   }
 
   template<typename Fn>
-  void foreach_output( node_index_t const& n, Fn&& fn ) const
+  void foreach_output( node_index_t n, Fn&& fn ) const
   {
     _storage->foreach_output( n, fn );
   }
@@ -991,7 +1031,7 @@ public:
    * \return A vector of truth-tables, one for each output pin of the node.
    */
   template<typename TT>
-  std::vector<TT> compute( node_index_t const& n, std::vector<TT const*> sim_ptrs ) const
+  std::vector<TT> compute( node_index_t n, std::vector<TT const*> sim_ptrs ) const
   {
     auto tts = get_functions( n );
     std::vector<TT> res;
@@ -1013,7 +1053,7 @@ public:
    * \param sim_ptrs vector of pointers to the simulation of the fanins.
    */
   template<typename TT>
-  void compute( std::vector<TT>& res, node_index_t const& n, std::vector<TT const*> sim_ptrs ) const
+  void compute( std::vector<TT>& res, node_index_t n, std::vector<TT const*> sim_ptrs ) const
   {
     auto simulator_ptr = get_simulator<TT>();
     res.resize( num_outputs( n ) );
@@ -1054,22 +1094,22 @@ public:
     _storage->clear_values();
   }
 
-  uint32_t value( node_index_t const& n ) const
+  uint32_t value( node_index_t n ) const
   {
     return _storage->value( n );
   }
 
-  void set_value( node_index_t const& n, uint32_t v ) const
+  void set_value( node_index_t n, uint32_t v ) const
   {
     _storage->set_value( n, v );
   }
 
-  uint32_t incr_value( node_index_t const& n ) const
+  uint32_t incr_value( node_index_t n ) const
   {
     return _storage->incr_value( n );
   }
 
-  uint32_t decr_value( node_index_t const& n ) const
+  uint32_t decr_value( node_index_t n ) const
   {
     return _storage->decr_value( n );
   }
@@ -1081,12 +1121,12 @@ public:
     _storage->clear_visited();
   }
 
-  auto visited( node_index_t const& n ) const
+  auto visited( node_index_t n ) const
   {
     return _storage->visited( n );
   }
 
-  void set_visited( node_index_t const& n, uint32_t v ) const
+  void set_visited( node_index_t n, uint32_t v ) const
   {
     _storage->nodes[n].traversal_id = v;
   }
@@ -1158,7 +1198,7 @@ public:
 #pragma endregion
 
 #pragma region Getters
-  std::vector<signal_t> const& get_children( node_index_t const& n ) const
+  std::vector<signal_t> const& get_children( node_index_t n ) const
   {
     return _storage->get_children( n );
   }
@@ -1168,12 +1208,12 @@ public:
     return get_children( get_node( f ) );
   }
 
-  std::vector<node_index_t> const& get_fanins( node_index_t const& n ) const
+  std::vector<node_index_t> const& get_fanins( node_index_t n ) const
   {
     return _storage->get_fanins( n );
   }
 
-  double get_area( node_index_t const& n ) const
+  double get_area( node_index_t n ) const
   {
     return _storage->get_area( n );
   }
@@ -1198,7 +1238,7 @@ public:
     return _storage->get_library();
   }
 
-  std::vector<kitty::dynamic_truth_table> const get_functions( node_index_t const& n ) const
+  std::vector<kitty::dynamic_truth_table> const get_functions( node_index_t n ) const
   {
     return _storage->get_functions( n );
   }
@@ -1229,7 +1269,7 @@ public:
 #pragma endregion
 
 #pragma region Binding
-  std::vector<uint32_t> get_binding_ids( node_index_t const& n ) const
+  std::vector<uint32_t> get_binding_ids( node_index_t n ) const
   {
     return _storage->get_binding_ids( n );
   }
@@ -1239,7 +1279,7 @@ public:
     return _storage->get_binding_ids( name );
   }
 
-  uint32_t get_binding_index( node_index_t const& n ) const
+  uint32_t get_binding_index( node_index_t n ) const
   {
     return _storage->get_binding_ids( n )[0];
   }
@@ -1264,7 +1304,7 @@ public:
     return _storage->has_binding( f );
   }
 
-  bool has_binding( node_index_t const& n ) const
+  bool has_binding( node_index_t n ) const
   {
     return _storage->has_binding( n );
   }

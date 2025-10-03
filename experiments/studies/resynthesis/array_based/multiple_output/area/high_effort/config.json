@@ -11,7 +11,7 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["epfl"],
+      "benchmarks": ["log2"],
       "excluded": ["hyp"]
     },
     "output":
@@ -61,33 +61,16 @@
       "verbose" : "false"
     }
   },
-  "resynthesis":
+  "resyn":
   {
-    "algorithm": "area_resynthesize",
-    "input" : "mapped",
-    "params":
-    {
-      "profiler_ps":
-      {
-        "max_num_roots": 1000000,
-        "input_arrivals": 0,
-        "output_required": 10000000,
-        "eps": 0.001
-      },
-      "window_manager_ps":
-      {
-        "preserve_depth": true,
-        "odc_levels": 0,
-        "skip_fanout_limit_for_divisors": 200,
-        "max_num_divisors": 1000
-      },
-      "try_rewire": false,
-      "try_struct": false,
-      "try_window": false,
-      "try_simula": false,
-      "dynamic_database": false,
-      "fanout_limit": 100,
-      "stop_after_nth": 1000000
-    }
+    "stop_after_nth": 1000000000000,
+    "max_num_divisors" : 1024,
+    "max_reconvergence" : 3,
+    "odc_levels" : 0,
+    "cec" : true,
+    "preserve_times" : false,
+    "use_required" : false,
+    "try_absorb_solo" : true,
+    "try_Wresub_solo" : true
   }
 }

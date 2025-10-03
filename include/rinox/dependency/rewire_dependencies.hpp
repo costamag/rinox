@@ -55,7 +55,7 @@ public:
   using truth_table_t = kitty::static_truth_table<max_cuts_size>;
   using functionality_t = kitty::ternary_truth_table<truth_table_t>;
   using cut_t = dependency_cut_t<Ntk, max_cuts_size>;
-  using signals_t = rinox::math::static_vector<signal_t, max_cuts_size>;
+  using signals_t = math::static_vector<signal_t, max_cuts_size>;
 
 public:
   rewire_dependencies( Ntk& ntk )

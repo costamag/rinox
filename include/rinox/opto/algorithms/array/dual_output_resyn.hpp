@@ -206,10 +206,10 @@ public:
   {
     auto start = clock::now();
     try_merge();
-    try_single_0_resub();
-    try_dual_0_resub();
-    try_single_1_resub();
-    try_dual_1_resub();
+    //try_single_0_resub();
+    //try_dual_0_resub();
+    //try_single_1_resub();
+    //try_dual_1_resub();
     auto stop = clock::now();
     st_.time = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
 
@@ -479,7 +479,6 @@ kitty::dynamic_truth_table extract_function( std::vector<signal> const& children
   }
   return tt;
 }
-
 
 // either a node has the same signature as a divisor
 void try_single_0_resub()

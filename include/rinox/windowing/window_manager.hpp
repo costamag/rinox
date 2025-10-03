@@ -113,11 +113,11 @@ struct color_t {
 /* -------------------------------------------------------------------------- */
 
 struct default_window_params_t {
-  static constexpr uint32_t inps_capacity = 128u;
-  static constexpr uint32_t divs_capacity = 1024u;
-  static constexpr uint32_t mffc_capacity = 128u;
-  static constexpr uint32_t tfos_capacity = 128u;
-  static constexpr uint32_t outs_capacity = 128u;
+  static constexpr uint32_t inps_capacity = 512u;
+  static constexpr uint32_t divs_capacity = 2048u;
+  static constexpr uint32_t mffc_capacity = 512u;
+  static constexpr uint32_t tfos_capacity = 512u;
+  static constexpr uint32_t outs_capacity = 512u;
 };
 
 template <class Ntk, typename Params = default_window_params_t>
@@ -525,9 +525,10 @@ struct window_manager_stats {
 template <class Ntk, typename Params = default_window_manager_params>
 class window_manager {
  public:
+  
   using node_index_t = typename Ntk::node;
   using signal_t = typename Ntk::signal;
-
+  static constexpr uint32_t kMaxNumLeaves = Params::max_num_leaves;
   static constexpr uint32_t inps_capacity =
       window_t<Ntk>::static_params::inps_capacity;
   static constexpr uint32_t divs_capacity =
@@ -568,6 +569,8 @@ class window_manager {
     window_.sort_mffc();
     window_.sort_tfos();
     window_.sort_outs();
+
+    fix_labels();
 
     st_.valid = window_.divs_.size() <= ps_.max_num_divisors;
     st_.valid &= window_.inps_.size() <= ps_.max_num_leaves;
@@ -632,6 +635,16 @@ class window_manager {
   }
 
   void print() const { window_.print(); }
+
+  void MarkTfoInside(node_index_t n, uint32_t color)
+  {
+    if (!is_contained(n)) return;
+    ntk_.set_visited(n, color);
+    ntk_.foreach_fanout(n, [&](auto const no){
+      MarkTfoInside(no, color);
+    });
+  }
+
 
  private:
   /* ----------------------------- INPS collection ---------------------------
@@ -1039,6 +1052,19 @@ class window_manager {
            (window_.divs_.size() <= ps_.max_num_divisors) &&
            (window_.tfos_.size() <= tfos_capacity) &&
            (window_.outs_.size() <= outs_capacity);
+  }
+
+  void fix_labels()
+  {
+    std::set<signal_t> inps;
+    foreach_input( [&]( auto const& f, auto i ){
+      window_.make_inps(ntk_.get_node(f));
+      inps.insert(f);
+    } );
+    foreach_divisor( [&]( auto const& f, auto i ){
+      if ( inps.find(f) == inps.end() )
+        window_.make_divs(ntk_.get_node(f));
+    } );
   }
 
  private:

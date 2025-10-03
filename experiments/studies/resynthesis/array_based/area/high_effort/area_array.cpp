@@ -44,19 +44,6 @@ struct ResynStaticParams
       rinox::synthesis::lut::LutSynthMethod::kShannonSolo;
 };
 
-struct ResynDynamicParams
-    : rinox::opto::algorithms::array::DefaultAreaResynDynamicParams {
-  uint32_t stop_after_nth = std::numeric_limits<uint32_t>::max();
-  uint32_t max_num_divisors = 128;
-  uint32_t max_reconvergence = 10;
-  int32_t odc_levels = 0;
-  bool preserve_times = true;
-  bool use_required = true;
-  bool try_0resub_solo = true;
-  bool try_rewire_solo = true;
-  bool try_rewrite_solo = true;
-};
-
 std::optional<std::tuple<mockturtle::klut_network, mockturtle::lut_map_stats>>
 evaluate_sota(std::string const&,
               std::vector<rinox::experiments::aig_opto_t> const&,
@@ -93,8 +80,9 @@ int main() {
   auto ctx = rinox::experiments::load_context(*doc, &diag);
   auto const aig_opts = rinox::experiments::parse_aig_opto(*doc, &diag);
   auto map = rinox::experiments::load_lut_map_params(*doc, &diag);
+  using AreaResynParams = rinox::opto::algorithms::array::AreaResynParams;
   auto rsy =
-      rinox::experiments::array::load_area_resyn_params<ResynDynamicParams>(
+      rinox::experiments::array::load_area_resyn_params<AreaResynParams>(
           *doc, &diag);
 
   /* ==========================================================================
@@ -129,8 +117,7 @@ int main() {
             design_t, ResynStaticParams::kMaxNumOutputs>(klut_sota);
         double const area_before = ntk_opto.area();
         rinox::opto::algorithms::array::AreaResynStats rst;
-        rinox::opto::algorithms::array::AreaResyn<Ntk, ResynDynamicParams,
-                                                  ResynStaticParams>(
+        rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(
             ntk_opto, rsy.ps, &rst);
         mockturtle::depth_view dntk_opto{ntk_opto};
         rinox::analyzers::trackers::arrival_times_tracker times_track(

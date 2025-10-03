@@ -75,6 +75,30 @@ std::vector<kitty::dynamic_truth_table> Interpolate( std::vector<TT const*> cons
   return res;
 }
 
+template<typename TT, uint32_t NumVars>
+std::vector<kitty::dynamic_truth_table> Interpolate( std::vector<TT const*> const& tts, math::static_vector<kitty::ternary_truth_table<TT>, NumVars> const& target )
+{
+  std::vector<kitty::dynamic_truth_table> res;
+  for ( int i = 0; i < target.size(); ++i )
+  {
+    const uint64_t num_vars = tts.size();
+    kitty::dynamic_truth_table func(num_vars);
+    TT tmp;
+    for ( uint64_t m = 0; m < (1u<<num_vars); ++m )
+    {
+      tmp |= ~tmp;
+      for ( uint32_t v=0; v<num_vars; ++v )
+      {
+        tmp &= ( ( ( m>>v ) & 0x1 ) == 0x1 ) ? *tts[v] : ~( *tts[v] );
+      }
+      if ( kitty::count_ones( target[i]._bits&target[i]._care&tmp ) > 0 )
+        kitty::set_bit( func, m );
+    }
+    res.push_back(func);
+  }
+  return res;
+}
+
 struct LutSynthStats {
   mockturtle::stopwatch<>::duration time{0};
 
@@ -98,6 +122,7 @@ template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
 class LutList {
  public:
   using Func = kitty::static_truth_table<kNumVarsCube>;
+  using IFunc = kitty::ternary_truth_table<Func>;
   using Signal = uint32_t;
   using Index = uint32_t;
   static constexpr uint32_t kOutputBits = math::log2_ceil(kMaxNumOuts);
@@ -111,7 +136,7 @@ class LutList {
   struct Internal {
     double time_;
     math::static_vector<Signal, kFaninSize> fanins_;
-    math::static_vector<Func, kMaxNumOuts> sims_;
+    math::static_vector<IFunc, kMaxNumOuts> sims_;
   };
 
   using LutNode = std::variant<Input, Internal>;
@@ -119,10 +144,12 @@ class LutList {
   void Reset(size_t);
   Index CreateInput(Func const*, double time = 0.0);
   Signal CreateInternal(math::static_vector<Signal, kFaninSize> const&,
-                       math::static_vector<Func, kMaxNumOuts> const&);
+                       math::static_vector<IFunc, kMaxNumOuts> const&);
   void CreateOutput(Signal);
 
   Func const& GetSimBits(Signal) const;
+  void SetSimBits(Signal, Func const&);
+  void SetSimCare(Signal, Func const&);
   std::vector<Signal> GetOutputs() const { return outputs_; };
 
   template<typename Fn>
@@ -171,7 +198,7 @@ typename LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::Index LutList<kFaninSiz
 template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
 auto LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::CreateInternal(
     math::static_vector<Signal, kFaninSize> const& fanins,
-    math::static_vector<Func, kMaxNumOuts> const& sims) -> Signal {
+    math::static_vector<IFunc, kMaxNumOuts> const& sims) -> Signal {
   
   num_gates_++;
   double latest = 0;
@@ -219,7 +246,35 @@ typename LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::Func const& LutList<kFa
     if constexpr (std::is_same_v<std::decay_t<decltype(n)>, Input>) {
       return *n.sim_; // PI: external sim
     } else {
-      return n.sims_[out]; // Internal: owned sim
+      return n.sims_[out]._bits; // Internal: owned sim
+    }
+  }, nodes_[idx]);
+}
+
+template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
+void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::SetSimBits(Signal s, Func const& func )
+{
+  const auto idx = GetIndex(s);
+  const auto out = GetOutput(s);
+  std::visit([&](auto & n) -> void {
+    if constexpr (std::is_same_v<std::decay_t<decltype(n)>, Input>) {
+      throw std::runtime_error("[e] Trying to assign input simulation");
+    } else {
+      n.sims_[out]._bits = func; // Internal: owned sim
+    }
+  }, nodes_[idx]);
+}
+
+template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
+void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::SetSimCare(Signal s, Func const& func )
+{
+  const auto idx = GetIndex(s);
+  const auto out = GetOutput(s);
+  std::visit([&](auto & n) -> void {
+    if constexpr (std::is_same_v<std::decay_t<decltype(n)>, Input>) {
+      throw std::runtime_error("[e] Trying to assign input simulation");
+    } else {
+      n.sims_[out]._care = func; // Internal: owned sim
     }
   }, nodes_[idx]);
 }

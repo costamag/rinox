@@ -58,7 +58,7 @@ public:
   static constexpr uint32_t max_reconv = StaticParams::max_reconv;
 
   using signal_t = typename Ntk::signal;
-  using signals_t = rinox::math::static_vector<signal_t, max_cuts_size>;
+  using signals_t = math::static_vector<signal_t, max_cuts_size>;
   using node_index_t = typename Ntk::node;
   using signature_t = kitty::static_truth_table<num_vars_sign>;
 
@@ -148,8 +148,8 @@ public:
   template<typename WinMng, typename WinSim>
   void struct_enumeration( WinMng const& window, WinSim& simulator )
   {
-    using cut_sigs_t = rinox::math::static_vector<signal_t, max_cuts_size>;
-    using front_sigs_t = rinox::math::static_vector<signal_t, max_cuts_size + 10u>;
+    using cut_sigs_t = math::static_vector<signal_t, max_cuts_size>;
+    using front_sigs_t = math::static_vector<signal_t, max_cuts_size + 10u>;
 
     struct CutHash
     {

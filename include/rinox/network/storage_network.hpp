@@ -228,14 +228,14 @@ class storage_network {
     return po_index;
   }
 
-  bool constant(node_index_t const& n) const {
+  bool constant(node_index_t n) const {
     if (n == 0) return false;
     if (n == 1) return true;
     return library.constant(get_binding_ids(n));
   }
 
   /*! \brief Check if the node is a constant */
-  bool is_constant(node_index_t const& n) const {
+  bool is_constant(node_index_t n) const {
     if (n <= 1) return true;
     auto const& pins = nodes[n].outputs;
     bool const inter = has_intersection(pins[0].type, pin_type_t::CONSTANT);
@@ -249,7 +249,7 @@ class storage_network {
    * \param n The node to check.
    * \return True if the node is a combinational input, false otherwise.
    */
-  bool is_ci(node_index_t const& n) const {
+  bool is_ci(node_index_t n) const {
     auto const& pins = nodes[n].outputs;
     return has_intersection(pins[0].type, pin_type_t::PI) ||
            has_intersection(pins[0].type, pin_type_t::CI);
@@ -260,7 +260,7 @@ class storage_network {
    * \param n The node to check.
    * \return True if the node is a primary input, false otherwise.
    */
-  bool is_pi(node_index_t const& n) const { return is_ci(n); }
+  bool is_pi(node_index_t n) const { return is_ci(n); }
 
   /*! \brief Check if the node is a primary output (PO)
    *
@@ -268,7 +268,7 @@ class storage_network {
    * \param output The output pin index to check (default is 0).
    * \return True if the node is a primary output, false otherwise.
    */
-  bool is_po(node_index_t const& n, uint32_t output = 0) const {
+  bool is_po(node_index_t n, uint32_t output = 0) const {
     auto& pins = nodes[n].outputs;
     return has_intersection(pins[output].type, pin_type_t::PO);
   }
@@ -276,7 +276,7 @@ class storage_network {
   bool is_po(signal_t f) const { return is_po(f.index, f.output); }
 
   /*! \brief Returns if node index is not 0 */
-  bool constant_value(node_index_t const& n) const { return n != 0; }
+  bool constant_value(node_index_t n) const { return n != 0; }
 
 #pragma endregion
 
@@ -485,7 +485,7 @@ class storage_network {
    * \param old_node The index of the old node to be replaced.
    * \param new_signals The new signals to replace the old node's outputs.
    */
-  void replace_in_outputs(node_index_t const& old_node,
+  void replace_in_outputs(node_index_t old_node,
                           std::vector<signal_t> const& new_signals) {
     foreach_output_pin(old_node, [&](auto const& pin, uint32_t i) {
       signal_t const old_signal = signal_t{old_node, i};
@@ -523,6 +523,19 @@ class storage_network {
     assert(found && "Output signal not found in the outputs list");
   }
 
+  void remove_edge(node_index_t from, node_index_t to)
+  {
+    auto& fi = nodes[to].children;
+    fi.erase(std::remove_if(fi.begin(), fi.end(),
+                       [&](signal_t x){ return x.index == from; }),
+        fi.end());
+    auto& fo = nodes[from].outputs[0].fanout;
+    fo.erase(std::remove_if(fo.begin(), fo.end(),
+                       [&](node_index_t x){ return x == to; }),
+        fo.end());
+    decr_fanout_size(from);
+  }
+
   /*! \brief Insert a fanout node for a signal.
    *
    * This method inserts a fanout for a given signal and node index.
@@ -531,7 +544,7 @@ class storage_network {
    * \param f The signal for which the fanout is to be inserted.
    * \param n The node index to be added as a fanout.
    */
-  void insert_fanout(signal_t const& f, node_index_t const& n) {
+  void insert_fanout(signal_t const& f, node_index_t n) {
     auto& fanout = nodes[f.index].outputs[f.output].fanout;
     uint32_t const occurrences = std::count(fanout.begin(), fanout.end(), n);
     if (occurrences > 0) {
@@ -551,7 +564,7 @@ class storage_network {
    * \param f The signal for which the fanout is to be deleted.
    * \param n The node index to be removed from the fanout.
    */
-  void delete_fanout(signal_t const& f, node_index_t const& n) {
+  void delete_fanout(signal_t const& f, node_index_t n) {
     auto& fanout = nodes[f.index].outputs[f.output].fanout;
     uint32_t const occurrences = std::count(fanout.begin(), fanout.end(), n);
     nodes[f.index].fanout_count -= occurrences;
@@ -570,7 +583,7 @@ class storage_network {
    * \param old_signal The old signal to be replaced.
    * \param new_signal The new signal to replace the old node.
    */
-  void update_nets(node_index_t const& root, signal_t const& old_signal,
+  void update_nets(node_index_t root, signal_t const& old_signal,
                    signal_t new_signal) {
     auto& nd_root = nodes[root];
     for (auto& child : nd_root.children) {
@@ -595,7 +608,7 @@ class storage_network {
    *
    * \param n The index of the node to be removed.
    */
-  void delete_node(node_index_t const& n) {
+  void delete_node(node_index_t n) {
     /* remove the node from the hash table if present */
     auto it = hash.find(nodes[n]);
     if (it != hash.end()) {
@@ -629,7 +642,7 @@ class storage_network {
    */
   bool is_combinational() const { return true; }
 
-  bool is_multioutput(node_index_t const& n) const {
+  bool is_multioutput(node_index_t n) const {
     return num_outputs(n) > 1;
   }
 
@@ -647,7 +660,7 @@ class storage_network {
    * A dead node is one where all output pins are marked as DEAD.
    * This typically indicates that the node is no longer used in the network.
    */
-  bool is_dead(node_index_t const& n) const {
+  bool is_dead(node_index_t n) const {
     bool all_dead{true};
     bool one_dead{false};
     for (auto const& pin : nodes[n].outputs) {
@@ -681,39 +694,39 @@ class storage_network {
     return static_cast<uint32_t>(nodes.size() - inputs.size() - 2);
   }
 
-  uint32_t num_outputs(node_index_t const& n) const {
+  uint32_t num_outputs(node_index_t n) const {
     return static_cast<uint32_t>(nodes[n].outputs.size());
   }
 
-  uint32_t fanin_size(node_index_t const& n) const {
+  uint32_t fanin_size(node_index_t n) const {
     return static_cast<uint32_t>(nodes[n].children.size());
   }
 
-  uint32_t fanout_size(node_index_t const& n) const {
+  uint32_t fanout_size(node_index_t n) const {
     return nodes[n].fanout_count;
   }
 
-  uint32_t incr_fanout_size(node_index_t const& n) {
+  uint32_t incr_fanout_size(node_index_t n) {
     return nodes[n].fanout_count++;
   }
 
-  uint32_t decr_fanout_size(node_index_t const& n) {
+  uint32_t decr_fanout_size(node_index_t n) {
     return --nodes[n].fanout_count;
   }
 
-  uint32_t incr_fanout_size_pin(node_index_t const& n, uint32_t pin_index) {
+  uint32_t incr_fanout_size_pin(node_index_t n, uint32_t pin_index) {
     return ++nodes[n].outputs[pin_index].fanout_count;
   }
 
-  uint32_t decr_fanout_size_pin(node_index_t const& n, uint32_t pin_index) {
+  uint32_t decr_fanout_size_pin(node_index_t n, uint32_t pin_index) {
     return --nodes[n].outputs[pin_index].fanout_count;
   }
 
-  uint32_t fanout_size_pin(node_index_t const& n, uint32_t pin_index) const {
+  uint32_t fanout_size_pin(node_index_t n, uint32_t pin_index) const {
     return nodes[n].outputs[pin_index].fanout_count;
   }
 
-  bool is_function(node_index_t const& n) const {
+  bool is_function(node_index_t n) const {
     auto const& outputs = nodes[n].outputs;
     return (outputs.size() > 0) &&
            (has_intersection(outputs[0].type, network::pin_type_t::INTERNAL) ||
@@ -780,7 +793,7 @@ class storage_network {
     return *(outputs.begin() + index);
   }
 
-  uint32_t pi_index(node_index_t const& n) const {
+  uint32_t pi_index(node_index_t n) const {
     auto const& outputs = nodes[n].outputs;
     assert(has_intersection(outputs[0].type, network::pin_type_t::PI));
     return static_cast<uint32_t>(nodes[n].children[0].data);
@@ -837,7 +850,7 @@ class storage_network {
   }
 
   template <typename Fn>
-  void foreach_fanin(node_index_t const& n, Fn&& fn) const {
+  void foreach_fanin(node_index_t n, Fn&& fn) const {
     if (n <= 1 || is_ci(n)) return;
 
     mockturtle::detail::foreach_element(nodes[n].children.begin(),
@@ -854,7 +867,7 @@ class storage_network {
    * \param fn The function to apply to each output pin.
    */
   template <typename Fn>
-  void foreach_output_pin(node_index_t const& n, Fn&& fn) const {
+  void foreach_output_pin(node_index_t n, Fn&& fn) const {
     auto& pins = nodes[n].outputs;
     for (auto i = 0u; i < pins.size(); ++i) {
       fn(pins[i], i);
@@ -870,7 +883,7 @@ class storage_network {
    * \param fn The function to apply to each output pin.
    */
   template <typename Fn>
-  void foreach_output(node_index_t const& n, Fn&& fn) const {
+  void foreach_output(node_index_t n, Fn&& fn) const {
     auto& pins = nodes[n].outputs;
     for (auto i = 0u; i < pins.size(); ++i) {
       auto const f = signal_t{n, i};
@@ -882,7 +895,7 @@ class storage_network {
   void foreach_fanout(output_pin_t const& pin, Fn&& fn) const {
     auto const fanout = pin.fanout;
     for (uint32_t i = 0; i < fanout.size(); ++i) {
-      node_index_t const& n = fanout[i];
+      node_index_t n = fanout[i];
       fn(n, i);
     }
   }
@@ -891,13 +904,13 @@ class storage_network {
   void foreach_fanout(signal_t const& f, Fn&& fn) const {
     auto& fanout = nodes[f.index].outputs[f.output].fanout;
     for (uint32_t i = 0; i < fanout.size(); ++i) {
-      node_index_t const& n = fanout[i];
+      node_index_t n = fanout[i];
       fn(n);
     }
   }
 
   template <typename Fn>
-  void foreach_fanout(node_index_t const& n, Fn&& fn) const {
+  void foreach_fanout(node_index_t n, Fn&& fn) const {
     foreach_output_pin(n, [&](auto const& pin, auto i) {
       foreach_fanout(pin,
                      [&](auto const& fanout_node, auto j) { fn(fanout_node); });
@@ -911,19 +924,19 @@ class storage_network {
     std::for_each(nodes.begin(), nodes.end(), [](auto& n) { n.user_data = 0; });
   }
 
-  uint32_t value(node_index_t const& n) const { return nodes[n].user_data; }
+  uint32_t value(node_index_t n) const { return nodes[n].user_data; }
 
-  void set_value(node_index_t const& n, uint32_t v) { nodes[n].user_data = v; }
+  void set_value(node_index_t n, uint32_t v) { nodes[n].user_data = v; }
 
   void set_name(signal_t const& f, std::string const& name) {
     names_map[f] = name;
   }
 
-  uint32_t incr_value(node_index_t const& n) {
+  uint32_t incr_value(node_index_t n) {
     return static_cast<uint32_t>(nodes[n].user_data++);
   }
 
-  uint32_t decr_value(node_index_t const& n) {
+  uint32_t decr_value(node_index_t n) {
     return static_cast<uint32_t>(--nodes[n].user_data);
   }
 
@@ -974,9 +987,9 @@ class storage_network {
                   [](auto& n) { n.traversal_id = 0; });
   }
 
-  auto visited(node_index_t const& n) const { return nodes[n].traversal_id; }
+  auto visited(node_index_t n) const { return nodes[n].traversal_id; }
 
-  void set_visited(node_index_t const& n, uint32_t v) {
+  void set_visited(node_index_t n, uint32_t v) {
     nodes[n].traversal_id = v;
   }
 
@@ -1009,7 +1022,7 @@ class storage_network {
    * \param n The index of the node whose children are to be retrieved.
    * \return A vector of signals representing the children of the node.
    */
-  std::vector<signal_t> const& get_children(node_index_t const& n) const {
+  std::vector<signal_t> const& get_children(node_index_t n) const {
     return nodes[n].children;
   }
 
@@ -1021,7 +1034,7 @@ class storage_network {
    * \param n The index of the node whose children are to be retrieved.
    * \return A vector of node indices representing the children of the node.
    */
-  std::vector<node_index_t> const get_fanins(node_index_t const& n) const {
+  std::vector<node_index_t> const get_fanins(node_index_t n) const {
     std::vector<node_index_t> fanin;
     for (auto const& child : nodes[n].children) {
       fanin.push_back(child.index);
@@ -1035,20 +1048,21 @@ class storage_network {
 
   template <network::design_type_t D = DesignType,
             std::enable_if_t<D == network::design_type_t::CELL_BASED, int> = 0>
-  double const& get_area(node_index_t const& n) const {
+  double const& get_area(node_index_t n) const {
     auto const& g = get_binding(signal_t{n, 0});
     return g.area;
   }
 
   template <network::design_type_t D = DesignType,
             std::enable_if_t<D == network::design_type_t::ARRAY_BASED, int> = 0>
-  double get_area(node_index_t const& n) const {
+  double get_area(node_index_t n) const {
     static constexpr double array_unit_area = 1;
-    return fanin_size(n) == 1 ? 0 : array_unit_area;
+    //return fanin_size(n) == 1 ? 0 : array_unit_area;
+    return array_unit_area;
   }
 
   std::vector<kitty::dynamic_truth_table> get_functions(
-      node_index_t const& n) const {
+      node_index_t n) const {
     std::vector<kitty::dynamic_truth_table> tts;
     foreach_output(n, [&](auto const& f) {
       auto const& g = get_binding(f);
@@ -1064,7 +1078,7 @@ class storage_network {
 
   /*! \brief Get the binding identifiers of the output pins in a node
    */
-  std::vector<uint32_t> get_binding_ids(node_index_t const& n) const {
+  std::vector<uint32_t> get_binding_ids(node_index_t n) const {
     std::vector<uint32_t> ids;
     for (auto const& pin : nodes[n].outputs) ids.push_back(pin.id);
     return ids;
@@ -1123,7 +1137,7 @@ class storage_network {
 
   bool has_binding(signal_t const& f) const { return has_binding(f.index); }
 
-  bool has_binding(node_index_t const& n) const {
+  bool has_binding(node_index_t n) const {
     return (!is_ci(n) && !is_pi(n));
   }
 

@@ -46,23 +46,14 @@ inline area_resyn_t<Params> load_area_resyn_params(
   if (rp.HasMember("odc_levels") && rp["odc_levels"].IsUint()) {
     ps.odc_levels = rp["odc_levels"].GetUint();
   }
-  if (rp.HasMember("preserve_times") && rp["preserve_times"].IsBool()) {
-    ps.preserve_times = rp["preserve_times"].GetBool();
+  if (rp.HasMember("try_Wresub_solo") && rp["try_Wresub_solo"].IsBool()) {
+    ps.try_Wresub_solo = rp["try_Wresub_solo"].GetBool();
   }
-  if (rp.HasMember("use_required") && rp["use_required"].IsBool()) {
-    ps.use_required = rp["use_required"].GetBool();
+  if (rp.HasMember("try_absorb_solo") && rp["try_absorb_solo"].IsBool()) {
+    ps.try_absorb_solo = rp["try_absorb_solo"].GetBool();
   }
-  if (rp.HasMember("try_0resub_solo") && rp["try_0resub_solo"].IsBool()) {
-    ps.try_0resub_solo = rp["try_0resub_solo"].GetBool();
-  }
-  if (rp.HasMember("try_rewire_solo") && rp["try_rewire_solo"].IsBool()) {
-    ps.try_rewire_solo = rp["try_rewire_solo"].GetBool();
-  }
-  if (rp.HasMember("try_struct_solo") && rp["try_struct_solo"].IsBool()) {
-    ps.try_struct_solo = rp["try_struct_solo"].GetBool();
-  }
-  if (rp.HasMember("try_window_solo") && rp["try_window_solo"].IsBool()) {
-    ps.try_window_solo = rp["try_window_solo"].GetBool();
+  if (rp.HasMember("cec") && rp["cec"].IsBool()) {
+    ps.cec = rp["cec"].GetBool();
   }
   return res;
 }

@@ -56,7 +56,7 @@ struct dependency_cut_t
 
 public:
   using signal_t = typename Ntk::signal;
-  using signals_t = rinox::math::static_vector<signal_t, MaxCutSize>;
+  using signals_t = math::static_vector<signal_t, MaxCutSize>;
   using node_index_t = typename Ntk::node;
   using truth_table_t = kitty::static_truth_table<MaxCutSize>;
   using functionality_t = kitty::ternary_truth_table<truth_table_t>;

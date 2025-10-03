@@ -189,7 +189,6 @@ public:
     return kitty::ternary_truth_table( bits, care );
   }
 
-private:
   uint32_t count_edges( uint32_t i ) const
   {
     Tt_t const onset = boolean::binary_and( masks_[i], func_[1] );
@@ -207,7 +206,6 @@ private:
     return res;
   }
 
-private:
   std::array<Tt_t, MaxNumMasks> masks_;
   std::array<bool, MaxNumMasks> kills_;
   uint32_t num_masks_;

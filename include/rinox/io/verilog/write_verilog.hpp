@@ -117,7 +117,7 @@ public:
 
 template<class Ntk>
 std::vector<std::pair<bool, std::string>>
-format_fanin( Ntk const& ntk, typename Ntk::node const& n, mockturtle::node_map<std::string, Ntk>& node_names )
+format_fanin( Ntk & ntk, typename Ntk::node const& n, mockturtle::node_map<std::string, Ntk>& node_names )
 {
   std::vector<std::pair<bool, std::string>> children;
   ntk.foreach_fanin( n, [&]( auto const& f, auto i ) {
@@ -128,7 +128,7 @@ format_fanin( Ntk const& ntk, typename Ntk::node const& n, mockturtle::node_map<
 
 template<class Ntk>
 std::vector<std::pair<bool, std::string>>
-format_fanin( Ntk const& ntk, typename Ntk::node const& n, mockturtle::node_map<std::vector<std::string>, Ntk>& node_names )
+format_fanin( Ntk & ntk, typename Ntk::node const& n, mockturtle::node_map<std::vector<std::string>, Ntk>& node_names )
 {
   std::vector<std::pair<bool, std::string>> children;
   ntk.foreach_fanin( n, [&]( auto const& f, auto i ) {
@@ -146,7 +146,7 @@ format_fanin( Ntk const& ntk, typename Ntk::node const& n, mockturtle::node_map<
 
 template<class Ntk>
 std::vector<std::pair<bool, std::string>>
-format_fanin( Ntk const& ntk, typename Ntk::node const& n, network::incomplete_signal_map<std::string, Ntk>& signal_names )
+format_fanin( Ntk & ntk, typename Ntk::node const& n, network::incomplete_signal_map<std::string, Ntk>& signal_names )
 {
   std::vector<std::pair<bool, std::string>> children;
   ntk.foreach_fanin( n, [&]( auto const& f, auto i ) {
@@ -285,7 +285,7 @@ inline std::vector<bus_info_t> infer_buses( const std::vector<std::string>& nets
  * \param ps Verilog parameters
  */
 template<network::design_type_t DesignStyle, uint32_t MaxNumOutputs>
-void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& ntk, std::ostream& os, mockturtle::write_verilog_params const& ps = {} )
+void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> & ntk, std::ostream& os, mockturtle::write_verilog_params const& ps = {} )
 {
   using Ntk = network::bound_network<DesignStyle, MaxNumOutputs>;
   static_assert( mockturtle::is_network_type_v<Ntk>, "Ntk is not a network type" );
@@ -590,7 +590,7 @@ void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& nt
  * \param filename Filename
  */
 template<network::design_type_t DesignStyle, uint32_t MaxNumOutputs>
-void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> const& ntk, std::string const& filename, mockturtle::write_verilog_params const& ps = {} )
+void write_verilog( network::bound_network<DesignStyle, MaxNumOutputs> & ntk, std::string const& filename, mockturtle::write_verilog_params const& ps = {} )
 {
   std::ofstream os( filename.c_str(), std::ofstream::out );
   write_verilog<DesignStyle, MaxNumOutputs>( ntk, os, ps );

@@ -71,7 +71,7 @@ class window_simulator {
     sig_to_sim_.resize();
 
     assign_inputs(window);
-
+    
     window.foreach_divisor([&](auto const& f, auto i) {
       auto const n = ntk_.get_node(f);
       if (f.output == 0 && !window.is_input(n)) {
@@ -184,7 +184,8 @@ class window_simulator {
     auto const tts = ntk_.compute(n, sim_ptrs);
     uint32_t io = 0;
     ntk_.foreach_output(
-        n, [&](auto const& fo) { sims_[sig_to_sim_[fo]] = tts[io++]; });
+        n, [&](auto const& fo) { sims_[sig_to_sim_[fo]] = tts[io++]; 
+        });
     return;
   }
 
@@ -210,7 +211,8 @@ class window_simulator {
 
   template <typename WinMngr>
   void assign_inputs(WinMngr const& window) {
-    window.foreach_input([&](auto const& f, auto i) { sig_to_sim_[f] = i; });
+    window.foreach_input([&](auto const& f, auto i) { sig_to_sim_[f] = i; 
+    });
   }
 
  private:

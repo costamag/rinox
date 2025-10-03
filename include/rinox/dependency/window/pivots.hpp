@@ -58,8 +58,11 @@ class OraclePivots{
 public:
   OraclePivots(Ntk&ntk, Manager&manager, Simulator&simulator):ntk_(ntk),manager_(manager),simulator_(simulator){}
   void Init();
+  bool IsCovered();
+  uint32_t Evaluate(TruthTable const&);
+  void Update(TruthTable const&);
 
-  std::optional<Cut> GetNext();
+  std::optional<Cut> GetNext(uint32_t);
   
 private:
   Ntk & ntk_;
@@ -74,9 +77,11 @@ private:
 template<typename Ntk, typename Manager, typename Simulator, uint32_t kMaxNumInputs>
 void OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::Init()
 {
-  auto const bits = simulator_.Get(ntk_.make_signal(manager_.get_pivot()));
-  auto const care = simulator_.get_careset();
-  spfds_.init( {&bits}, {&care} );
+  std::vector<TruthTable const*> bits;
+  ntk_.foreach_output(manager_.get_pivot(), [&](auto const& f){
+    bits.push_back(&simulator_.Get(f));
+  });
+  spfds_.init( bits);
 
   cut_.clear();
   pivot_=0;
@@ -87,7 +92,7 @@ void OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::Init()
 }
 
 template<typename Ntk, typename Manager, typename Simulator, uint32_t kMaxNumInputs>
-auto OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::GetNext() -> std::optional<Cut>
+auto OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::GetNext(uint32_t kMaxInps) -> std::optional<Cut>
 {
   cut_.clear();
   spfds_.reset();
@@ -98,7 +103,7 @@ auto OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::GetNext() -> std::opt
     spfds_.reset();
     cut_.push_back( pivot );
     spfds_.update( simulator_.Get(pivot) );
-    while(!spfds_.is_covered() && !spfds_.is_saturated())
+    while(!spfds_.is_covered() && !spfds_.is_saturated() && (cut_.size() < kMaxInps))
     {
       uint32_t best_cost = spfds_.get_num_edges();
       std::optional<Signal> best;
@@ -122,7 +127,6 @@ auto OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::GetNext() -> std::opt
     pivot_++;
     if ( spfds_.is_covered() )
     {
-      std::cout << "covered" << std::endl;
       return cut_;
     }
     else
@@ -132,6 +136,24 @@ auto OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::GetNext() -> std::opt
     }
   }
   return std::nullopt;
+}
+
+template<typename Ntk, typename Manager, typename Simulator, uint32_t kMaxNumInputs>
+uint32_t OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::Evaluate(TruthTable const& tt)
+{
+  return spfds_.evaluate(tt);
+}
+
+template<typename Ntk, typename Manager, typename Simulator, uint32_t kMaxNumInputs>
+void OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::Update(TruthTable const& tt)
+{
+  spfds_.update(tt);
+}
+
+template<typename Ntk, typename Manager, typename Simulator, uint32_t kMaxNumInputs>
+bool OraclePivots<Ntk, Manager, Simulator, kMaxNumInputs>::IsCovered()
+{
+  return spfds_.is_covered();
 }
 
 }  // namespace rinox

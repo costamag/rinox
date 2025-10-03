@@ -99,7 +99,7 @@ struct static_vector
 
     if ( n >= Cap )
     {
-      assert( false && "!" );
+      std::cout << n << std::endl;
       throw std::out_of_range( "static_vector full" );
     }
     data_[n++] = x;
@@ -119,7 +119,10 @@ struct static_vector
   T& emplace_back( Args&&... args )
   {
     if ( n >= Cap )
+    {
+      std::cout << n << std::endl;
       throw std::out_of_range( "static_vector full" );
+    }
     return data_[n++] = T( std::forward<Args>( args )... );
   }
 
@@ -194,7 +197,10 @@ struct static_vector
   void insert_unique( T const& v )
   {
     if ( n >= Cap )
+    {
+      std::cout << n << std::endl;
       throw std::out_of_range( "vector full" );
+    }
     for ( std::size_t i = 0; i < n; ++i )
       if ( data_[i] == v )
         return;
@@ -204,7 +210,10 @@ struct static_vector
   iterator insert( iterator pos, T const& value )
   {
     if ( n >= Cap )
+    {
+      std::cout << n << std::endl;
       throw std::out_of_range( "static_vector full" );
+    }
 
     // compute index from iterator
     size_t idx = static_cast<size_t>( pos - begin() );

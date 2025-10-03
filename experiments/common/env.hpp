@@ -401,7 +401,7 @@ private:
 
 
 template<class Ntk>
-inline bool abc_cec_impl( Ntk const& ntk, std::string const& benchmark_fullpath )
+inline bool abc_cec_impl( Ntk & ntk, std::string const& benchmark_fullpath )
 {
   mockturtle::write_bench( ntk, "/tmp/test.bench" );
   std::string command = fmt::format( "abc -q \"cec -n {} /tmp/test.bench\"", benchmark_fullpath );
@@ -439,13 +439,13 @@ inline bool abc_cec_impl( Ntk const& ntk, std::string const& benchmark_fullpath 
 }
 
 template<class Ntk>
-inline bool abc_cec( Ntk const& ntk, std::string const& path )
+inline bool abc_cec( Ntk & ntk, std::string const& path )
 {
   return abc_cec_impl( ntk, path );
 }
 
 template<class Ntk>
-inline bool abc_cec_mapped_cell_impl( Ntk const& ntk, std::string const& benchmark_full_path, std::string const& library_full_path )
+inline bool abc_cec_mapped_cell_impl( Ntk & ntk, std::string const& benchmark_full_path, std::string const& library_full_path )
 {
   mockturtle::write_verilog_with_cell( ntk, "/tmp/test.v" );
   std::string command = fmt::format( "abc -q \"read_genlib {}; read -m /tmp/test.v; cec -n {}\"", library_full_path, benchmark_full_path );
@@ -482,7 +482,7 @@ inline bool abc_cec_mapped_cell_impl( Ntk const& ntk, std::string const& benchma
 }
 
 template<class Ntk>
-inline bool abc_cec_rinox_impl( Ntk const& ntk, std::string const& benchmark_full_path, std::string const& library_full_path )
+inline bool abc_cec_rinox_impl( Ntk & ntk, std::string const& benchmark_full_path, std::string const& library_full_path )
 {
   rinox::io::verilog::write_verilog( ntk, "/tmp/test.v" );
   std::string command = fmt::format( "abc -q \"read_genlib {}; read -m /tmp/test.v; cec -n {}\"", library_full_path, benchmark_full_path );
@@ -519,7 +519,7 @@ inline bool abc_cec_rinox_impl( Ntk const& ntk, std::string const& benchmark_ful
 }
 
 template<class Ntk>
-inline bool abc_cec_rinox_impl( Ntk const& ntk, std::string const& benchmark_full_path )
+inline bool abc_cec_rinox_impl( Ntk & ntk, std::string const& benchmark_full_path )
 {
   mockturtle::write_blif( ntk, "/tmp/test.blif" );
   std::string command = fmt::format( "abc -q \"read /tmp/test.blif; cec {}\"", benchmark_full_path );
@@ -556,19 +556,19 @@ inline bool abc_cec_rinox_impl( Ntk const& ntk, std::string const& benchmark_ful
 }
 
 template<class Ntk>
-inline bool abc_cec_mapped_cell( Ntk const& ntk, std::string const& path, std::string const& library )
+inline bool abc_cec_mapped_cell( Ntk & ntk, std::string const& path, std::string const& library )
 {
   return abc_cec_mapped_cell_impl( ntk, path, library );
 }
 
 template<class Ntk>
-inline bool abc_cec_rinox( Ntk const& ntk, std::string const& path, std::string const& library )
+inline bool abc_cec_rinox( Ntk & ntk, std::string const& path, std::string const& library )
 {
   return abc_cec_rinox_impl( ntk, path, library );
 }
 
 template<class Ntk>
-inline bool abc_cec_rinox( Ntk const& ntk, std::string const& path )
+inline bool abc_cec_rinox( Ntk & ntk, std::string const& path )
 {
   return abc_cec_rinox_impl( ntk, path );
 }

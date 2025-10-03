@@ -49,6 +49,10 @@ struct ResynParams
   window_manager_params window_manager_ps;
 };
 
+
+template<typename Ntk>
+void RecordFaninsDistrib(Ntk&, std::vector<std::array<double, Ntk::kMaxNumOutputs>>&);
+
 rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2u>
 abc_lut_map(std::string const&,
             std::vector<rinox::experiments::aig_opto_t> const&,
@@ -126,6 +130,9 @@ int main() {
   double avgDepthSota = 0;
   double count = 0;
 
+  std::vector<std::array<double, max_num_outputs>> distr_bef;
+  std::vector<std::array<double, max_num_outputs>> distr_aft;
+
   std::unordered_map<std::string, perf_t> sota;
   sota["adder"] = {179, 51, 44.69, 30.35, 0.29};
   sota["arbiter"] = {2468, 18, 10.29, 9.33, 2.98};
@@ -193,8 +200,12 @@ int main() {
         /*   New algorithm evaluation */
         /* ==========================================================================
          */
+        RecordFaninsDistrib(ntk, distr_bef);
+
         rinox::opto::algorithms::resynthesis_stats rst;
         rinox::opto::algorithms::area_dual_output_resyn(ntk, rsy.ps, &rst);
+        RecordFaninsDistrib(ntk, distr_aft);
+
         fDualOpto = 100 * rst.fDual;
         nLutsOpto = static_cast<int>(ntk.area());
         dAreaOpto = 100 * (1 - ((double)nLutsOpto) / ((double)abc_ifK6[name]));
@@ -350,3 +361,29 @@ abc_lut_map(std::string const& path,
   return rinox::network::convert_klut_to_bound<
       rinox::network::design_type_t::ARRAY_BASED, 2u>(klut);
 }
+
+ template<typename Ntk>
+  void RecordFaninsDistrib(Ntk&ntk, std::vector<std::array<double, Ntk::kMaxNumOutputs>>& distr)
+  {
+    std::array<double, Ntk::kMaxNumOutputs> zero;
+    for(uint32_t i=0; i<Ntk::kMaxNumOutputs; ++i) zero[i]=0;
+
+    double total = 0;
+    ntk.foreach_gate([&](auto const& n){
+      if(ntk.is_dead(n)) return true;
+      uint32_t num_fanins = ntk.fanin_size(n);
+      while (distr.size()<=num_fanins)
+        distr.push_back(zero);
+      distr[num_fanins][ntk.num_outputs(n)-1]+=1;
+      total+=1;
+      return true;
+    });
+    for(int num_fanins=1; num_fanins<distr.size();++num_fanins)
+    {
+      std::cout << "|FIs|: " << num_fanins << " ";
+      for(int i=0; i<Ntk::kMaxNumOutputs;++i)
+        std::cout << distr[num_fanins][i] << " ";
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+  }
