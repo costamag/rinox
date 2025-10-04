@@ -212,18 +212,29 @@ int main() {
         rinox::opto::algorithms::array::AreaResynStats rst;
         std::cout << "optimizing " << std::endl;
 
-        rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
-        rst.Report();
+        int size_before;
+        int size_after = (int)ntk.area();
+        do
+        {
+          size_before = size_after;
+          rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+          rst.Report();
+          size_after = (int)ntk.area();
+        } while (size_after<size_before);
+        
 
-        rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
-        rst.Report();
 
-        rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
-        std::cout << "optimized " << std::endl;
+        //rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+        //rst.Report();
+
+        //rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+        //rst.Report();
+
+        //rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+        //rst.Report();
         RecordFaninsDistrib(ntk, distr_aft);
         rTimeOpto = rst.GetTimeTotal();
 
-        rst.Report();
 
         fDualOpto = (100.0 * ntk.CountDuals())/(1.0*ntk.CountGates());
         nLutsOpto = static_cast<int>(ntk.area());

@@ -11,7 +11,7 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["log2"],
+      "benchmarks": ["epfl"],
       "excluded": ["hyp"]
     },
     "output":
@@ -63,14 +63,19 @@
   },
   "resyn":
   {
-    "stop_after_nth": 1000000000000,
+    "stop_after_nth": 10000000000000000,
     "max_num_divisors" : 1024,
     "max_reconvergence" : 3,
     "odc_levels" : 0,
     "cec" : true,
     "preserve_times" : false,
     "use_required" : false,
-    "try_absorb_solo" : true,
-    "try_Wresub_solo" : true
+    "try_0resub_solo" : true,
+    "try_1resub_solo" : true,
+    "try_2resub_solo" : true,
+    "try_1resub_dual" : true,
+    "try_1rexub_solo" : true,
+    "try_0rexub_solo" : true,
+    "try_merger_solo" : true
   }
 }

@@ -51,7 +51,6 @@ TEST_CASE( "Area resynthesis via squeezing - Array-based", "[dual_output]" )
   ps.max_num_divisors = 128;
   ps.max_reconvergence = 10;
   ps.odc_levels = 0;
-  ps.try_absorb_solo = true;
   rinox::opto::algorithms::array::AreaResynStats rst;
   rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
   CHECK( ntk.area() == 1 );
@@ -85,7 +84,6 @@ TEST_CASE( "Area resynthesis via squeezing - Array-based - case 2", "[dual_outpu
   ps.max_num_divisors = 128;
   ps.max_reconvergence = 10;
   ps.odc_levels = 0;
-  ps.try_absorb_solo = false;
   rinox::opto::algorithms::array::AreaResynStats rst;
   rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
   CHECK( ntk.area() == 2 );

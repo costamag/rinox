@@ -46,15 +46,31 @@ inline area_resyn_t<Params> load_area_resyn_params(
   if (rp.HasMember("odc_levels") && rp["odc_levels"].IsUint()) {
     ps.odc_levels = rp["odc_levels"].GetUint();
   }
-  if (rp.HasMember("try_Wresub_solo") && rp["try_Wresub_solo"].IsBool()) {
-    ps.try_Wresub_solo = rp["try_Wresub_solo"].GetBool();
-  }
-  if (rp.HasMember("try_absorb_solo") && rp["try_absorb_solo"].IsBool()) {
-    ps.try_absorb_solo = rp["try_absorb_solo"].GetBool();
-  }
   if (rp.HasMember("cec") && rp["cec"].IsBool()) {
     ps.cec = rp["cec"].GetBool();
   }
+  if (rp.HasMember("try_0resub_solo") && rp["try_0resub_solo"].IsBool()) {
+    ps.try_0resub_solo = rp["try_0resub_solo"].GetBool();
+  }
+  if (rp.HasMember("try_1resub_solo") && rp["try_1resub_solo"].IsBool()) {
+    ps.try_1resub_solo = rp["try_1resub_solo"].GetBool();
+  }
+  if (rp.HasMember("try_2resub_solo") && rp["try_2resub_solo"].IsBool()) {
+    ps.try_2resub_solo = rp["try_2resub_solo"].GetBool();
+  }
+  if (rp.HasMember("try_1resub_dual") && rp["try_1resub_dual"].IsBool()) {
+    ps.try_1resub_dual = rp["try_1resub_dual"].GetBool();
+  }
+  if (rp.HasMember("try_1rexub_solo") && rp["try_1rexub_solo"].IsBool()) {
+    ps.try_1rexub_solo = rp["try_1rexub_solo"].GetBool();
+  }
+  if (rp.HasMember("try_0rexub_solo") && rp["try_0rexub_solo"].IsBool()) {
+    ps.try_0rexub_solo = rp["try_0rexub_solo"].GetBool();
+  }
+  if (rp.HasMember("try_merger_solo") && rp["try_merger_solo"].IsBool()) {
+    ps.try_merger_solo = rp["try_merger_solo"].GetBool();
+  }
+
   return res;
 }
 

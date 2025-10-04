@@ -98,8 +98,13 @@ struct AreaResynParams {
   uint32_t max_reconvergence = 10;
   int32_t odc_levels = 0;
   bool cec = false;
-  bool try_Wresub_solo = true;
-  bool try_absorb_solo = true;
+  bool try_0resub_solo = false;
+  bool try_1resub_solo = false;
+  bool try_2resub_solo = false;
+  bool try_1resub_dual = false;
+  bool try_1rexub_solo = false;
+  bool try_0rexub_solo = false;
+  bool try_merger_solo = false;
 };
 
 struct AreaResynStats {
@@ -338,6 +343,7 @@ class AreaResynImpl {
   bool TryMergerSolo(Node);
 
   std::optional<Signal> AddOutput(Node, Signature const&);
+  std::optional<Signal> AddOutput(Node, Signature const&, Signature const&);
   kitty::dynamic_truth_table Interpolate(std::vector<Signal> const&,
                                          Signature const&, Signature const&);
   kitty::dynamic_truth_table Interpolate(std::vector<Signal> const&,
@@ -403,21 +409,27 @@ void AreaResynImpl<Ntk, StaticParams>::Run() {
     if (cnt++ >= nmax) return false;
     if (st_.GetNumOptos() >= ps_.stop_after_nth) return false;
     if (SkipNode(n)) return true;
+    if (ntk_.num_outputs(n) != 1) return true;
 
-    mockturtle::call_with_stopwatch(st_.time_window_constr,
-                                    [&]() { window_.manager.run(n); });
-    mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() {
-      window_.simulator.run(window_.manager);
-    });
 
-    if (ntk_.num_outputs(n) == 1)
-      OptimizeSolo(n);
-    else if (ntk_.num_outputs(n) == 2)
-      OptimizeDual(n);
-    else {
-      fmt::print("[warn] Skipping node {} with {} outputs\n", n,
-                 ntk_.num_outputs(n));
-    }
+    mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { window_.manager.run(n); });
+    mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { window_.simulator.run(window_.manager);});
+
+    OptimizeSolo(n);
+    return true;
+  });
+
+  ntk_.foreach_gate([&](auto const& n) {
+    if (ntk_.is_pi(n)) return true;
+    if (cnt++ >= nmax) return false;
+    if (st_.GetNumOptos() >= ps_.stop_after_nth) return false;
+    if (SkipNode(n)) return true;
+    if (ntk_.num_outputs(n) != 2) return true;
+
+    mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { window_.manager.run(n); });
+    mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { window_.simulator.run(window_.manager);});
+
+    OptimizeDual(n);
     return true;
   });
 }
@@ -432,35 +444,33 @@ bool AreaResynImpl<Ntk, StaticParams>::SkipNode(Node n) const {
 
 template <class Ntk, typename StaticParams>
 void AreaResynImpl<Ntk, StaticParams>::OptimizeSolo(Node n) {
-  if (window_.manager.is_valid()) {
-    spfds_.Init();
-    if (mockturtle::call_with_stopwatch(st_.time_0resub_solo,
-                                        [&]() { return Try0ResubSolo(n); })) {
-      st_.Record0ResubSolo();
-      return;
-    }
-    if (mockturtle::call_with_stopwatch(st_.time_0rexub_solo,
-                                        [&]() { return Try0RexubSolo(n); })) {
-      st_.Record0RexubSolo();
-      return;
-    }
+  spfds_.Init();
+  if (ps_.try_0resub_solo && mockturtle::call_with_stopwatch(st_.time_0resub_solo,
+                                      [&]() { return Try0ResubSolo(n); })) {
+    st_.Record0ResubSolo();
+    return;
   }
-  if (mockturtle::call_with_stopwatch(st_.time_1resub_solo,
+  if (ps_.try_0rexub_solo && mockturtle::call_with_stopwatch(st_.time_0rexub_solo,
+                                      [&]() { return Try0RexubSolo(n); })) {
+    st_.Record0RexubSolo();
+    return;
+  }
+  if (ps_.try_1resub_solo && mockturtle::call_with_stopwatch(st_.time_1resub_solo,
                                       [&]() { return Try1ResubSolo(n); })) {
     st_.Record1ResubSolo();
     return;
   }
-  if (mockturtle::call_with_stopwatch(st_.time_1rexub_solo,
+  if (ps_.try_1rexub_solo && mockturtle::call_with_stopwatch(st_.time_1rexub_solo,
                                       [&]() { return Try1RexubSolo(n); })) {
     st_.Record1RexubSolo();
     return;
   }
-  if (mockturtle::call_with_stopwatch(st_.time_2resub_solo,
+  if (ps_.try_2resub_solo && mockturtle::call_with_stopwatch(st_.time_2resub_solo,
                                       [&]() { return Try2ResubSolo(n); })) {
     st_.Record2ResubSolo();
     return;
   }
-  if (mockturtle::call_with_stopwatch(st_.time_merger_solo,
+  if (ps_.try_merger_solo && mockturtle::call_with_stopwatch(st_.time_merger_solo,
                                       [&]() { return TryMergerSolo(n); })) {
     st_.RecordMergerSolo();
     return;
@@ -516,15 +526,20 @@ bool AreaResynImpl<Ntk, StaticParams>::Try0RexubSolo(Node n) {
     if (fnew) {
       window_.simulator.compute( window_.manager, (*fnew).index );
       bool cec1 = kitty::equal(window_.simulator.Get(Signal{(*fnew).index, 0}), window_.simulator.Get( ntk_.make_signal(*best_div) ));
-      bool cec2 = kitty::equal(window_.simulator.Get(Signal{(*fnew).index, 1}), window_.simulator.Get( ntk_.make_signal(n) ));
+      bool cec2 = kitty::equal(window_.simulator.Get(Signal{(*fnew).index, 1}), target );
+      
       if (cec1 && cec2)
       {
         ntk_.substitute_node(*best_div, Signal{(*fnew).index, 0});
         ntk_.substitute_node(n, Signal{(*fnew).index, 1});
+
         return true;
       }
       else
+      {
+        std::cout << "Failed cec 0 Rexub " << std::endl;
         ntk_.take_out_node((*fnew).index);
+      }
     }
   }
   return false;
@@ -548,7 +563,10 @@ bool AreaResynImpl<Ntk, StaticParams>::Try1ResubSolo(Node n) {
       return true;
     }
     else
+    {
       ntk_.take_out_node(fnew.index);
+      std::cout << "Failed cec 1 Resub " << std::endl;
+    }
   }
   return false;
 }
@@ -556,21 +574,174 @@ bool AreaResynImpl<Ntk, StaticParams>::Try1ResubSolo(Node n) {
 template <class Ntk, typename StaticParams>
 bool AreaResynImpl<Ntk, StaticParams>::Try2ResubSolo(Node n) {
   if (window_.manager.num_mffc() <= 2) return false;
-  spfds_.Init();
+  spfd_.init(window_.simulator.Get(ntk_.make_signal(n)));
+  std::vector<Signal> cutT;
+  while ((cutT.size() < (StaticParams::kMaxInpsSolo-1))&&!spfd_.is_covered())
+  {
+    std::optional<Signal> d;
+    uint32_t best_cost = std::numeric_limits<uint32_t>::max();
+    window_.manager.foreach_divisor([&](auto const& fd, auto){
+      auto nd = ntk_.get_node(fd);
+      uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
+      if (cost<best_cost)
+      {
+        best_cost = cost;
+        d=fd;
+      }
+    });
+    if(d)
+    {
+      cutT.push_back(*d);
+      spfd_.update(window_.simulator.Get(*d));
+    }
+    else
+      return false;
+  }
+  if (spfd_.is_covered()) return false;
+  Signature funcB;
+  Signature careB;
+  InferBestSignature(funcB, careB, spfd_);
+
+  spfd_.init(funcB, careB);
+  std::vector<Signal> cutB;
+  while (cutB.size() < StaticParams::kMaxInpsSolo &&!spfd_.is_covered())
+  {
+    std::optional<Signal> d;
+    uint32_t best_cost = std::numeric_limits<uint32_t>::max();
+    window_.manager.foreach_divisor([&](auto const& fd, auto){
+      auto nd = ntk_.get_node(fd);
+      uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
+      if (cost<best_cost)
+      {
+        best_cost = cost;
+        d=fd;
+      }
+    });
+    if(d)
+    {
+      cutB.push_back(*d);
+      spfd_.update(window_.simulator.Get(*d));
+    }
+    else
+      return false;
+  }
+  if (spfd_.is_covered())
+  {
+    auto ttB = Interpolate(cutB, funcB, careB);
+    auto fB = ntk_.create_node(cutB, ttB);
+    window_.simulator.compute(window_.manager, fB.index);
+    cutT.push_back(fB);
+    auto ttT = Interpolate(cutT, window_.simulator.Get(ntk_.make_signal(n)));
+    auto fT = ntk_.create_node(cutT, ttT);
+    window_.simulator.compute(window_.manager, fT.index);
+    if (kitty::equal(window_.simulator.Get(fT), window_.simulator.Get(ntk_.make_signal(n))))
+    {
+      ntk_.substitute_node(n, fT);
+      return true;
+    }
+    else
+    {
+      std::cout << "Failed cec 2 Resub " << std::endl;
+      ntk_.take_out_node(fT.index);
+    }
+  }
+
   return false;
 }
 
 template <class Ntk, typename StaticParams>
 auto AreaResynImpl<Ntk, StaticParams>::AddOutput(
     Node n, Signature const& target) -> std::optional<Signal> {
+
   auto children = ntk_.get_children(n);
+
   spfd_.init(target);
   for (auto f : children) spfd_.update(window_.simulator.Get(f));
 
+  if(children.size() < StaticParams::kMaxInpsDual)
+  {
+    ntk_.incr_trav_id();
+    window_.manager.MarkTfoInside(n, ntk_.trav_id());
+    auto fn = ntk_.make_signal(n);
+    while ((children.size() < StaticParams::kMaxInpsDual)&&!spfd_.is_covered()) {
+      std::optional<Signal> best_div;
+      uint32_t best_cost = std::numeric_limits<uint32_t>::max();
+      window_.manager.foreach_divisor([&](auto const& fd, auto){
+        auto nd = ntk_.get_node(fd);
+        if ((ntk_.visited(nd)!=ntk_.trav_id())&&((arrivals_.get_time(fd)<arrivals_.get_time(fn)) ))//|| !ExistsPath(n,nd)))
+        {
+          uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
+          if (cost<best_cost)
+          {
+            best_cost = cost;
+            best_div = fd;
+          }
+        }
+      });
+      if ( best_div )
+      {
+        children.push_back(*best_div);
+        spfd_.update(window_.simulator.Get(*best_div) );
+      }
+      else 
+        return std::nullopt;
+    }
+  }
+
   if (spfd_.is_covered()) {
-    auto tt1 = ntk_.node_function(n, 0);
+    auto tt1 = kitty::extend_to(ntk_.node_function(n, 0), children.size());
     auto tt2 = Interpolate(children, target);
     auto fnew = ntk_.create_node(children, {tt1, tt2});
+
+    return fnew;
+  }
+  return std::nullopt;
+}
+
+template <class Ntk, typename StaticParams>
+auto AreaResynImpl<Ntk, StaticParams>::AddOutput(
+    Node n, Signature const& func, Signature const& care) -> std::optional<Signal> {
+
+  auto children = ntk_.get_children(n);
+
+  spfd_.init(func, care);
+  for (auto f : children) spfd_.update(window_.simulator.Get(f));
+
+  if(children.size() < StaticParams::kMaxInpsDual)
+  {
+    ntk_.incr_trav_id();
+    window_.manager.MarkTfoInside(n, ntk_.trav_id());
+    auto fn = ntk_.make_signal(n);
+    while ((children.size() < StaticParams::kMaxInpsDual)&&!spfd_.is_covered()) {
+      std::optional<Signal> best_div;
+      uint32_t best_cost = std::numeric_limits<uint32_t>::max();
+      window_.manager.foreach_divisor([&](auto const& fd, auto){
+        auto nd = ntk_.get_node(fd);
+        if ((ntk_.visited(nd)!=ntk_.trav_id())&&((arrivals_.get_time(fd)<arrivals_.get_time(fn)) ))
+        {
+          uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
+          if (cost<best_cost)
+          {
+            best_cost = cost;
+            best_div = fd;
+          }
+        }
+      });
+      if ( best_div )
+      {
+        children.push_back(*best_div);
+        spfd_.update(window_.simulator.Get(*best_div) );
+      }
+      else 
+        return std::nullopt;
+    }
+  }
+
+  if (spfd_.is_covered()) {
+    auto tt1 = kitty::extend_to(ntk_.node_function(n, 0), children.size());
+    auto tt2 = Interpolate(children, func, care);
+    auto fnew = ntk_.create_node(children, {tt1, tt2});
+
     return fnew;
   }
   return std::nullopt;
@@ -597,9 +768,6 @@ bool AreaResynImpl<Ntk, StaticParams>::TryMergerSolo(Node n) {
           no, [&](auto const& foi, auto) { merged_inputs.insert(foi); });
 
       if (!ExistsPath(n, no) && ((int)merged_inputs.size() < best_cost)) {
-        // if ( !ps_.preserve_times || ( std::abs(arrival_.get_time(
-        // ntk_.make_signal( n ) ) - arrival_.get_time( ntk_.make_signal( no )
-        // )) < 1 ) )
         {
           best_node = no;
           best_cost = (int)merged_inputs.size();
@@ -654,13 +822,12 @@ bool AreaResynImpl<Ntk, StaticParams>::ExistsPath(Node n1, Node n2) const {
 template <class Ntk, typename StaticParams>
 void AreaResynImpl<Ntk, StaticParams>::Merge(Node n1, Node n2) {
   if (ntk_.is_pi(n1) || ntk_.is_pi(n2)) return;
-  auto tt1 = ntk_.node_function(n1);
-  auto tt2 = ntk_.node_function(n2);
 
   std::unordered_map<uint64_t, std::pair<int, int>> map;
   std::set<Signal> inps;
-  ntk_.foreach_fanin(n1, [&](auto const& fi, auto ii) { inps.insert(fi); });
-  ntk_.foreach_fanin(n2, [&](auto const& fi, auto ii) { inps.insert(fi); });
+  ntk_.foreach_fanin(n1, [&](auto const& fi, auto ii) { inps.insert(fi);});
+  ntk_.foreach_fanin(n2, [&](auto const& fi, auto ii) { inps.insert(fi);});
+
   if (inps.size() > StaticParams::kMaxInpsDual) return;
   int i = 0;
   std::vector<Signal> children;
@@ -706,10 +873,16 @@ kitty::dynamic_truth_table AreaResynImpl<Ntk, StaticParams>::Interpolate(
       else
         mask &= ~window_.simulator.Get(children[v]);
     }
-    if (kitty::count_ones(mask & target) > kitty::count_ones(mask&~target))
+    uint32_t c1 = kitty::count_ones(mask & target);
+    uint32_t c0 = kitty::count_ones(mask&~target);
+    if (c0==0&&c1>0)
       kitty::set_bit(tt, m);
-    else
+    else if (c1==0)
       kitty::clear_bit(tt, m);
+    else
+    {
+      std::cout << "Warning: don't know how to interpolate" << std::endl;
+    }
   }
   return tt;
 }
@@ -740,6 +913,7 @@ kitty::dynamic_truth_table AreaResynImpl<Ntk, StaticParams>::Interpolate(
 
 template <class Ntk, typename StaticParams>
 bool AreaResynImpl<Ntk, StaticParams>::Try1RexubSolo(Node n) {
+  return false;
   if (window_.manager.num_mffc() <= 1) return false;
   Signature func = window_.simulator.Get(ntk_.make_signal(n));
   Signature care = ~func.construct();
@@ -775,28 +949,27 @@ bool AreaResynImpl<Ntk, StaticParams>::Try1RexubSolo(Node n) {
     });
     if (best_dupl)
     {
-      auto tt1 = ntk_.signal_function(ntk_.make_signal(*best_dupl));
-      auto tt2 = Approximate(func, care, *best_dupl);
-      auto const children = ntk_.get_children(*best_dupl);
-      auto fnew = ntk_.create_node(children, {tt1, tt2});
-      Node nnew = ntk_.get_node(fnew);
-      window_.simulator.compute(window_.manager, nnew);
-      auto cost = spfd_.evaluate(window_.simulator.Get(Signal{nnew, 1}));
-      if (cost<best_cost_asis)
+      auto fnew = AddOutput(*best_dupl, func, care);
+      if (fnew)
       {
-        added.push_back(nnew);
-        todos.push_back(std::pair{*best_dupl, Signal{nnew, 0}});
-        new_fanin.push_back(Signal{nnew, 1});
-        spfd_.update(window_.simulator.Get(Signal{nnew, 1}));
-        ntk_.set_visited(*best_dupl, ntk_.trav_id());
-      }
-      else if (best_asis)
-      {
-        if (ntk_.fanout_size(nnew)==0)
-          ntk_.take_out_node(nnew);
-
-        new_fanin.push_back(*best_asis);
-        spfd_.update(window_.simulator.Get(*best_asis));
+        Node nnew = ntk_.get_node(*fnew);
+        window_.simulator.compute(window_.manager, nnew);
+        auto cost = spfd_.evaluate(window_.simulator.Get(Signal{nnew, 1}));
+        if (cost<best_cost_asis)
+        {
+          added.push_back(nnew);
+          todos.push_back(std::pair{*best_dupl, Signal{nnew, 0}});
+          new_fanin.push_back(Signal{nnew, 1});
+          spfd_.update(window_.simulator.Get(Signal{nnew, 1}));
+          ntk_.set_visited(*best_dupl, ntk_.trav_id());
+        }
+        else if (best_asis)
+        {
+          if (ntk_.fanout_size(nnew)==0) ntk_.take_out_node(nnew);
+  
+          new_fanin.push_back(*best_asis);
+          spfd_.update(window_.simulator.Get(*best_asis));
+        }
       }
     }
     else if (best_asis)
@@ -813,7 +986,7 @@ bool AreaResynImpl<Ntk, StaticParams>::Try1RexubSolo(Node n) {
       auto fnew = ntk_.create_node( new_fanin, tt );
       window_.simulator.compute(window_.manager, fnew.index);
       if(!kitty::equal(window_.simulator.Get(ntk_.make_signal(n)), window_.simulator.Get(fnew))){
-        std::cout << "[w] signatures mismatch 1" << std::endl;
+        std::cout << "Failed cec 1 Rexub " << std::endl;
         ntk_.take_out_node(fnew.index);
         return false;
       }
@@ -872,7 +1045,7 @@ void AreaResynImpl<Ntk, StaticParams>::InferBestSignature(Signature&func, Signat
 
 template <class Ntk, typename StaticParams>
 void AreaResynImpl<Ntk, StaticParams>::OptimizeDual(Node n) {
-  if (mockturtle::call_with_stopwatch(st_.time_1resub_dual,
+  if (ps_.try_1resub_dual && mockturtle::call_with_stopwatch(st_.time_1resub_dual,
                                       [&]() { return Try1ResubDual(n); })) {
     st_.Record1ResubDual();
     return;
@@ -904,7 +1077,10 @@ bool AreaResynImpl<Ntk, StaticParams>::Try1ResubDual(Node n) {
       ntk_.substitute_node(n, new_signals);
       return true;
     }
-    ntk_.take_out_node(nnew);
+    {
+      std::cout << "Failed cec 1 Resub dual " << std::endl;
+      ntk_.take_out_node(nnew);
+    }
   }
   return false;
 }
