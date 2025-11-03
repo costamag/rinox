@@ -32,15 +32,15 @@
 
 #pragma once
 
-#include "../../../network/visualize.hpp"
-#include "../../../windowing/window_manager.hpp"
-#include "../../../windowing/window_simulator.hpp"
-#include "../../../boolean/spfd.hpp"
-#include "../../../analyzers/trackers/arrival_times_tracker.hpp"
-#include "../../profilers/area_profiler.hpp"
-#include "../../profilers/delay_profiler.hpp"
-#include "../../profilers/power_profiler.hpp"
-#include "../../profilers/profilers_utils.hpp"
+#include "../../network/visualize.hpp"
+#include "../../windowing/window_manager.hpp"
+#include "../../windowing/window_simulator.hpp"
+#include "../../boolean/spfd.hpp"
+#include "../../analyzers/trackers/arrival_times_tracker.hpp"
+#include "../profilers/area_profiler.hpp"
+#include "../profilers/delay_profiler.hpp"
+#include "../profilers/power_profiler.hpp"
+#include "../profilers/profilers_utils.hpp"
 
 #include <fmt/format.h>
 #include <kitty/dynamic_truth_table.hpp>

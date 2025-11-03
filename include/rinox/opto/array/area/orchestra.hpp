@@ -30,8 +30,8 @@
   \author Andrea Costamagna
 */
 
-#ifndef RINOX_ALGORITHMS_ARRAY_AREA_RESYN_HPP_
-#define RINOX_ALGORITHMS_ARRAY_AREA_RESYN_HPP_
+#ifndef RINOX_ALGORITHMS_ARRAY_AREA_ORCHESTRA_HPP_
+#define RINOX_ALGORITHMS_ARRAY_AREA_ORCHESTRA_HPP_
 
 #include <fmt/format.h>
 
@@ -75,7 +75,6 @@
 
 namespace rinox {
 namespace opto {
-namespace algorithms {
 namespace array {
 
 struct DefaultAreaResynStaticParams {
@@ -1101,8 +1100,7 @@ void AreaResyn(Ntk& ntk, AreaResynParams ps = {},
 }
 
 }  // namespace array
-}  // namespace algorithms
 }  // namespace opto
 }  // namespace rinox
 
-#endif  // RINOX_ALGORITHMS_ARRAY_AREA_RESYN_HPP_
+#endif  // RINOX_ALGORITHMS_ARRAY_AREA_ORCHESTRA_HPP_

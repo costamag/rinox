@@ -55,8 +55,8 @@ public:
   void init( Tt_t const& func, Tt_t const& care )
   {
     care_ = care;
-    func_[1] = boolean::binary_and( care, func );
-    func_[0] = boolean::binary_and( care, boolean::unary_not( func ) );
+    func_[1] = ( care & func );
+    func_[0] = ( care & ~func );
     masks_[0] = care;
     num_masks_ = 1;
     num_edges_ = count_edges( 0 );
@@ -100,7 +100,7 @@ public:
         masks_[num_masks_ + iMask] = boolean::binary_and( masks_[iMask], tt );
         masks_[iMask] &= boolean::unary_not( tt );
 
-        if ( is_killed( num_masks_ + iMask ) )
+        if ( is_distinguished( num_masks_ + iMask ) )
         {
           kills_[num_masks_ + iMask] = true;
           num_kills_++;
@@ -111,7 +111,7 @@ public:
           num_edges_ += count_edges( num_masks_ + iMask );
         }
 
-        if ( is_killed( iMask ) )
+        if ( is_distinguished( iMask ) )
         {
           kills_[iMask] = true;
           num_kills_++;
@@ -163,11 +163,16 @@ public:
     return num_masks_;
   }
 
+  bool is_distinguished( uint32_t i ) const
+  {
+    bool const only_onset = ( kitty::count_ones( ( masks_[i] & func_[1] ) ) == 0 );
+    bool const only_ofset = ( kitty::count_ones( ( masks_[i] & func_[0] ) ) == 0 );
+    return only_onset || only_ofset;
+  }
+
   bool is_killed( uint32_t i ) const
   {
-    bool const only_onset = ( kitty::count_ones( boolean::binary_and( masks_[i], func_[1] ) ) == 0 );
-    bool const only_ofset = ( kitty::count_ones( boolean::binary_and( masks_[i], func_[0] ) ) == 0 );
-    return only_onset || only_ofset;
+    return kills_[i];
   }
 
   template<typename Vec>
@@ -295,6 +300,11 @@ public:
     {
       boolean::test_avx2_advantage( tmp, tmp.num_vars() );
     }
+  }
+
+  spfd<Tt_t, MaxNumMasks> const& Get(int i)
+  {
+    return spfds_[i];
   }
 
   void reset()

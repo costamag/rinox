@@ -8,10 +8,10 @@
 #include <mockturtle/utils/tech_library.hpp>
 #include <mockturtle/views/depth_view.hpp>
 #include <rinox/network/network.hpp>
-#include <rinox/opto/algorithms/array/area_resyn.hpp>
+#include <rinox/opto/array/area/orchestra.hpp>
 
 struct ResynStaticParams
-    : rinox::opto::algorithms::array::DefaultAreaResynStaticParams {
+    : rinox::opto::array::DefaultAreaResynStaticParams {
   // static parameters
   static constexpr uint32_t kMaxNumOutputs = 1u;
   static constexpr uint32_t kMaxNumLeaves = 12u;
@@ -46,13 +46,13 @@ TEST_CASE( "Area resynthesis via squeezing - Array-based", "[dual_output]" )
 
   using DNtk = mockturtle::depth_view<Ntk>;
   DNtk dntk( ntk );
-  rinox::opto::algorithms::array::AreaResynParams ps;
+  rinox::opto::array::AreaResynParams ps;
   ps.stop_after_nth = std::numeric_limits<uint32_t>::max();
   ps.max_num_divisors = 128;
   ps.max_reconvergence = 10;
   ps.odc_levels = 0;
-  rinox::opto::algorithms::array::AreaResynStats rst;
-  rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
+  rinox::opto::array::AreaResynStats rst;
+  rinox::opto::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
   CHECK( ntk.area() == 1 );
 }
 
@@ -79,12 +79,12 @@ TEST_CASE( "Area resynthesis via squeezing - Array-based - case 2", "[dual_outpu
 
   using DNtk = mockturtle::depth_view<Ntk>;
   DNtk dntk( ntk );
-  rinox::opto::algorithms::array::AreaResynParams ps;
+  rinox::opto::array::AreaResynParams ps;
   ps.stop_after_nth = std::numeric_limits<uint32_t>::max();
   ps.max_num_divisors = 128;
   ps.max_reconvergence = 10;
   ps.odc_levels = 0;
-  rinox::opto::algorithms::array::AreaResynStats rst;
-  rinox::opto::algorithms::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
+  rinox::opto::array::AreaResynStats rst;
+  rinox::opto::array::AreaResyn<Ntk, ResynStaticParams>(ntk, ps, &rst);
   CHECK( ntk.area() == 2 );
 }

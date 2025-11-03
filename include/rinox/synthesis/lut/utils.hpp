@@ -75,6 +75,51 @@ std::vector<kitty::dynamic_truth_table> Interpolate( std::vector<TT const*> cons
   return res;
 }
 
+template <uint32_t N>
+inline const std::array<kitty::static_truth_table<N>, N>& ProjCache() {
+  using TTF = kitty::static_truth_table<N>;
+  static const std::array<TTF, N> cache = [] {
+    std::array<TTF, N> a{};
+    for (uint32_t i = 0; i < N; ++i)
+      kitty::create_nth_var(a[i], i);
+    return a;
+  }();
+  return cache;
+}
+
+template<uint32_t NumVarsFunction, uint32_t NumVarsSignature>
+kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>>
+Interpolate( std::vector<const kitty::static_truth_table<NumVarsSignature>* > const& tts,
+             kitty::static_truth_table<NumVarsSignature> const& onset,
+             kitty::static_truth_table<NumVarsSignature> const& careset )
+{
+  using TTS = kitty::static_truth_table<NumVarsSignature>;
+  using TTF = kitty::static_truth_table<NumVarsFunction>;
+
+  auto const& proj_funcs = ProjCache<NumVarsFunction>(); // cached once per N
+
+  TTF func;
+  TTF care;
+  TTF mask_function;
+  TTS mask_signature;
+  const uint64_t num_vars = tts.size();
+  for (uint64_t m = 0; m < (1u << num_vars); ++m) {
+    mask_function |= ~mask_function;
+    mask_signature |= ~mask_signature;
+    for (uint32_t v = 0; v < num_vars; ++v) {
+      mask_signature &= (((m >> v) & 0x1) == 0x1) ? *tts[v] : ~(*tts[v]);
+      mask_function &= (((m >> v) & 0x1) == 0x1) ? proj_funcs[v] : ~proj_funcs[v];
+    }
+    if (kitty::count_ones(careset & mask_signature) > 0)
+      care |= mask_function;
+    if (kitty::count_ones(onset & mask_signature) > 0)
+      func |= mask_function;
+  }
+  kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>> result(func, care);
+  return result;
+}
+
+
 template<typename TT, uint32_t NumVars>
 std::vector<kitty::dynamic_truth_table> Interpolate( std::vector<TT const*> const& tts, math::static_vector<kitty::ternary_truth_table<TT>, NumVars> const& target )
 {
@@ -91,8 +136,16 @@ std::vector<kitty::dynamic_truth_table> Interpolate( std::vector<TT const*> cons
       {
         tmp &= ( ( ( m>>v ) & 0x1 ) == 0x1 ) ? *tts[v] : ~( *tts[v] );
       }
-      if ( kitty::count_ones( target[i]._bits&target[i]._care&tmp ) > 0 )
+      auto const mask = target[i]._care & tmp;
+      auto const num_0s = kitty::count_ones( ~target[i]._bits & mask );
+      auto const num_1s = kitty::count_ones( target[i]._bits & mask );
+      if ( num_1s == 0 )
+        kitty::clear_bit( func, m );
+      else if ( num_0s == 0 )
         kitty::set_bit( func, m );
+      else
+        std::cout << num_1s << " " << num_0s << " both non zero" << std::endl;
+      
     }
     res.push_back(func);
   }
@@ -113,9 +166,12 @@ struct LutSynthStats {
 
 struct DefaultLutSynthParams {
   static constexpr uint32_t kNumVarsCube = 12u;
+  static constexpr uint32_t kMaxCutsSize = 8u;
   static constexpr uint32_t kMaxInpsSolo = 6u;
   static constexpr uint32_t kMaxInpsDual = 5u;
   static constexpr uint32_t kMaxNumGates = 32u;
+  static constexpr uint32_t kMaxNumOutputs = 2u;
+  static constexpr bool kExactSuppMin = true;
 };
 
 template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
@@ -153,7 +209,7 @@ class LutList {
   std::vector<Signal> GetOutputs() const { return outputs_; };
 
   template<typename Fn>
-  void ForeachGate( Fn&& ) const;
+  void ForeachGate( Fn&& );
 
   static constexpr Index GetIndex(Signal f) {
     return static_cast<Index>(f >> kOutputBits);
@@ -281,14 +337,36 @@ void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::SetSimCare(Signal s, Func c
 
 template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
 template<typename Fn>
-void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::ForeachGate(Fn && fn) const {
+void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::ForeachGate(Fn && fn) {
   for ( uint32_t index = 0u; index < nodes_.size(); ++index )
   {
-    auto const& n = nodes_[index];
+    auto & n = nodes_[index];
     if ( !IsInput( index ) )
       fn( n, index );
   }
 }
+
+template<typename StaticParams=DefaultLutSynthParams>
+struct SubProblems{
+  using Signature = kitty::static_truth_table<StaticParams::kMaxCutsSize>;
+  using Function = kitty::ternary_truth_table<Signature>;
+
+  void Insert(  std::vector<uint32_t> const& cut,
+                Function const& func )
+  {
+    cuts.push_back( cut );
+    funcs.push_back( {func} );
+  }
+
+  void clear()
+  {
+    cuts.clear();
+    funcs.clear();
+  }
+
+  math::static_vector<std::vector<uint32_t>, StaticParams::kMaxNumGates> cuts;
+  math::static_vector<math::static_vector<Function, StaticParams::kMaxNumOutputs>, StaticParams::kMaxNumGates> funcs;
+};
 
 }  // namespace lut
 }  // namespace synthesis

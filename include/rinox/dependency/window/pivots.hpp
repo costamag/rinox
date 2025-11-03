@@ -51,7 +51,7 @@ class OraclePivots{
   static constexpr uint32_t kMaxNumDivs = Manager::divs_capacity;
   static constexpr uint32_t kMaxNumOutputs = Ntk::max_num_outputs;
   using TruthTable = typename Simulator::TruthTable;
-  using Spfds = boolean::spfds_manager<TruthTable, kMaxNumMasks>;
+  using Spfds = boolean::spfd_manager<TruthTable, kMaxNumMasks>;
   using Signal = typename Ntk::signal;
   using Cut = math::static_vector<Signal, kMaxNumInputs>;
 

@@ -38,6 +38,7 @@
 #define RINOX_SYNTHESIS_LUT_SYNTH_METHOD_H_
 
 #include "shannon.hpp"
+#include "spin_dec.hpp"
 #include <cstdint>  // uint8_t
 
 namespace rinox {
@@ -46,9 +47,7 @@ namespace lut {
 
 enum class LutSynthMethod : uint8_t {
   kShannonSolo,
-  kTopDecoSolo,
-  kSpfdDecSolo,
-  kIsingDual
+  kSpinDecSolo
 };
 
 template<LutSynthMethod M, class Ntk, class Manager, class Simulator, class Params>
@@ -60,6 +59,11 @@ struct LutSynthDispatch<LutSynthMethod::kShannonSolo, Ntk, Manager, Simulator, P
   using type = ShannonDecSolo<Ntk, Manager, Simulator, Params>;
 };
 
+// Ising solo
+template<class Ntk, class Manager, class Simulator, class Params>
+struct LutSynthDispatch<LutSynthMethod::kSpinDecSolo, Ntk, Manager, Simulator, Params> {
+  using type = SpinDecSolo<Ntk, Manager, Simulator, Params>;
+};
 
 }  // namespace lut
 }  // namespace synthesis

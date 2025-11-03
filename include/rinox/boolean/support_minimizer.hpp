@@ -13,7 +13,7 @@ namespace boolean
 {
 
 // Bron–Kerbosch with pivoting for up to 64-node graphs
-template<size_t N = 64>
+template<size_t N = 16>
 class max_clique_finder
 {
 public:
@@ -24,69 +24,56 @@ public:
     n_ = num_nodes;
     for ( size_t i = 0; i < n_; ++i )
     {
-      adj_[i].reset();
+      adj_[i] = (1u << i);
     }
     for ( auto [u, v] : edges )
     {
-      adj_[u].set( v );
-      adj_[v].set( u );
+      adj_[u] |= (1u << v);
+      adj_[v] |= (1u << u);
+    }
+    for ( size_t i = 0; i < n_; ++i )
+    {
+      deg_[i] = __builtin_popcountll(adj_[i])-1;
     }
   }
 
   std::vector<size_t> find()
   {
-    best_size_ = 0;
-    best_.reset();
-    bitset R, P, X;
     for ( size_t i = 0; i < n_; ++i )
-      P.set( i );
-    expand( R, P, X );
-    std::vector<size_t> result;
+    {
+      expand( (1u << i), i+1 );
+    }
+    std::vector<size_t> res;
     for ( size_t i = 0; i < n_; ++i )
-      if ( best_.test( i ) )
-        result.push_back( i );
-    return result;
+    {
+      if ( ((best_ >> i)&0x1)>0 )
+        res.push_back(i);
+    }
+    return res;
   }
 
 private:
-  void expand( bitset R, bitset P, bitset X )
+  void expand( uint64_t C, size_t l )
   {
-    if ( P.none() && X.none() )
+    auto const clique_size = __builtin_popcountll(C);
+    if (clique_size > best_size_)
     {
-      if ( R.count() > best_size_ )
-      {
-        best_ = R;
-        best_size_ = R.count();
-      }
-      return;
+      best_size_=clique_size;
+      best_=C;
     }
-
-    size_t pivot = 0;
-    bitset union_PX = P | X;
-    for ( size_t i = 0; i < n_; ++i )
-      if ( union_PX.test( i ) )
-      {
-        pivot = i;
-        break;
-      }
-
-    bitset candidates = P & ~adj_[pivot];
-    for ( size_t i = 0; i < n_; ++i )
+    for (size_t i = l; i < n_; ++i)
     {
-      if ( !candidates.test( i ) )
-        continue;
-      R.set( i );
-      expand( R & adj_[i], P & adj_[i], X & adj_[i] );
-      R.reset( i );
-      P.reset( i );
-      X.set( i );
+      if ( clique_size == __builtin_popcountll(C & adj_[i]) )
+        expand( C |= ( 1u<< i ), i + 1 );
+      expand( C, i + 1 );
     }
   }
 
   size_t n_ = 0;
-  bitset adj_[N];
-  bitset best_;
-  size_t best_size_ = 0;
+  uint64_t adj_[N];
+  uint64_t deg_[N];
+  uint64_t best_ = 1u;
+  size_t best_size_ = 1;
 };
 
 template<uint32_t MaxNumVars, bool Exact = false>
@@ -143,20 +130,22 @@ public:
       const auto bits1 = kitty::cofactor1( tt._bits, x );
       if ( kitty::equal( bits0 & care, bits1 & care ) )
       {
+        std::cout << "Removing variable " << static_cast<uint32_t>( support[i] ) << "\n";
         trut_t bits = ( bits0 & care0 ) | ( bits1 & care1 );
         trut_t cc = care0 | care1;
         vars_.push_back( support[i] );
         func_t f;
-        f._bits = bits;
         f._care = cc;
+        f._bits = bits & cc;
         funcs_.push_back( std::move( f ) );
       }
     }
+    std::cout << "Found " << vars_.size() << " removable variables.\n";
     const size_t m = vars_.size();
     if ( !m )
       return;
 
-    max_clique_finder<64> mc;
+    max_clique_finder<MaxNumVars> mc;
     std::vector<std::pair<size_t, size_t>> edges;
 
     for ( size_t i = 0; i + 1 < m; ++i )
@@ -165,17 +154,24 @@ public:
       {
         const auto cij = funcs_[i]._care & funcs_[j]._care;
         if ( kitty::equal( funcs_[i]._bits & cij, funcs_[j]._bits & cij ) )
+        {
           edges.emplace_back( i, j );
+          std::cout << "Edge between " << static_cast<uint32_t>( vars_[i] ) << " and " << static_cast<uint32_t>( vars_[j] ) << "\n";
+        }
       }
     }
 
     mc.set_graph( m, edges );
     const auto& clique = mc.find();
+    std::cout << "Max clique size: " << clique.size() << "\n";
+    std::cout << "Funcs size: " << funcs_.size() << "\n";
+    if (funcs_.size() == 0)
+      return;
 
     trut_t acc_bits;
     trut_t acc_care;
-    acc_bits = funcs_[clique[0]]._bits;
-    acc_care = funcs_[clique[0]]._care;
+    acc_bits = clique.size() > 0 ? funcs_[clique[0]]._bits : funcs_[0]._bits;
+    acc_care = clique.size() > 0 ? funcs_[clique[0]]._care : funcs_[0]._care;
     for ( size_t idx = 1; idx < clique.size(); ++idx )
     {
       const auto& g = funcs_[clique[idx]];

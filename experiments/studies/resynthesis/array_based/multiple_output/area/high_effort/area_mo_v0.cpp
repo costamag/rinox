@@ -18,7 +18,7 @@
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
 #include <rinox/databases/mapped_database.hpp>
 #include <rinox/network/converters.hpp>
-#include <rinox/opto/algorithms/array/dual_output_resyn.hpp>
+#include <rinox/opto/array/dual_output_resyn.hpp>
 #include <rinox/windowing/window_manager.hpp>
 #include <string>
 #include <vector>

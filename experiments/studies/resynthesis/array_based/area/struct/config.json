@@ -11,8 +11,8 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["c3540"],
-      "excluded": ["hyp", "div", "log2", "square", "i2c", "mem_ctrl"]
+      "benchmarks": ["iscas"],
+      "excluded": ["hyp"]
     },
     "output":
     {
@@ -28,10 +28,10 @@
     "balancing":
     {
       "algorithm" : "balance",
-      "iterations" : 1,
+      "iterations" : 2,
       "params" :
       {
-        "minimize_levels" : false,
+        "minimize_levels" : true,
         "fast_mode" : true
       }
     }
@@ -66,12 +66,8 @@
     "stop_after_nth": 810000,
     "max_num_divisors" : 128,
     "max_reconvergence" : 3,
-    "odc_levels" : 0,
+    "odc_levels" : 3,
     "preserve_times" : true,
-    "use_required" : true,
-    "try_0resub_solo" : true,
-    "try_rewire_solo" : true,
-    "try_struct_solo" : true,
-    "try_window_solo" : true
+    "use_required" : true
   }
 }

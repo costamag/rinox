@@ -597,6 +597,7 @@ class window_manager {
   }
 
   size_t num_inputs() const { return window_.inps_.size(); }
+  size_t num_tfos() const { return window_.tfos_.size(); }
   size_t num_outputs() const { return window_.outs_.size(); }
   size_t num_mffc() const { return window_.mffc_.size(); }
   size_t num_divisors() const { return window_.divs_.size(); }

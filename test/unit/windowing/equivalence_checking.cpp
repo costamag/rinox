@@ -126,3 +126,55 @@ TEST_CASE("CEC a small window with ODCs", "[window_checking]") {
   CHECK(res);
   CHECK(*res);
 }
+
+TEST_CASE("CEC a small two-outputs window with ODCs", "[window_checking]") {
+  using Ntk =
+      rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED,
+                                    2>;
+  std::vector<mockturtle::gate> gates;
+
+  std::istringstream in(test_library);
+  auto result = lorina::read_genlib(in, mockturtle::genlib_reader(gates));
+  CHECK(result == lorina::return_code::success);
+
+  Ntk ntk(gates);
+
+  using signal = typename Ntk::signal;
+  std::vector<signal> fs;
+  /* Database construction from network */
+  fs.emplace_back(ntk.create_pi());  // 0
+  fs.emplace_back(ntk.create_pi());  // 1
+
+  fs.emplace_back(ntk.create_node({fs[0], fs[1]}, 2));  // 2
+  fs.emplace_back(ntk.create_node({fs[0], fs[1]}, 1));  // 3
+  fs.emplace_back(ntk.create_node({fs[3]}, 0));  // 4
+  fs.emplace_back(ntk.create_node({fs[2]}, 0));  // 5
+  fs.emplace_back(ntk.create_node({fs[3], fs[5]}, 2));  // 6
+  fs.emplace_back(ntk.create_node({fs[2], fs[4]}, 1));  // 7
+
+  ntk.create_po(fs[6]);
+  ntk.create_po(fs[7]);
+
+  using DNtk = mockturtle::depth_view<Ntk>;
+  rinox::windowing::window_manager_stats st;
+  DNtk dntk(ntk);
+
+  window_manager_params ps;
+  ps.odc_levels = 2;
+
+  using Manager = rinox::windowing::window_manager<DNtk>;
+  Manager window(dntk, ps, st);
+  CHECK(window.run(dntk.get_node(fs[2])));
+  rinox::windowing::window_simulator sim(dntk);
+  sim.run(window);
+
+  rinox::windowing::CECResynParams cec_ps;
+  rinox::windowing::CECResynStats cec_st;
+  rinox::windowing::CECResyn<Ntk, Manager> cec(ntk, window, cec_ps, cec_st);
+
+  fs.emplace_back(ntk.create_node({fs[0], fs[1]}, 3));  // 8
+  std::vector<signal> other{fs[8]};
+  auto res = cec.SolveSignals(other);
+  CHECK(res);
+  CHECK(*res);
+}
