@@ -202,6 +202,156 @@ public:
       }
   }
 
+  template<uint32_t kMaxNumOutputs, typename Vec, typename... Containers>
+  void Run( math::static_vector<func_t, kMaxNumOutputs>& tts, Vec& support, Containers&... extra )
+  {
+    const size_t sz = support.size();
+
+    if constexpr ( !Exact )
+    {
+      auto swap_pop_at = []( auto& v, size_t i ) { if (i+1!=v.size()) std::swap(v[i], v.back()); v.pop_back(); };
+      for ( size_t i = support.size(); i-- > 0; )
+      {
+        bool remove = true;
+        for ( size_t j = 0; j < tts.size(); ++j )
+        {
+          const auto x = static_cast<uint32_t>( support[i] );
+          const auto care0 = kitty::cofactor0( tts[j]._care, x );
+          const auto care1 = kitty::cofactor1( tts[j]._care, x );
+          const auto care = care0 & care1;
+          const auto bits0 = kitty::cofactor0( tts[j]._bits, x );
+          const auto bits1 = kitty::cofactor1( tts[j]._bits, x );
+          remove &= kitty::equal( bits0 & care, bits1 & care );
+        }
+        if ( remove )
+        {
+          for ( size_t j = 0; j < tts.size(); ++j )
+          {
+            const auto x = static_cast<uint32_t>( support[i] );
+            const auto care0 = kitty::cofactor0( tts[j]._care, x );
+            const auto care1 = kitty::cofactor1( tts[j]._care, x );
+            const auto care = care0 & care1;
+            const auto bits0 = kitty::cofactor0( tts[j]._bits, x );
+            const auto bits1 = kitty::cofactor1( tts[j]._bits, x );
+            tts[j]._bits = ( bits0 & care0 ) | ( bits1 & care1 );
+            tts[j]._care = care0 | care1;
+            swap_pop_at( support, i );
+            ( swap_pop_at( extra, i ), ... );
+          }
+        }
+      }
+      return;
+    }
+
+    std::vector<math::static_vector<func_t, kMaxNumOutputs>> funcs_vec_;
+
+    vars_.clear();
+    funcs_vec_.clear();
+    for ( size_t i = 0; i < sz; ++i )
+    {
+      bool remove = true;
+      const auto x = static_cast<uint32_t>( support[i] );
+      for ( size_t j = 0; j < tts.size(); ++j )
+      {
+        const auto care0 = kitty::cofactor0( tts[j]._care, x );
+        const auto care1 = kitty::cofactor1( tts[j]._care, x );
+        const auto care = care0 & care1;
+        const auto bits0 = kitty::cofactor0( tts[j]._bits, x );
+        const auto bits1 = kitty::cofactor1( tts[j]._bits, x );
+        remove &= kitty::equal( bits0 & care, bits1 & care );
+      }
+
+      if (remove)
+      {
+        math::static_vector<func_t, kMaxNumOutputs> new_funcs;
+        for ( size_t j = 0; j < tts.size(); ++j )
+        {
+          const auto care0 = kitty::cofactor0( tts[j]._care, x );
+          const auto care1 = kitty::cofactor1( tts[j]._care, x );
+          const auto care = care0 & care1;
+          const auto bits0 = kitty::cofactor0( tts[j]._bits, x );
+          const auto bits1 = kitty::cofactor1( tts[j]._bits, x );
+          trut_t bits = ( bits0 & care0 ) | ( bits1 & care1 );
+          trut_t cc = care0 | care1;
+          vars_.push_back( support[i] );
+          func_t f;
+          f._care = cc;
+          f._bits = bits & cc;
+          new_funcs.push_back( std::move( f ) );
+        }
+        funcs_vec_.push_back( std::move( new_funcs ) );
+      }
+    }
+    const size_t m = vars_.size();
+    if ( !m )
+      return;
+
+    max_clique_finder<MaxNumVars> mc;
+    std::vector<std::pair<size_t, size_t>> edges;
+
+    for ( size_t i = 0; i + 1 < m; ++i )
+    {
+      for ( size_t j = i + 1; j < m; ++j )
+      {
+        bool add_edge = true;
+        for ( size_t k = 0; k < tts.size(); ++k )
+        {
+          const auto cij = funcs_vec_[i][k]._care & funcs_vec_[j][k]._care;
+          add_edge &= kitty::equal( funcs_vec_[i][k]._bits & cij, funcs_vec_[j][k]._bits & cij );
+        }
+        if ( add_edge )
+        {
+          edges.emplace_back( i, j );
+        }
+      }
+    }
+
+    mc.set_graph( m, edges );
+    const auto& clique = mc.find();
+    std::cout << "Max clique size: " << clique.size() << "\n";
+    std::cout << "Funcs size: " << funcs_.size() << "\n";
+    if (funcs_.size() == 0)
+      return;
+
+    
+    for ( size_t j = 0; j < tts.size(); ++j )
+    {
+      auto & tt = tts[j];
+      trut_t acc_bits;
+      trut_t acc_care;
+      acc_bits = clique.size() > 0 ? funcs_vec_[clique[0]][j]._bits : funcs_vec_[0][j]._bits;
+      acc_care = clique.size() > 0 ? funcs_vec_[clique[0]][j]._care : funcs_vec_[0][j]._care;
+      for ( size_t idx = 1; idx < clique.size(); ++idx )
+      {
+        const auto& g = funcs_vec_[clique[idx]][j];
+        trut_t take_g = g._care & ~acc_care;
+        acc_bits = ( acc_bits & acc_care ) | ( g._bits & take_g );
+        acc_care = acc_care | g._care;
+      }
+      tt._bits = acc_bits;
+      tt._care = acc_care;
+
+    std::fill( pos_.begin(), pos_.end(), invalid_ );
+    for ( size_t i = 0; i < sz; ++i )
+      pos_[support[i]] = i;
+    in_clique_.assign( sz, 0 );
+    for ( auto v : clique )
+    {
+      const auto var = vars_[static_cast<size_t>( v )];
+      const auto p = pos_[var];
+      if ( p != invalid_ )
+        in_clique_[p] = 1;
+    }
+    auto swap_pop_at = []( auto& v, size_t i ) { if (i+1!=v.size()) std::swap(v[i], v.back()); v.pop_back(); };
+    for ( size_t i = support.size(); i-- > 0; )
+      if ( in_clique_[i] )
+      {
+        swap_pop_at( support, i );
+        ( swap_pop_at( extra, i ), ... );
+      }
+    }
+  }
+
 private:
   static constexpr size_t invalid_ = static_cast<size_t>( -1 );
   std::vector<func_t> funcs_;

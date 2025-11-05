@@ -91,7 +91,7 @@ public:
   static constexpr auto min_fanin_size = 1;
   static constexpr auto max_fanin_size = 32;
   static constexpr auto max_num_outputs = 1u << NumBitsOutputs;
-  static constexpr auto kMaxNumOutputs = max_num_outputs;
+  static constexpr auto kMaxNumOutputs = MaxNumOutputs;
   using base_type = bound_network<DesignType, MaxNumOutputs>;
   using storage = storage_t;
   using signal = signal_t;

@@ -87,36 +87,40 @@ inline const std::array<kitty::static_truth_table<N>, N>& ProjCache() {
   return cache;
 }
 
-template<uint32_t NumVarsFunction, uint32_t NumVarsSignature>
-kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>>
+template<uint32_t NumVarsFunction, uint32_t NumVarsSignature, uint32_t kMaxNumOutputs>
+math::static_vector<kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>>, kMaxNumOutputs>
 Interpolate( std::vector<const kitty::static_truth_table<NumVarsSignature>* > const& tts,
-             kitty::static_truth_table<NumVarsSignature> const& onset,
-             kitty::static_truth_table<NumVarsSignature> const& careset )
+             math::static_vector<kitty::static_truth_table<NumVarsSignature>, kMaxNumOutputs> const& onset,
+             math::static_vector<kitty::static_truth_table<NumVarsSignature>, kMaxNumOutputs> const& careset )
 {
   using TTS = kitty::static_truth_table<NumVarsSignature>;
   using TTF = kitty::static_truth_table<NumVarsFunction>;
 
   auto const& proj_funcs = ProjCache<NumVarsFunction>(); // cached once per N
+  math::static_vector<kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>>, kMaxNumOutputs> res;
 
-  TTF func;
-  TTF care;
-  TTF mask_function;
-  TTS mask_signature;
-  const uint64_t num_vars = tts.size();
-  for (uint64_t m = 0; m < (1u << num_vars); ++m) {
-    mask_function |= ~mask_function;
-    mask_signature |= ~mask_signature;
-    for (uint32_t v = 0; v < num_vars; ++v) {
-      mask_signature &= (((m >> v) & 0x1) == 0x1) ? *tts[v] : ~(*tts[v]);
-      mask_function &= (((m >> v) & 0x1) == 0x1) ? proj_funcs[v] : ~proj_funcs[v];
+  for ( uint32_t i = 0; i < onset.size(); ++i ) {
+    TTF func;
+    TTF care;
+    TTF mask_function;
+    TTS mask_signature;
+    const uint64_t num_vars = tts.size();
+    for (uint64_t m = 0; m < (1u << num_vars); ++m) {
+      mask_function |= ~mask_function;
+      mask_signature |= ~mask_signature;
+      for (uint32_t v = 0; v < num_vars; ++v) {
+        mask_signature &= (((m >> v) & 0x1) == 0x1) ? *tts[v] : ~(*tts[v]);
+        mask_function &= (((m >> v) & 0x1) == 0x1) ? proj_funcs[v] : ~proj_funcs[v];
+      }
+      if (kitty::count_ones(careset[i] & mask_signature) > 0)
+        care |= mask_function;
+      if (kitty::count_ones(onset[i] & mask_signature) > 0)
+        func |= mask_function;
     }
-    if (kitty::count_ones(careset & mask_signature) > 0)
-      care |= mask_function;
-    if (kitty::count_ones(onset & mask_signature) > 0)
-      func |= mask_function;
+    kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>> result(func, care);
+    res.push_back(result);
   }
-  kitty::ternary_truth_table<kitty::static_truth_table<NumVarsFunction>> result(func, care);
-  return result;
+  return res;
 }
 
 
@@ -199,7 +203,7 @@ class LutList {
 
   void Reset(size_t);
   Index CreateInput(Func const*, double time = 0.0);
-  Signal CreateInternal(math::static_vector<Signal, kFaninSize> const&,
+   math::static_vector<Signal, kMaxNumOuts> CreateInternal(math::static_vector<Signal, kFaninSize> const&,
                        math::static_vector<IFunc, kMaxNumOuts> const&);
   void CreateOutput(Signal);
 
@@ -254,7 +258,7 @@ typename LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::Index LutList<kFaninSiz
 template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
 auto LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::CreateInternal(
     math::static_vector<Signal, kFaninSize> const& fanins,
-    math::static_vector<IFunc, kMaxNumOuts> const& sims) -> Signal {
+    math::static_vector<IFunc, kMaxNumOuts> const& sims) -> math::static_vector<Signal, kMaxNumOuts> {
   
   num_gates_++;
   double latest = 0;
@@ -262,7 +266,10 @@ auto LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::CreateInternal(
 
   auto const index = static_cast<Index>(nodes_.size());
   nodes_.push_back(Internal{latest + 1, fanins, sims});
-  return MakeSignal(index,0);
+  math::static_vector<Signal, kMaxNumOuts> res;
+  for ( uint32_t out = 0; out < sims.size(); ++out )
+    res.push_back(MakeSignal(index, out));
+  return res;
 }
 
 template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>

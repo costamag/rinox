@@ -5,6 +5,7 @@
 
 #include <rinox/network/network.hpp>
 #include <rinox/synthesis/lut/spin_dec.hpp>
+#include <rinox/math/math.hpp>
 
 struct LutSynthParams1 : rinox::synthesis::lut::DefaultLutSynthParams {
   static constexpr uint32_t kNumVarsCube = 6u;
@@ -91,7 +92,7 @@ void simulate( Ntk & ntk, typename Ntk::signal f, std::unordered_map<uint64_t, S
 
 TEST_CASE( "Spin-based decomposition - 1 LUT", "[lut_spin_dec]" )
 {
-  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 1u>;
+  using Ntk = rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, LutSynthParams1::kMaxNumOutputs>;
   using Manager = ToyManager<Ntk>;
   using Simulator = ToySimulator<Ntk>;
   using Signature = kitty::static_truth_table<LutSynthParams1::kNumVarsCube>;
@@ -137,7 +138,11 @@ TEST_CASE( "Spin-based decomposition - 1 LUT", "[lut_spin_dec]" )
       func = func0 | func1;
       care = care0 | care1;
     }
-    auto res = synth.Run(cut, func, care);
+    rinox::math::static_vector<Signature, LutSynthParams1::kMaxNumOutputs> func_vec;
+    rinox::math::static_vector<Signature, LutSynthParams1::kMaxNumOutputs> care_vec;
+    func_vec.push_back( func );
+    care_vec.push_back( care );
+    auto res = synth.Run(cut, func_vec, care_vec);
     if (res)
     {
       simulate<Ntk, Signature>( ntk, *res, map);
