@@ -1,0 +1,81 @@
+{
+  "meta":
+  {
+    "experiment": "High-effort Area optimization with Array-based designs",
+    "author": "Andrea Costamagna",
+    "date": "09-10-2025",
+    "version": "0.0"
+  },
+  "context":
+  {
+    "input":
+    {
+      "extension": "aiger",
+      "benchmarks": ["epfl"],
+      "excluded": ["hyp"]
+    },
+    "output":
+    {
+      "extension": "verilog"
+    },
+    "technology":
+    {
+      "name" : "virtual"
+    }
+  },
+  "aig-opto":
+  {
+    "balancing":
+    {
+      "algorithm" : "balance",
+      "iterations" : 1,
+      "params" :
+      {
+        "minimize_levels" : false,
+        "fast_mode" : true
+      }
+    }
+  },
+  "lut-map":
+  {
+    "algorithm": "lut_map",
+    "map-params":
+    {
+      "cut_size" : "5u",
+      "cut_limit" : "8u",
+      "minimize_truth_table" : "true",
+      "area_oriented_mapping" : "false",
+      "required_delay" : "0u",
+      "relax_required" : "0u",
+      "recompute_cuts" : "true",
+      "area_share_rounds" : "2u",
+      "area_flow_rounds" : "1u",
+      "ela_rounds" : "2u",
+      "edge_optimization" : "true",
+      "cut_expansion" : "true",
+      "remove_dominated_cuts" : "true",
+      "collapse_mffcs" : "false",
+      "sop_balancing" : "false",
+      "esop_balancing" : "false",
+      "cost_cache_vars" : "3u",
+      "verbose" : "false"
+    }
+  },
+  "resyn":
+  {
+    "stop_after_nth": 10000000000000000,
+    "max_num_divisors" : 1024,
+    "max_reconvergence" : 3,
+    "odc_levels" : 0,
+    "cec" : true,
+    "preserve_times" : false,
+    "use_required" : false,
+    "try_0resub_solo" : true,
+    "try_1resub_solo" : true,
+    "try_2resub_solo" : true,
+    "try_1resub_dual" : true,
+    "try_1rexub_solo" : true,
+    "try_0rexub_solo" : true,
+    "try_merger_solo" : true
+  }
+}

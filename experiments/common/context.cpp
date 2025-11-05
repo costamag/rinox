@@ -58,9 +58,8 @@ void collect_excluded(input_t& input, const rapidjson::Value& v, lorina::diagnos
 std::string get_suite(std::string const& name, lorina::diagnostic_engine* diag)
 {
   static const std::set<std::string> epfl{
-    "adder","bar","div","hyp","log2","max","multiplier",
-    "sin","sqrt","square","arbiter","cavlc","ctrl","dec",
-    "i2c","int2float","mem_ctrl","priority","router","voter" };
+    "adder","arbiter","bar","cavlc","ctrl","dec","div","hyp", "i2c","int2float", "log2","max", "mem_ctrl","multiplier","priority","router",
+    "sin","sqrt","square","voter" };
 
   static const std::set<std::string> iwls{
     "ac97_ctrl","aes_core","des_area","des_perf","DMA",
@@ -229,7 +228,7 @@ technology_t parse_context_technology( const rapidjson::Value& jb, lorina::diagn
     std::string const name = jb["name"].GetString();
     std::string const file = name + tech.extension;
     tech.path = default_root() / "techlib" / file_type / file;
-    if ( !std::filesystem::exists( tech.path ) )
+    if ( !std::filesystem::exists( tech.path ) && name != "virtual" )
     {
       rinox::diagnostics::REPORT_DIAG(diag, lorina::diagnostic_level::fatal, "`{}` library not found", tech.path);
     }

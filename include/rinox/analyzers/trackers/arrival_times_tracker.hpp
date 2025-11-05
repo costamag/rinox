@@ -123,12 +123,13 @@ public:
 
     modified_event_ = ntk_.events().register_modified_event( [&]( const auto& n, auto old_children ) {
       times_.resize();
-      update_arrival_times_tfo( n );
-
-      for ( auto const& f : old_children )
-      {
-        update_arrival_times_tfo( ntk_.get_node( f ) );
-      }
+      compute_arrival_times();
+//      update_arrival_times_tfo( n );
+//
+//      for ( auto const& f : old_children )
+//      {
+//        update_arrival_times_tfo( ntk_.get_node( f ) );
+//      }
     } );
   }
 
@@ -201,13 +202,13 @@ private:
     {
       return;
     }
+    make_ready( n );
 
     ntk_.foreach_fanin( n, [&]( auto fi, auto ii ) {
       compute_arrival_times_tfi( fi );
     } );
     compute_arrival_time( n );
 
-    make_ready( n );
   }
 
   /*! \brief Efficient update of the arrival times in the TFO of a node.\

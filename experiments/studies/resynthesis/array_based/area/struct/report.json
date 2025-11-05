@@ -1,0 +1,128 @@
+[
+  {
+    "entries": [
+      {
+        "A(OPTO)": 2,
+        "A(SOTA)": 2,
+        "D(OPTO)": 1,
+        "D(SOTA)": 1,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c17",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 52,
+        "A(SOTA)": 52,
+        "D(OPTO)": 8,
+        "D(SOTA)": 8,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c432",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 58,
+        "A(SOTA)": 58,
+        "D(OPTO)": 4,
+        "D(SOTA)": 4,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c499",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 81,
+        "A(SOTA)": 81,
+        "D(OPTO)": 6,
+        "D(SOTA)": 6,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c880",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 58,
+        "A(SOTA)": 58,
+        "D(OPTO)": 4,
+        "D(SOTA)": 4,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c1355",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 63,
+        "A(SOTA)": 63,
+        "D(OPTO)": 5,
+        "D(SOTA)": 5,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c1908",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 126,
+        "A(SOTA)": 123,
+        "D(OPTO)": 5,
+        "D(SOTA)": 5,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c2670",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 236,
+        "A(SOTA)": 236,
+        "D(OPTO)": 7,
+        "D(SOTA)": 7,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c3540",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 276,
+        "A(SOTA)": 273,
+        "D(OPTO)": 6,
+        "D(SOTA)": 6,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c5315",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 521,
+        "A(SOTA)": 521,
+        "D(OPTO)": 16,
+        "D(SOTA)": 16,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c6288",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      },
+      {
+        "A(OPTO)": 384,
+        "A(SOTA)": 382,
+        "D(OPTO)": 6,
+        "D(SOTA)": 8,
+        "E(OPTO)": true,
+        "E(SOTA)": true,
+        "benchmark": "c7552",
+        "t(OPTO)": 0.0,
+        "t(SOTA)": 0.0
+      }
+    ],
+    "version": "##GITHUB##"
+  }
+]

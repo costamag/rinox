@@ -149,7 +149,7 @@ int main()
     auto static constexpr design_t = rinox::network::design_type_t::CELL_BASED;
     static constexpr uint32_t max_num_outputs = 2u;
     using Ntk = rinox::network::bound_network<design_t, max_num_outputs>;
-    Ntk ntk_opto = rinox::network::convert_mapped_to_bound( ntk_init, *gates );
+    Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::cell_view<mockturtle::block_network>, design_t, max_num_outputs>( ntk_init, *gates );
     mockturtle::depth_view dntk {ntk_opto};
 
     /* ========================================================================== */

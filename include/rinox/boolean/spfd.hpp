@@ -55,8 +55,8 @@ public:
   void init( Tt_t const& func, Tt_t const& care )
   {
     care_ = care;
-    func_[1] = boolean::binary_and( care, func );
-    func_[0] = boolean::binary_and( care, boolean::unary_not( func ) );
+    func_[1] = ( care & func );
+    func_[0] = ( care & ~func );
     masks_[0] = care;
     num_masks_ = 1;
     num_edges_ = count_edges( 0 );
@@ -65,6 +65,12 @@ public:
 
     kills_[0] = is_killed;
     num_kills_ = static_cast<uint32_t>( is_killed );
+  }
+
+  void init( Tt_t const& func )
+  {
+    Tt_t const care = ~func.construct();
+    init( func, care );
   }
 
   void reset()
@@ -94,7 +100,7 @@ public:
         masks_[num_masks_ + iMask] = boolean::binary_and( masks_[iMask], tt );
         masks_[iMask] &= boolean::unary_not( tt );
 
-        if ( is_killed( num_masks_ + iMask ) )
+        if ( is_distinguished( num_masks_ + iMask ) )
         {
           kills_[num_masks_ + iMask] = true;
           num_kills_++;
@@ -105,7 +111,7 @@ public:
           num_edges_ += count_edges( num_masks_ + iMask );
         }
 
-        if ( is_killed( iMask ) )
+        if ( is_distinguished( iMask ) )
         {
           kills_[iMask] = true;
           num_kills_++;
@@ -157,11 +163,16 @@ public:
     return num_masks_;
   }
 
+  bool is_distinguished( uint32_t i ) const
+  {
+    bool const only_onset = ( kitty::count_ones( ( masks_[i] & func_[1] ) ) == 0 );
+    bool const only_ofset = ( kitty::count_ones( ( masks_[i] & func_[0] ) ) == 0 );
+    return only_onset || only_ofset;
+  }
+
   bool is_killed( uint32_t i ) const
   {
-    bool const only_onset = ( kitty::count_ones( boolean::binary_and( masks_[i], func_[1] ) ) == 0 );
-    bool const only_ofset = ( kitty::count_ones( boolean::binary_and( masks_[i], func_[0] ) ) == 0 );
-    return only_onset || only_ofset;
+    return kills_[i];
   }
 
   template<typename Vec>
@@ -183,7 +194,6 @@ public:
     return kitty::ternary_truth_table( bits, care );
   }
 
-private:
   uint32_t count_edges( uint32_t i ) const
   {
     Tt_t const onset = boolean::binary_and( masks_[i], func_[1] );
@@ -201,7 +211,6 @@ private:
     return res;
   }
 
-private:
   std::array<Tt_t, MaxNumMasks> masks_;
   std::array<bool, MaxNumMasks> kills_;
   uint32_t num_masks_;
@@ -278,6 +287,89 @@ public:
 
 private:
   std::vector<spfd<Tt_t, MaxNumMasks>> spfds_;
+};
+
+template<typename Tt_t, uint32_t MaxNumMasks, uint32_t MaxNumOutputs = 2>
+class spfds_manager
+{
+public:
+  spfds_manager()
+  {
+    Tt_t tmp;
+    if constexpr ( math::log2_ceil( MaxNumMasks ) > 6u )
+    {
+      boolean::test_avx2_advantage( tmp, tmp.num_vars() );
+    }
+  }
+
+  spfd<Tt_t, MaxNumMasks> const& Get(int i)
+  {
+    return spfds_[i];
+  }
+
+  void reset()
+  {
+    for ( auto& spfd : spfds_ )
+      spfd.reset();
+  }
+
+  void init( std::vector<Tt_t const*> const& targets, std::vector<Tt_t const*> const& cares )
+  {
+    num_outputs_ = targets.size();
+    reset();
+    for ( int i = 0; i < num_outputs_; ++i )
+      spfds_[i].init( *targets[i], *cares[i] );
+  }
+
+  void init( std::vector<Tt_t const*> const& targets )
+  {
+    num_outputs_ = targets.size();
+    reset();
+    for ( int i = 0; i < num_outputs_; ++i )
+      spfds_[i].init( *targets[i] );
+  }
+
+  void update( Tt_t const& tt )
+  {
+    for ( auto& spfd : spfds_ )
+      spfd.update( tt );
+  }
+
+  bool is_covered()
+  {
+    for ( auto const& spfd : spfds_ )
+      if ( !spfd.is_covered() )
+        return false;
+    return true;
+  }
+
+  bool is_saturated()
+  {
+    for ( auto const& spfd : spfds_ )
+      if ( spfd.is_saturated() )
+        return true;
+    return false;
+  }
+
+  uint32_t get_num_edges() const
+  {
+    uint32_t res = 0;
+    for ( auto const& spfd : spfds_ )
+      res += spfd.get_num_edges();
+    return res;
+  }
+
+  uint32_t evaluate( Tt_t const& tt ) const
+  {
+    uint32_t res = 0;
+    for ( auto const& spfd : spfds_ )
+      res += spfd.evaluate( tt );
+    return res;
+  }
+
+private:
+  std::array<spfd<Tt_t, MaxNumMasks>, MaxNumOutputs> spfds_;
+  int num_outputs_;
 };
 
 } // namespace boolean

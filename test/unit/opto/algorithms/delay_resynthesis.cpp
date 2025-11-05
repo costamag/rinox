@@ -29,6 +29,7 @@ struct custom_delay_rewire_params : rinox::opto::algorithms::default_resynthesis
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_num_vars = 6u;
 };
 
 TEST_CASE( "Delay resynthesis via rewiring - single-output gate without don't cares", "[delay_resynthesis]" )
@@ -69,7 +70,7 @@ TEST_CASE( "Delay resynthesis via rewiring - single-output gate without don't ca
   CHECK( tracker.worst_delay() == 3 );
 
   custom_delay_rewire_params ps;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_rewire_params>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 2 );
 }
@@ -114,7 +115,7 @@ TEST_CASE( "Delay resynthesis via rewiring - single-output gate with don't cares
 
   custom_delay_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_rewire_params>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 2 );
 }
@@ -159,7 +160,7 @@ TEST_CASE( "Delay resynthesis via rewiring - multiple-output gate without don't 
   CHECK( tracker.worst_delay() == 3 );
 
   custom_delay_rewire_params ps;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_rewire_params>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 2 );
 }
@@ -207,7 +208,7 @@ TEST_CASE( "Delay resynthesis via rewiring - multiple-output gate with don't car
 
   custom_delay_rewire_params ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_rewire_params>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_rewire_params>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 3.0 );
 }
@@ -221,6 +222,7 @@ struct custom_delay_struct_params1 : rinox::opto::algorithms::default_resynthesi
   bool dynamic_database = false;
   int32_t odc_levels = 0;
   static constexpr uint32_t max_cuts_size = 6u;
+  static constexpr uint32_t max_num_vars = 6u;
 };
 
 struct custom_delay_struct_params2 : rinox::opto::algorithms::default_resynthesis_params<8u>
@@ -274,7 +276,7 @@ TEST_CASE( "Delay resynthesis via cut rewriting - single-output gate without don
   CHECK( tracker.worst_delay() == 3 );
 
   custom_delay_struct_params1 ps;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_struct_params1>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_struct_params1>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 2 );
 }
@@ -287,6 +289,7 @@ struct custom_delay_struct_params3 : rinox::opto::algorithms::default_resynthesi
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 3u;
+  static constexpr uint32_t max_num_vars = 3u;
 };
 
 TEST_CASE( "Delay resynthesis via cut rewriting - single-output gate with don't cares", "[delay_resynthesis]" )
@@ -330,7 +333,7 @@ TEST_CASE( "Delay resynthesis via cut rewriting - single-output gate with don't 
 
   custom_delay_struct_params3 ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_struct_params3>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_struct_params3>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 3 );
 }
@@ -343,6 +346,7 @@ struct custom_delay_window_params1 : rinox::opto::algorithms::default_resynthesi
   bool try_simula = false;
   bool dynamic_database = false;
   static constexpr uint32_t max_cuts_size = 3u;
+  static constexpr uint32_t max_num_vars = 3u;
 };
 
 TEST_CASE( "Delay resynthesis via window rewriting - single-output gate without don't cares", "[delay_resynthesis]" )
@@ -392,7 +396,7 @@ TEST_CASE( "Delay resynthesis via window rewriting - single-output gate without 
   CHECK( tracker.worst_delay() == 4 );
 
   custom_delay_window_params1 ps;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_window_params1>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_window_params1>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 3 );
 }
@@ -442,7 +446,7 @@ TEST_CASE( "Delay resynthesis via window rewriting - single-output gate with don
 
   custom_delay_window_params1 ps;
   ps.window_manager_ps.odc_levels = 3;
-  rinox::opto::algorithms::delay_resynthesize<DNtk, Db, custom_delay_window_params1>( dntk, db, ps );
+  rinox::opto::algorithms::delay_resynthesize<Ntk, custom_delay_window_params1>( ntk, &db, ps );
 
   CHECK( tracker.worst_delay() == 3 );
 }

@@ -315,7 +315,7 @@ private:
     cuts_.clear();
     for ( auto const& cut : cuts )
     {
-      rinox::math::static_vector<signal_t, max_cuts_size> leaves;
+      math::static_vector<signal_t, max_cuts_size> leaves;
       for ( auto const& index : cut )
       {
         leaves.push_back( window.get_divisor( index ) );

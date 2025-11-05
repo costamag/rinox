@@ -131,7 +131,7 @@ public:
   {
     bool cst = false;
     for ( auto const& id : ids )
-      cst |= ( kitty::count_ones(raw_gates_[id].function) > 0 );
+      cst |= ( kitty::count_ones( raw_gates_[id].function ) > 0 );
     return cst;
   }
 
@@ -139,7 +139,7 @@ public:
   {
     bool constant = false;
     for ( auto const& id : ids )
-      constant |= (raw_gates_[id].function.num_vars() == 0);
+      constant |= ( raw_gates_[id].function.num_vars() == 0 );
     return constant;
   }
 
@@ -346,11 +346,13 @@ public:
 
   struct gate_t : gate
   {
-    gate_t( kitty::dynamic_truth_table const& function, chain_t const& chain )
-        : gate( function ), aig_chain( chain )
+    gate_t( kitty::dynamic_truth_table const& function, chain_t const& chain, unsigned int id )
+        : gate( function ), aig_chain( chain ), id( id )
     {}
 
     chain_t aig_chain;
+    unsigned int id;
+    double area = 1.0;
   };
 
   /*! \brief Construction via specification of the simpler library.
@@ -381,7 +383,7 @@ public:
     chain_t const chain = synth.get_chain();
     auto const binding_id = static_cast<uint32_t>( gates_.size() );
     tt_to_index_[function] = binding_id;
-    gates_.emplace_back( gate_t{ function, chain } );
+    gates_.emplace_back( gate_t{ function, chain, binding_id } );
     return binding_id;
   }
 
@@ -416,6 +418,11 @@ public:
   {
     (void)id;
     return 1.0;
+  }
+
+  kitty::dynamic_truth_table const get_function( uint32_t id ) const
+  {
+    return gates_[id].function;
   }
 
   /*! \brief Getter of the augmented gate. */
@@ -471,7 +478,7 @@ public:
   {
     bool cst = false;
     for ( auto const& id : ids )
-      cst |= ( kitty::count_ones(gates_[id].function) > 0 );
+      cst |= ( kitty::count_ones( gates_[id].function ) > 0 );
     return cst;
   }
 
@@ -479,7 +486,7 @@ public:
   {
     bool constant = false;
     for ( auto const& id : ids )
-      constant |= gates_[id].function.num_vars() == 0 ;
+      constant |= gates_[id].function.num_vars() == 0;
     return constant;
   }
 

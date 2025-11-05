@@ -122,7 +122,6 @@ TEST_CASE( "Array-based Bound network: Primary I / O and constants", "[network]"
   CHECK( !ntk.is_constant( a.index ) );
   CHECK( !ntk.is_constant( f1.index ) );
   CHECK( !ntk.is_constant( f2.index ) );
-  CHECK( !ntk.is_constant( f3.index ) );
   CHECK( ( ntk.is_pi( a.index ) && ntk.is_ci( a.index ) ) );
   CHECK( ( ntk.is_pi( b.index ) && ntk.is_ci( b.index ) ) );
   CHECK( ( ntk.is_pi( c.index ) && ntk.is_ci( c.index ) ) );

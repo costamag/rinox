@@ -158,6 +158,7 @@ struct default_resynthesis_params
   static constexpr uint32_t max_cuts_size = RINOX_MAX_CUTS_SIZE;
   /*! \brief Maximum cube size exactly represented with SPFDs */
   static constexpr uint32_t max_cube_spfd = RINOX_MAX_CUBE_SPFD;
+  static constexpr uint32_t max_num_vars = 4u;
 
   /*! \brief Maximum fanout size for a node to be optimized*/
   uint32_t fanout_limit = 12u;
@@ -166,7 +167,7 @@ struct default_resynthesis_params
 namespace detail
 {
 
-template<class Ntk, typename Database, typename Profiler, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
+template<class Ntk, typename Profiler, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
 class resynthesize_impl
 {
   using node = typename Ntk::node;
@@ -177,8 +178,8 @@ class resynthesize_impl
   using cut_t = dependency::dependency_cut_t<Ntk, Params::max_cuts_size>;
   using chain_t = evaluation::chains::bound_chain<Ntk::design_t>;
   using func_t = kitty::static_truth_table<Params::max_cuts_size>;
-  using data_t = kitty::static_truth_table<Database::max_num_vars>;
-  using decomposer_t = synthesis::lut_decomposer<Params::max_cuts_size, Database::max_num_vars>;
+  using data_t = kitty::static_truth_table<Params::max_num_vars>;
+  using decomposer_t = synthesis::lut_decomposer<Params::max_cuts_size, Params::max_num_vars>;
   using window_manager_t = windowing::window_manager<Ntk, typename Params::window_manager_params>;
   using signals_t = rinox::math::static_vector<signal_t, Params::max_cuts_size>;
   using times_t = rinox::math::static_vector<double, Params::max_cuts_size>;
@@ -208,13 +209,13 @@ class resynthesize_impl
   // using simula_dependency_t = simula_dependency<Ntk, custom_simula_params>;
 
 public:
-  resynthesize_impl( Ntk& ntk, Database& database, Params ps, resynthesis_stats& st )
+  resynthesize_impl( Ntk& ntk, rinox::databases::mapped_database<Ntk, Params::max_num_vars>* database, Params ps, resynthesis_stats& st )
       : ntk_( ntk ),
         win_manager_( ntk, ps.window_manager_ps, st.window_st ),
         profiler_( ntk, win_manager_, ps.profiler_ps ),
         database_( database ),
         win_simulator_( ntk ),
-        chain_simulator_( database.get_library() ),
+        chain_simulator_( database->get_library() ),
         ps_( ps ),
         st_( st )
   {}
@@ -231,8 +232,7 @@ public:
 
     int cnt = 0;
     auto nmax = ntk_.size();
-    profiler_.foreach_gate( [&]( auto n ) -> bool
-    {
+    profiler_.foreach_gate( [&]( auto n ) -> bool {
       if ( st_.num_optims >= ps_.stop_after_nth )
         return false;
 
@@ -345,7 +345,7 @@ private:
         signals.push_back( signal );
         times.push_back( time );
         specs[lit].sim._bits = sim;
-        best_signal = std::make_optional(signal);
+        best_signal = std::make_optional( signal );
         return true;
       }
       return false;
@@ -390,15 +390,14 @@ private:
     for ( auto i : spec.inputs )
       sim_ptrs.push_back( &specs[i].sim._bits );
 
-    auto itt = dependency::extract_function<func_t, Database::max_num_vars>( sim_ptrs, specs[lit].sim._bits, specs[lit].sim._care );
+    auto itt = dependency::extract_function<func_t, Params::max_num_vars>( sim_ptrs, specs[lit].sim._bits, specs[lit].sim._care );
     // deal with the constant
     func_t const0;
     func_t const1 = ~const0;
-    if ( kitty::is_const0( itt._bits&itt._care ) )
+    if ( kitty::is_const0( itt._bits & itt._care ) )
       return std::make_tuple( ntk_.get_constant( false ), 0, const0 );
     if ( kitty::equal( itt._bits & itt._care, itt._care ) )
       return std::make_tuple( ntk_.get_constant( true ), 0, const1 );
-
 
     double best_loc_cost = std::numeric_limits<double>::max();
     std::optional<node> best_database_node;
@@ -415,7 +414,7 @@ private:
       std::transform( spec.inputs.begin(), spec.inputs.end(), loc_leaves.begin(), [&]( auto const& lit ) { return signals[lit]; } );
       std::transform( spec.inputs.begin(), spec.inputs.end(), loc_times.begin(), [&]( auto const& lit ) { return times[lit]; } );
       // Perform boolean matching
-      auto row = database_.boolean_matching( ctt, loc_times, loc_leaves, loc_sims );
+      auto row = database_->boolean_matching( ctt, loc_times, loc_leaves, loc_sims );
 
       if ( row )
       {
@@ -431,12 +430,12 @@ private:
     } );
     if ( best_database_node )
     {
-      auto nnew = database_.write( *best_database_node, ntk_, best_loc_leaves );
+      auto nnew = database_->write( *best_database_node, ntk_, best_loc_leaves );
       best_signal = ntk_.make_signal( nnew );
       signals.push_back( best_signal );
       times.push_back( profiler_.get_arrival( best_signal ) );
       chain_t loc_chain;
-      loc_chain.add_inputs( Database::max_num_vars );
+      loc_chain.add_inputs( Params::max_num_vars );
       extract( loc_chain, ntk_, best_loc_leaves, signals.back() );
       chain_simulator_( loc_chain, best_loc_sims );
       auto const sim = chain_simulator_.get_simulation( loc_chain, best_loc_sims, loc_chain.po_at( 0 ) );
@@ -453,8 +452,8 @@ private:
     node_index_t best_database_node = std::numeric_limits<node_index_t>::max();
     double best_cost = std::numeric_limits<double>::max();
 
-    database_.foreach_entry( row, [&]( auto const& entry ) {
-      auto nnew = database_.write( entry, ntk_, loc_leaves_v );
+    database_->foreach_entry( row, [&]( auto const& entry ) {
+      auto nnew = database_->write( entry, ntk_, loc_leaves_v );
       auto cost_new = profiler_.evaluate( nnew, loc_leaves_v, win_manager_.get_pivot() );
       if ( cost_new < best_cost )
       {
@@ -510,11 +509,11 @@ private:
 
 private:
   Ntk& ntk_;
-  dependency::function_enumerator<Database::max_num_vars> enumerator_;
+  dependency::function_enumerator<Params::max_num_vars> enumerator_;
   window_manager_t win_manager_;
   windowing::window_simulator<Ntk, Params::window_manager_params::max_num_leaves> win_simulator_;
   Profiler profiler_;
-  Database& database_;
+  rinox::databases::mapped_database<Ntk, Params::max_num_vars>* database_;
   decomposer_t decomposer_;
   evaluation::chain_simulator<chain_t, func_t> chain_simulator_;
   Params ps_;
@@ -523,37 +522,37 @@ private:
 
 } /* namespace detail */
 
-template<class Ntk, class Database, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
-void area_resynthesize( Ntk& ntk, Database& database, Params ps = {}, resynthesis_stats* pst = nullptr )
+template<class Ntk, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
+void area_resynthesize( Ntk& ntk, rinox::databases::mapped_database<Ntk, Params::max_num_vars>* database = nullptr, Params ps = {}, resynthesis_stats* pst = nullptr )
 {
   using WinMngr = windowing::window_manager<Ntk, typename Params::window_manager_params>;
   using Profiler = profilers::area_profiler<Ntk, WinMngr>;
   resynthesis_stats st;
-  detail::resynthesize_impl<Ntk, Database, Profiler, Params> p( ntk, database, ps, st );
+  detail::resynthesize_impl<Ntk, Profiler, Params> p( ntk, database, ps, st );
   p.run();
   if ( pst != nullptr )
     *pst = st;
 }
 
-template<class Ntk, class Database, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
-void delay_resynthesize( Ntk& ntk, Database& database, Params ps = {}, resynthesis_stats* pst = nullptr )
+template<class Ntk, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
+void delay_resynthesize( Ntk& ntk, rinox::databases::mapped_database<Ntk, Params::max_num_vars>* database = nullptr, Params ps = {}, resynthesis_stats* pst = nullptr )
 {
   using WinMngr = windowing::window_manager<Ntk, typename Params::window_manager_params>;
   using Profiler = profilers::delay_profiler<Ntk, WinMngr>;
   resynthesis_stats st;
-  detail::resynthesize_impl<Ntk, Database, Profiler, Params> p( ntk, database, ps, st );
+  detail::resynthesize_impl<Ntk, Profiler, Params> p( ntk, database, ps, st );
   p.run();
   if ( pst != nullptr )
     *pst = st;
 }
 
-template<class Ntk, class Database, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
-void power_resynthesize( Ntk& ntk, Database& database, Params ps = {}, resynthesis_stats* pst = nullptr )
+template<class Ntk, typename Params = default_resynthesis_params<RINOX_MAX_NUM_LEAVES>>
+void power_resynthesize( Ntk& ntk, rinox::databases::mapped_database<Ntk, Params::max_num_vars>* database = nullptr, Params ps = {}, resynthesis_stats* pst = nullptr )
 {
   using WinMngr = windowing::window_manager<Ntk, typename Params::window_manager_params>;
   using Profiler = profilers::power_profiler<Ntk, WinMngr, Params::window_manager_params::max_num_leaves>;
   resynthesis_stats st;
-  detail::resynthesize_impl<Ntk, Database, Profiler, Params> p( ntk, database, ps, st );
+  detail::resynthesize_impl<Ntk, Profiler, Params> p( ntk, database, ps, st );
   p.run();
   if ( pst != nullptr )
     *pst = st;

@@ -1,6 +1,6 @@
 #include "resynthesis.hpp"
-#include "../../../../include/rinox/opto/algorithms/resynthesize.hpp"
 #include "../../../../include/rinox/network/network.hpp"
+#include "../../../../include/rinox/opto/algorithms/resynthesize.hpp"
 #include "../../context.hpp"
 #include <fstream>
 #include <iostream>
@@ -15,7 +15,6 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
   }
   std::string target = "area";
 
-  
   using Ntk = rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED, 2>;
   using Db = rinox::databases::mapped_database<Ntk, 4u>;
   using Ps = rinox::opto::algorithms::default_resynthesis_params<12>;
@@ -27,7 +26,7 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
 
     if ( arg == "--target" && i + 1 < args.size() )
     {
-      target = std::string(args[++i]);
+      target = std::string( args[++i] );
     }
     else if ( arg == "--odc-levels" && i + 1 < args.size() )
     {
@@ -77,13 +76,11 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
     }
   }
 
-
   if ( !ctx.db4 )
   {
     std::cerr << "No database loaded\n";
     return;
   }
-
 
   rinox::opto::algorithms::resynthesis_stats st;
   if ( target == "area" )
@@ -91,7 +88,7 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
     if ( ctx.db4 )
     {
       rinox::opto::algorithms::resynthesis_stats st;
-      rinox::opto::algorithms::area_resynthesize<Ntk, Db, Ps>( *ctx.ntk, *ctx.db4, ps, &st );
+      rinox::opto::algorithms::area_resynthesize<Ntk, Ps>( *ctx.ntk, &( *ctx.db4 ), ps, &st );
     }
     return;
   }
@@ -100,7 +97,7 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
     if ( ctx.db4 )
     {
       rinox::opto::algorithms::resynthesis_stats st;
-      rinox::opto::algorithms::delay_resynthesize<Ntk, Db, Ps>( *ctx.ntk, *ctx.db4, ps, &st );
+      rinox::opto::algorithms::delay_resynthesize<Ntk, Ps>( *ctx.ntk, &( *ctx.db4 ), ps, &st );
     }
     return;
   }
@@ -109,7 +106,7 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
     if ( ctx.db4 )
     {
       rinox::opto::algorithms::resynthesis_stats st;
-      rinox::opto::algorithms::power_resynthesize<Ntk, Db, Ps>( *ctx.ntk, *ctx.db4, ps, &st );
+      rinox::opto::algorithms::power_resynthesize<Ntk, Ps>( *ctx.ntk, &( *ctx.db4 ), ps, &st );
     }
     return;
   }
@@ -119,10 +116,8 @@ static void cmd_resyn( CLIContext& ctx, const std::vector<std::string>& args )
   }
 }
 
-
 std::map<std::string, CommandHandler> register_resyn_commands()
 {
   return {
-      { "resyn", cmd_resyn }
-  };
+      { "resyn", cmd_resyn } };
 }

@@ -1,8 +1,8 @@
-#include "../common/baseline/mapping/tech_map.hpp"
-#include "../common/baseline/preprocessing/aig_opto.hpp"
-#include "../common/context.hpp"
-#include "../common/env.hpp"
-#include "../common/rinox/opto/algorithms/resynthesis.hpp"
+#include "../../../../../common/baseline/mapping/tech_map.hpp"
+#include "../../../../../common/baseline/preprocessing/aig_opto.hpp"
+#include "../../../../../common/context.hpp"
+#include "../../../../../common/env.hpp"
+#include "../../../../../common/rinox/opto/algorithms/resynthesis.hpp"
 #include <iostream>
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
 #include <rinox/databases/mapped_database.hpp>
@@ -35,6 +35,7 @@ struct ResynParams : rinox::opto::algorithms::default_resynthesis_params<NumLeav
   static constexpr uint32_t num_vars_sign = 12;
   static constexpr uint32_t max_cuts_size = 4u;
   static constexpr uint32_t max_cube_spfd = 10u;
+  static constexpr uint32_t max_num_vars = 4u;
 
   struct window_manager_params : rinox::windowing::default_window_manager_params
   {
@@ -62,7 +63,7 @@ int main()
   /* ========================================================================== */
   /*   Experimental setup                                                       */
   /* ========================================================================== */
-  std::string const exp_path = std::string( RINOX_EXPERIMENTS_DIR ) + "/studies/resynthesis/delay/high_effort/";
+  std::string const exp_path = std::string( RINOX_EXPERIMENTS_DIR ) + "/studies/resynthesis/cell_based/delay/high_effort/";
   std::string const config_path = exp_path + "config.json";
 
   rinox::experiments::experiment<
@@ -115,20 +116,20 @@ int main()
     /* ========================================================================== */
     auto sota = evaluate_sota( path, aig_opts, map, tech_lib );
     if ( !sota )
-    return false;
+      return false;
     auto [ntk_sota, st_sota] = *sota;
     mockturtle::write_verilog_with_cell( ntk_sota, name + ".sota.v" );
 
     /* ========================================================================== */
     /*   New algorithm evaluation                                                 */
     /* ========================================================================== */
-    Ntk ntk_opto = rinox::network::convert_mapped_to_bound( ntk_sota, *gates );
+    Ntk ntk_opto = rinox::network::convert_mapped_to_bound<mockturtle::cell_view<mockturtle::block_network>, design_t, max_num_outputs>( ntk_sota, *gates );
     mockturtle::depth_view dntk_opto{ ntk_opto };
     rinox::analyzers::trackers::arrival_times_tracker times_track( dntk_opto );
 
     rinox::opto::algorithms::resynthesis_stats rst;
 
-    rinox::opto::algorithms::delay_resynthesize( dntk_opto, db, rsy.ps, &rst );
+    rinox::opto::algorithms::delay_resynthesize( ntk_opto, &db, rsy.ps, &rst );
     rinox::io::verilog::write_verilog( ntk_opto, name + ".opto.v" );
 
     /* ========================================================================== */

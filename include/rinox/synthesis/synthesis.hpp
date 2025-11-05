@@ -1,5 +1,5 @@
-/* mockturtle: C++ logic network library
- * Copyright (C) 2018-2022  EPFL
+/* rinox: C++ logic network library
+ * Copyright (C) 2025 EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,8 +24,8 @@
  */
 
 /*!
-  \file mockturtle.hpp
-  \brief Main header file for mockturtle
+  \file synthesis.hpp
+  \brief Main header file for synthesis modules
 */
 
 #pragma once

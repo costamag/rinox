@@ -348,12 +348,12 @@ private:
     {
       return;
     }
+    make_ready( n );
 
     ntk_.foreach_fanin( n, [&]( auto const& fi, auto ii ) {
       compute_topo_sort_tfi( fi );
     } );
     auto level = compute_level( n );
-    make_ready( n );
     if ( level < tails_.size() )
     {
       nodes_[n] = { heads_[level], null, level };
@@ -416,17 +416,22 @@ private:
               nodes_[nodes_[u].prev].next = nodes_[u].next;
               nodes_[nodes_[u].next].prev = nodes_[u].prev;
             }
-            else if ( is_tail( u ) ) // but not head
+            else if ( is_tail( u )&&!is_head(u) ) // but not head
             {
               node_index_t new_tail = nodes_[u].next;
               tails_[old_level] = new_tail;
               nodes_[new_tail].prev = null;
             }
-            else
+            else if ( !is_tail( u )&& is_head(u) )
             {
               node_index_t new_head = nodes_[u].prev;
               heads_[old_level] = new_head;
               nodes_[new_head].next = null;
+            }
+            else
+            {
+              tails_.erase( tails_.begin()+old_level);
+              heads_.erase( heads_.begin()+old_level);
             }
 
             if ( new_level < heads_.size() )
@@ -452,10 +457,10 @@ private:
       old_worklist.swap( new_worklist );
       new_worklist.clear();
     }
-    if ( !progress )
-    {
-      std::cerr << "[e] Infinite loop in level times analyzer" << std::endl;
-    }
+//    if ( !progress )
+//    {
+//      std::cerr << "[e] Infinite loop in level times analyzer" << std::endl;
+//    }
   }
 
   [[nodiscard]] uint32_t compute_level( node_index_t const& n )

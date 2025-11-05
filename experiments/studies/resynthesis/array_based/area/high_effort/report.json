@@ -1,0 +1,18 @@
+[
+  {
+    "entries": [
+      {
+        "Area(opto)": 286.0,
+        "Area(sota)": 291.0,
+        "Delay(opto)": 9.0,
+        "Delay(sota)": 8.0,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "Time(opto)": 0.3505841791629791,
+        "Time(sota)": 0.0630110502243042,
+        "benchmark": "c3540"
+      }
+    ],
+    "version": "##GITHUB##"
+  }
+]
