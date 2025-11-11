@@ -210,9 +210,9 @@ class support_minimizer {
             const auto bits1 = kitty::cofactor1(tts[j]._bits, x);
             tts[j]._bits = (bits0 & care0) | (bits1 & care1);
             tts[j]._care = care0 | care1;
-            swap_pop_at(support, i);
-            (swap_pop_at(extra, i), ...);
           }
+          swap_pop_at(support, i);
+          (swap_pop_at(extra, i), ...);
         }
       }
       return;
