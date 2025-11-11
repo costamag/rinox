@@ -37,32 +37,32 @@
 #ifndef RINOX_SYNTHESIS_LUT_SYNTH_METHOD_H_
 #define RINOX_SYNTHESIS_LUT_SYNTH_METHOD_H_
 
+#include <cstdint>  // uint8_t
+
 #include "shannon.hpp"
 #include "spin_dec.hpp"
-#include <cstdint>  // uint8_t
 
 namespace rinox {
 namespace synthesis {
 namespace lut {
 
-enum class LutSynthMethod : uint8_t {
-  kShannonSolo,
-  kSpinDecSolo
-};
+enum class LutSynthMethod : uint8_t { kSpinDec };
 
-template<LutSynthMethod M, class Ntk, class Manager, class Simulator, class Params>
+template <LutSynthMethod M, class Params>
 struct LutSynthDispatch;  // primary template (no definition)
 
+#if 0
 // Shannon solo
 template<class Ntk, class Manager, class Simulator, class Params>
 struct LutSynthDispatch<LutSynthMethod::kShannonSolo, Ntk, Manager, Simulator, Params> {
   using type = ShannonDecSolo<Ntk, Manager, Simulator, Params>;
 };
+#endif
 
 // Ising solo
-template<class Ntk, class Manager, class Simulator, class Params>
-struct LutSynthDispatch<LutSynthMethod::kSpinDecSolo, Ntk, Manager, Simulator, Params> {
-  using type = SpinDecSolo<Ntk, Manager, Simulator, Params>;
+template <class Params>
+struct LutSynthDispatch<LutSynthMethod::kSpinDec, Params> {
+  using type = SpinDecomposition<Params>;
 };
 
 }  // namespace lut

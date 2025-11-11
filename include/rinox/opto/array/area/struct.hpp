@@ -45,9 +45,9 @@
 
 #include "../../../analyzers/trackers/arrival_times_tracker.hpp"
 #include "../../../boolean/spfd.hpp"
+#include "../../../synthesis/lut/synth.hpp"
 #include "../../../windowing/window_manager.hpp"
 #include "../../../windowing/window_simulator.hpp"
-#include "../../../synthesis/lut/synth.hpp"
 
 namespace rinox {
 namespace opto {
@@ -58,7 +58,7 @@ struct AreaStructStaticParams {
   static constexpr uint32_t kMaxInpsSolo = 6u;
   static constexpr uint32_t kMaxInpsDual = 5u;
   static constexpr synthesis::lut::LutSynthMethod kLutSynth =
-    synthesis::lut::LutSynthMethod::kSpinDecSolo;
+      synthesis::lut::LutSynthMethod::kSpinDec;
 };
 
 struct AreaStructDynamicParams {
@@ -76,11 +76,14 @@ struct AreaStructStats {
   uint32_t num_resyn_solo{0};
   uint32_t num_resyn_dual{0};
 
-  double GetTimeWindowConstr() const { return mockturtle::to_seconds(time_window_constr); }
-  double GetTimeWindowSimula() const { return mockturtle::to_seconds(time_window_simula); }
+  double GetTimeWindowConstr() const {
+    return mockturtle::to_seconds(time_window_constr);
+  }
+  double GetTimeWindowSimula() const {
+    return mockturtle::to_seconds(time_window_simula);
+  }
   double GetTimeTotal() const {
-      return  GetTimeWindowConstr() +
-              GetTimeWindowSimula();
+    return GetTimeWindowConstr() + GetTimeWindowSimula();
   }
 
   void RecordResynSolo() { num_resyn_solo++; }
@@ -88,8 +91,9 @@ struct AreaStructStats {
 
   uint32_t GetNumResynSolo() const { return num_resyn_solo; }
   uint32_t GetNumResynDual() const { return num_resyn_dual; }
-  uint32_t GetNumResynTotal() const { return  GetNumResynSolo() +
-                                            GetNumResynDual(); }
+  uint32_t GetNumResynTotal() const {
+    return GetNumResynSolo() + GetNumResynDual();
+  }
 
   void Report() const {
     std::cout << fmt::format("================ TIME =====================\n");
@@ -127,9 +131,12 @@ class AreaStructImpl {
   using ArrivalsTracker = analyzers::trackers::arrival_times_tracker<Ntk>;
   using Signature = kitty::static_truth_table<StaticParams::kMaxNumLeaves>;
   using WindowManager = windowing::window_manager<Ntk, WindowManagerParams>;
-  using WindowSimulator = windowing::window_simulator<Ntk, StaticParams::kMaxNumLeaves>;
+  using WindowSimulator =
+      windowing::window_simulator<Ntk, StaticParams::kMaxNumLeaves>;
   static constexpr uint32_t kMaxNumOutputs = Ntk::kMaxNumOutputs;
-  using Spfds = boolean::spfds_manager<Signature, 1u << StaticParams::kMaxInpsSolo, kMaxNumOutputs>;
+  using Spfds =
+      boolean::spfds_manager<Signature, 1u << StaticParams::kMaxInpsSolo,
+                             kMaxNumOutputs>;
 
   struct LutSynthParams : synthesis::lut::DefaultLutSynthParams {
     static constexpr uint32_t kNumVarsCube = StaticParams::kMaxNumLeaves;
@@ -139,15 +146,13 @@ class AreaStructImpl {
     static constexpr uint32_t kMaxNumGates = 32u;
   };
 
-  using Synth = synthesis::lut::LutSynthDispatch<synthesis::lut::LutSynthMethod::kSpinDecSolo, Ntk, WindowManager, WindowSimulator, LutSynthParams>;
+  using Synth =
+      synthesis::lut::LutSynthDispatch<synthesis::lut::LutSynthMethod::kSpinDec,
+                                       LutSynthParams>;
 
  public:
   AreaStructImpl(Ntk& ntk, AreaStructDynamicParams ps, AreaStructStats& st)
-      : ntk_(ntk),
-        ps_(ps),
-        st_(st),
-        arrivals_(ntk_) 
-  {
+      : ntk_(ntk), ps_(ps), st_(st), arrivals_(ntk_) {
     for (int n = 0; n <= StaticParams::kMaxInpsSolo; ++n) {
       proj_fns_.emplace_back();
       for (int i = 0; i < n; ++i) {
@@ -162,7 +167,7 @@ class AreaStructImpl {
 
  private:
   bool SkipNode(Node) const;
-  bool ResynSolo(Node, WindowManager& , WindowSimulator&);
+  bool ResynSolo(Node, WindowManager&, WindowSimulator&);
 
  private:
   Ntk& ntk_;
@@ -173,7 +178,6 @@ class AreaStructImpl {
   Synth synth_;
   ArrivalsTracker arrivals_;
   std::vector<std::vector<kitty::dynamic_truth_table>> proj_fns_;
-
 };
 
 // Implementation of Run split into steps
@@ -198,11 +202,14 @@ void AreaStructImpl<Ntk, StaticParams>::Run() {
     if (SkipNode(n)) return true;
     if (ntk_.num_outputs(n) != 1) return true;
 
-    mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { manager.run(n); });
-    mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { simulator.run(manager);});
+    mockturtle::call_with_stopwatch(st_.time_window_constr,
+                                    [&]() { manager.run(n); });
+    mockturtle::call_with_stopwatch(st_.time_window_simula,
+                                    [&]() { simulator.run(manager); });
 
-    if ( mockturtle::call_with_stopwatch(st_.time_resyn_solo, [&]() { return ResynSolo(n, manager, simulator); }))
-    {
+    if (mockturtle::call_with_stopwatch(st_.time_resyn_solo, [&]() {
+          return ResynSolo(n, manager, simulator);
+        })) {
       st_.RecordResynSolo();
     }
     return true;
@@ -211,7 +218,6 @@ void AreaStructImpl<Ntk, StaticParams>::Run() {
 
 template <class Ntk, typename StaticParams>
 void AreaStructImpl<Ntk, StaticParams>::AnalyzeStructure() {
-
   // row leaves column mffc size
   std::vector<std::vector<uint32_t>> distr;
 
@@ -236,24 +242,20 @@ void AreaStructImpl<Ntk, StaticParams>::AnalyzeStructure() {
     manager.run(n);
     simulator.run(manager);
 
-    while( distr.size() <= manager.num_inputs() )
-      distr.emplace_back();
-    while( distr[ manager.num_inputs() ].size() <= manager.num_mffc() )
-      distr[ manager.num_inputs() ].push_back(0);
-    distr[ manager.num_inputs() ][manager.num_mffc()]++;
+    while (distr.size() <= manager.num_inputs()) distr.emplace_back();
+    while (distr[manager.num_inputs()].size() <= manager.num_mffc())
+      distr[manager.num_inputs()].push_back(0);
+    distr[manager.num_inputs()][manager.num_mffc()]++;
 
     return true;
   });
 
-  for ( uint32_t i = 1; i < distr.size(); ++i )
-  {
-    for ( uint32_t j = 2; j < distr[i].size(); ++j )
-    {
+  for (uint32_t i = 1; i < distr.size(); ++i) {
+    for (uint32_t j = 2; j < distr[i].size(); ++j) {
       std::cout << "(" << i << ", " << j << "):" << distr[i][j] << " ";
     }
     std::cout << std::endl;
   }
-
 }
 
 template <class Ntk, typename StaticParams>
@@ -265,26 +267,33 @@ bool AreaStructImpl<Ntk, StaticParams>::SkipNode(Node n) const {
 }
 
 template <class Ntk, typename StaticParams>
-bool AreaStructImpl<Ntk, StaticParams>::ResynSolo(Node n, WindowManager& manager, WindowSimulator& simulator ) {
+bool AreaStructImpl<Ntk, StaticParams>::ResynSolo(Node n,
+                                                  WindowManager& manager,
+                                                  WindowSimulator& simulator) {
   uint32_t const K = manager.num_inputs();
   uint32_t const M = manager.num_mffc();
   uint32_t const T = manager.num_tfos();
   uint32_t const O = manager.num_outputs();
   static constexpr uint32_t k = StaticParams::kMaxInpsSolo;
   Signature const& care = simulator.get_careset();
-  
-  uint32_t num_dcs = (1u << StaticParams::kMaxNumLeaves)-kitty::count_ones(care);
-  std::cout << fmt::format("Processing node {} with {} inputs {} MFFC {} TFOs {} Outouts and {} DCs\n", n, K, M, T, O, num_dcs);
-  if ( (num_dcs == 0 ) && ( (K==0) || M <= 1 || (K > ( (M-1)*k - (M-2) )) )) return false;
-  
-  //bool const success = synth_.Run(manager, simulator);
-  //if(success)
+
+  uint32_t num_dcs =
+      (1u << StaticParams::kMaxNumLeaves) - kitty::count_ones(care);
+  std::cout << fmt::format(
+      "Processing node {} with {} inputs {} MFFC {} TFOs {} Outouts and {} "
+      "DCs\n",
+      n, K, M, T, O, num_dcs);
+  if ((num_dcs == 0) && ((K == 0) || M <= 1 || (K > ((M - 1) * k - (M - 2)))))
+    return false;
+
+  // bool const success = synth_.Run(manager, simulator);
+  // if(success)
   //{
-  //  auto const& sub_problems = synth_.GetSubproblems();
-  //  auto const fnew = Insert(sub_problems);
-  //  ntk_.substitute_node(n, *fnew);
-  //  return true;
-  //}
+  //   auto const& sub_problems = synth_.GetSubproblems();
+  //   auto const fnew = Insert(sub_problems);
+  //   ntk_.substitute_node(n, *fnew);
+  //   return true;
+  // }
   return false;
 }
 
@@ -293,7 +302,7 @@ bool AreaStructImpl<Ntk, StaticParams>::ResynSolo(Node n, WindowManager& manager
 // Public API
 template <class Ntk, typename StaticParams = AreaStructStaticParams>
 void AreaStruct(Ntk& ntk, AreaStructDynamicParams ps = {},
-               AreaStructStats* pst = nullptr) {
+                AreaStructStats* pst = nullptr) {
   AreaStructStats st;
   detail::AreaStructImpl<Ntk, StaticParams> p(ntk, ps, st);
   p.Run();
