@@ -38,6 +38,21 @@ TEST_CASE("Spin-based decomposition - 1 single-output LUT", "[lut_spin_dec]") {
   func._bits = xs[0] & xs[1] & xs[2] & xs[4];
   bool res = synth.Run(func);
   CHECK(res);
+
+  using Ntk =
+      rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED,
+                                    1>;
+  Ntk ntk;
+  std::vector<typename Ntk::signal> pis;
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  auto const sigs = synth.Insert(ntk, pis);
+  for (auto const s : sigs) {
+    std::cout << s << std::endl;
+  }
 }
 
 TEST_CASE("Spin-based decomposition - 1 dual-output LUT", "[lut_spin_dec]") {

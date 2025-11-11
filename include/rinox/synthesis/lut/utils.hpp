@@ -228,6 +228,10 @@ class LutList {
   void SetSimCare(Signal, Func const&);
   std::vector<Signal> GetOutputs() const { return outputs_; };
 
+  template <typename Ntk>
+  std::vector<typename Ntk::signal> Insert(
+      Ntk& ntk, std::vector<typename Ntk::signal> const&);
+
   template <typename Fn>
   void ForeachGate(Fn&&);
 
@@ -281,7 +285,8 @@ void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::RemoveGates() {
   num_gates_ = 0;
   outputs_.clear();
   for (int i = nodes_.size() - 1; i >= 0; --i) {
-    if (!IsInput(i) && !IsConst(i)) nodes_.erase(nodes_.begin() + i);
+    if (std::is_same_v<std::decay_t<decltype(nodes_[i])>, Internal>)
+      nodes_.erase(nodes_.begin() + i);
   }
 }
 
@@ -351,8 +356,11 @@ LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::GetSimBits(Signal s) const {
       [&](auto const& n) -> Func const& {
         if constexpr (std::is_same_v<std::decay_t<decltype(n)>, Input>) {
           return *n.sim_;  // PI: external sim
-        } else {
+        } else if constexpr (std::is_same_v<std::decay_t<decltype(n)>,
+                                            Internal>) {
           return n.sims_[out]._bits;  // Internal: owned sim
+        } else {
+          throw std::runtime_error("[e] Trying to access const simulation");
         }
       },
       nodes_[idx]);
@@ -395,8 +403,58 @@ template <typename Fn>
 void LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::ForeachGate(Fn&& fn) {
   for (uint32_t index = 0u; index < nodes_.size(); ++index) {
     auto& n = nodes_[index];
-    if (!IsInput(index)) fn(n, index);
+    fn(n, index);
   }
+}
+
+template <uint32_t kFaninSize, uint32_t kMaxNumOuts, uint32_t kNumVarsCube>
+template <typename Ntk>
+std::vector<typename Ntk::signal>
+LutList<kFaninSize, kMaxNumOuts, kNumVarsCube>::Insert(
+    Ntk& ntk, std::vector<typename Ntk::signal> const& cut) {
+  std::vector<typename Ntk::signal> res;
+  std::unordered_map<Signal, typename Ntk::signal> index_to_signal;
+  for (int i = 0; i < cut.size(); ++i) {
+    index_to_signal[MakeSignal(i + 1, 0)] = cut[i];
+  }
+
+  ForeachGate([&](LutNode& v, std::size_t i) {
+    if (auto* p = std::get_if<Internal>(&v)) {
+      auto& n = *p;
+
+      std::vector<typename Ntk::signal> fanins;
+      fanins.reserve(n.fanins_.size());
+
+      std::vector<Func const*> sims_ptrs;
+      sims_ptrs.reserve(n.fanins_.size());
+
+      for (auto f : n.fanins_) {
+        fanins.push_back(index_to_signal.at(f));
+        sims_ptrs.push_back(&GetSimBits(f));
+      }
+
+      const auto tts = Interpolate<Func, kMaxNumOuts>(sims_ptrs, n.sims_);
+      const auto new_signals = ntk.create_node(fanins, tts);
+
+      for (std::size_t out = 0; out < tts.size(); ++out) {
+        index_to_signal[MakeSignal(i, out)] =
+            typename Ntk::signal{new_signals.index, static_cast<unsigned>(out)};
+      }
+
+      auto const sims = ntk.compute(new_signals.index, sims_ptrs);
+      for (int i = 0; i < sims.size(); ++i) {
+        n.sims_[i]._bits = sims[i];
+        n.sims_[i]._care |= ~n.sims_[i]._care;
+      }
+    }
+  });
+
+  for (auto const s : outputs_) {
+    assert(index_to_signal.find(s) != index_to_signal.end() &&
+           "output signal not found");
+    res.push_back(index_to_signal.at(s));
+  }
+  return res;
 }
 
 template <typename StaticParams = DefaultLutSynthParams>

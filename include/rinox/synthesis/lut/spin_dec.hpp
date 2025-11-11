@@ -80,6 +80,11 @@ class SpinDecomposition {
   bool Run(Reminder const&);
   std::optional<ListSignals> RunRecursion(Reminder const&,
                                           std::vector<ListSignal>&);
+  template <typename Ntk>
+  std::vector<typename Ntk::signal> Insert(
+      Ntk& ntk, std::vector<typename Ntk::signal> const& cut) {
+    return list_.template Insert<Ntk>(ntk, cut);
+  }
 
  private:
   List list_;
