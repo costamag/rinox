@@ -6,7 +6,7 @@
 #include <rinox/synthesis/lut/spin_dec.hpp>
 
 struct LutSynthParams1 : rinox::synthesis::lut::DefaultLutSynthParams {
-  static constexpr uint32_t kMaxCutsSize = 5u;
+  static constexpr uint32_t kMaxCutsSize = 6u;
   static constexpr uint32_t kMaxInpsSolo = 4u;
   static constexpr uint32_t kMaxInpsDual = 3u;
   static constexpr uint32_t kMaxNumOutputs = 1u;
@@ -15,7 +15,7 @@ struct LutSynthParams1 : rinox::synthesis::lut::DefaultLutSynthParams {
 };
 
 struct LutSynthParams2 : rinox::synthesis::lut::DefaultLutSynthParams {
-  static constexpr uint32_t kMaxCutsSize = 5u;
+  static constexpr uint32_t kMaxCutsSize = 6u;
   static constexpr uint32_t kMaxInpsSolo = 4u;
   static constexpr uint32_t kMaxInpsDual = 3u;
   static constexpr uint32_t kMaxNumOutputs = 2u;
@@ -119,4 +119,43 @@ TEST_CASE("Spin-based decomposition - 1 dual-output LUT", "[lut_spin_dec]") {
   SimulateNtk<Ntk, CSFunc>(ntk, sim_map, ntk.get_node(sigs[0]));
   CHECK(kitty::equal(sim_map.at(sigs[0].data), func1._bits));
   CHECK(kitty::equal(sim_map.at(sigs[1].data), func2._bits));
+}
+
+TEST_CASE("Spin-based decomposition - 2 single-output LUT", "[lut_spin_dec]") {
+  rinox::synthesis::lut::SpinDecomposition<LutSynthParams1> synth;
+  using CSFunc = kitty::static_truth_table<LutSynthParams1::kMaxCutsSize>;
+  using ISFunc = kitty::ternary_truth_table<CSFunc>;
+  CSFunc csfunc;
+  std::array<CSFunc, LutSynthParams1::kMaxCutsSize> xs;
+  for (int i = 0; i < LutSynthParams1::kMaxCutsSize; ++i) {
+    kitty::create_nth_var(xs[i], i);
+  }
+  ISFunc func;
+  // f = x0 & x1 & x2
+  func._care = xs[0] | ~xs[0];
+  auto const tt2 = (xs[2] ^ xs[3]) | (xs[4] & xs[5]);
+  func._bits = tt2 | xs[0] | xs[1] ^ xs[2];
+  bool res = synth.Run(func);
+  CHECK(res);
+
+  using Ntk =
+      rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED,
+                                    1>;
+  Ntk ntk;
+  std::vector<typename Ntk::signal> pis;
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  pis.push_back(ntk.create_pi());
+  auto const sigs = synth.Insert(ntk, pis);
+
+  std::unordered_map<uint64_t, CSFunc> sim_map;
+  ntk.foreach_pi([&](auto const& pi, auto i) {
+    sim_map[ntk.make_signal(pi).data] = xs[i];
+  });
+  SimulateNtk<Ntk, CSFunc>(ntk, sim_map, ntk.get_node(sigs[0]));
+  CHECK(kitty::equal(sim_map.at(sigs[0].data), func._bits));
+  CHECK(ntk.num_gates() == 2u);
 }
