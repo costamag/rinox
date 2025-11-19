@@ -1,0 +1,24 @@
+[
+  {
+    "entries": [
+      {
+        "D(65LUT)|opto": 159,
+        "D(65LUT)|sota": 30,
+        "EQ(opto)": true,
+        "EQ(sota)": true,
+        "benchmark": "mem_ctrl",
+        "dA|opto": 31.829403251894107,
+        "dA|sota": 19.34,
+        "fDUAL|opto": 27.772227772227772,
+        "fDUAL|sota": 27.91,
+        "t|opto": 48.30283737182617,
+        "t|sota": 59.880001068115234,
+        "|65LUT|opto": 8008,
+        "|65LUT|sota": 9475,
+        "|6LUT*|abc": 11747,
+        "|6LUT|abc": 11743
+      }
+    ],
+    "version": "##GITHUB##"
+  }
+]

@@ -99,6 +99,7 @@ class SpinDecomposition {
   }
 
   Reminder ExtractSimplest();
+  Reminder ExtractSimplest2();
 
  private:
   List list_;
@@ -170,6 +171,8 @@ auto SpinDecomposition<Params>::RunRecursion(Reminder const& reminder,
         }
         return list_.CreateInternal(supp_top, reminder);
       }
+    } else {
+      std::cout << "not simpler than" << std::endl;
     }
   }
 
@@ -210,6 +213,39 @@ auto SpinDecomposition<Params>::ChooseVars(
 
 template <typename Params>
 auto SpinDecomposition<Params>::ExtractSimplest() -> Reminder {
+  Reminder res;
+  for (int i = 0; i < Params::kMaxNumOutputs; ++i) {
+    spins_.clear();
+    auto const& spfd = spfds_.Get(i);
+
+    CSFunction care;
+    for (uint32_t m = 0; m < spfd.get_num_masks(); ++m) {
+      if (!spfd.is_killed(m)) care |= spfd.masks_[m];
+    }
+
+    for (uint32_t m = 0; m < spfd.get_num_masks(); ++m) {
+      if (!spfd.is_killed(m)) {
+        auto const info =
+            smoother_.RunLabelPropagation(spfd.func_[1], spfd.masks_[m]);
+        spins_.AddSpin(info & care, care, m);
+      }
+    }
+    spins_.MinimizeEnergy();
+    ISFunction func;
+    spins_.ForeachSpin([&](auto const& spin) {
+      if (spin.value > 0)
+        func._bits |= spfd.masks_[spin.name] & spfd.func_[1];
+      else
+        func._bits |= spfd.masks_[spin.name] & spfd.func_[0];
+    });
+    func._care = care;
+    res.push_back(func);
+  }
+  return res;
+}
+
+template <typename Params>
+auto SpinDecomposition<Params>::ExtractSimplest2() -> Reminder {
   Reminder res;
   for (int i = 0; i < Params::kMaxNumOutputs; ++i) {
     spins_.clear();

@@ -60,7 +60,7 @@ class SpinSystem {
       int Jn = kitty::count_ones(care & info ^ spins_[i].info);
       J[n][i] = (Jp - Jn) / 2;
       J[i][n] = J[n][i];
-      std::cout << "J[" << n << "][" << i << "]=" << J[n][i] << std::endl;
+      // std::cout << "J[" << n << "][" << i << "]=" << J[n][i] << std::endl;
     }
 
     Spin s{name, info, care, 0};
@@ -79,14 +79,15 @@ class SpinSystem {
   }
 
   bool GaugeTest() {
-    std::cout << "E[0]=" << ComputeEnergy() << std::endl;
+    // std::cout << "E[0]=" << ComputeEnergy() << std::endl;
     spins_[0].value = 1;
     for (int i = 1; i < spins_.size(); ++i) {
       spins_[i].value = (J[0][i] >= 0) ? 1 : -1;
-      std::cout << "Spin " << i << " set to " << spins_[i].value << std::endl;
+      //  std::cout << "Spin " << i << " set to " << spins_[i].value <<
+      //  std::endl;
     }
 
-    std::cout << "E[T]=" << ComputeEnergy() << std::endl;
+    // std::cout << "E[T]=" << ComputeEnergy() << std::endl;
 
     for (int i = 0; i < spins_.size() - 1; ++i) {
       for (int j = i + 1; j < spins_.size(); ++j) {
@@ -101,7 +102,7 @@ class SpinSystem {
 
   void MinimizeEnergy() {
     bool const trivial = GaugeTest();
-    if (trivial) std::cout << "Trivial system detected" << std::endl;
+    // if (trivial) std::cout << "Trivial system detected" << std::endl;
   }
 
   template <typename Fn>

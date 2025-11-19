@@ -85,8 +85,6 @@ struct DefaultAreaResynStaticParams {
   static constexpr uint32_t kMaxCubeSpfd = RINOX_MAX_CUBE_SPFD;
   static constexpr uint32_t kMaxInpsDual = 5u;
   static constexpr uint32_t kMaxInpsSolo = 6u;
-  static constexpr synthesis::lut::LutSynthMethod kLutSynth =
-      synthesis::lut::LutSynthMethod::kShannonSolo;
   static constexpr dependency::window::Oracles kSpfdMeth =
       dependency::window::Oracles::kPivs;
 };
@@ -97,13 +95,13 @@ struct AreaResynParams {
   uint32_t max_reconvergence = 10;
   int32_t odc_levels = 0;
   bool cec = false;
-  bool try_0resub_solo = false;
-  bool try_1resub_solo = false;
-  bool try_2resub_solo = false;
-  bool try_1resub_dual = false;
-  bool try_1rexub_solo = false;
-  bool try_0rexub_solo = false;
-  bool try_merger_solo = false;
+  bool try_0resub_solo = true;
+  bool try_1resub_solo = true;
+  bool try_2resub_solo = true;
+  bool try_1resub_dual = true;
+  bool try_1rexub_solo = true;
+  bool try_0rexub_solo = true;
+  bool try_merger_solo = true;
 };
 
 struct AreaResynStats {
@@ -124,7 +122,6 @@ struct AreaResynStats {
   uint32_t num_1rexub_solo{0};
   uint32_t num_0rexub_solo{0};
   uint32_t num_merger_solo{0};
-  synthesis::lut::LutSynthStats st_synth;
 
   double GetTimeWindowConstr() const {
     return mockturtle::to_seconds(time_window_constr);
@@ -231,17 +228,7 @@ struct AreaResynStats {
 
     std::cout << fmt::format("    count total                   = {:5d}\n",
                              GetNumOptos());
-    st_synth.Report();
   }
-};
-
-template <typename Ntk>
-struct ReturnOptoData {
-  using Node = typename Ntk::node;
-  using Signal = typename Ntk::signal;
-
-  Node old_node;
-  Signal new_signal;
 };
 
 namespace detail {
@@ -283,18 +270,6 @@ class AreaResynImpl {
     Node root{};
   };
 
-  struct LutSynthParams : synthesis::lut::DefaultLutSynthParams {
-    static constexpr uint32_t kNumVarsCube = StaticParams::kMaxNumLeaves;
-    static constexpr uint32_t kMaxInpsSolo = StaticParams::kMaxInpsSolo;
-    static constexpr uint32_t kMaxInpsDual = StaticParams::kMaxInpsDual;
-    static constexpr uint32_t kMaxNumGates = 32u;
-  };
-
-  using LutSynth =
-      typename synthesis::lut::LutSynthDispatch<StaticParams::kLutSynth, Ntk,
-                                                WindowManager, WindowSimulator,
-                                                LutSynthParams>::type;
-
   using SpfdMeth = typename dependency::window::OracleDispatch<
       StaticParams::kSpfdMeth, Ntk, WindowManager, WindowSimulator,
       StaticParams::kMaxCutsSize>::type;
@@ -309,7 +284,6 @@ class AreaResynImpl {
         window_{WindowManager(ntk_, wm_params_, wm_stats_),
                 WindowSimulator(ntk_),
                 SimulaManager(ntk_, sm_params_, sm_stats_)},
-        synth_(ntk, window_.manager, window_.simulator, st_.st_synth),
         spfds_(ntk, window_.manager, window_.simulator),
         arrivals_(ntk_) {
     for (int n = 0; n <= StaticParams::kMaxInpsSolo; ++n) {
@@ -362,7 +336,6 @@ class AreaResynImpl {
   windowing::window_manager_stats wm_stats_;
   windowing::SimulaManagerStats sm_stats_;
   SharedOptoWindow window_;
-  LutSynth synth_;
   SpfdMeth spfds_;
   Spfds spfd_;
 
@@ -413,6 +386,7 @@ void AreaResynImpl<Ntk, StaticParams>::Run() {
 
     mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { window_.manager.run(n); });
     mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { window_.simulator.run(window_.manager);});
+    if(!window_.manager.is_valid()) return true;
 
     OptimizeSolo(n);
     return true;
@@ -427,6 +401,7 @@ void AreaResynImpl<Ntk, StaticParams>::Run() {
 
     mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { window_.manager.run(n); });
     mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { window_.simulator.run(window_.manager);});
+    if(!window_.manager.is_valid()) return true;
 
     OptimizeDual(n);
     return true;
@@ -478,22 +453,18 @@ void AreaResynImpl<Ntk, StaticParams>::OptimizeSolo(Node n) {
 
 template <class Ntk, typename StaticParams>
 bool AreaResynImpl<Ntk, StaticParams>::Try0ResubSolo(Node n) {
-  std::optional<std::pair<Signal, bool>> resub;
+  std::optional<Signal> resub;
+  auto tA = std::numeric_limits<double>::max();
   auto const& onset = window_.simulator.Get(ntk_.make_signal(n));
-  auto const& offset = ~onset;
   window_.manager.foreach_divisor([&](auto const& f, auto) {
     auto const& divisor = window_.simulator.Get(f);
-    if (kitty::equal(onset, divisor)) {
-      if (!resub || resub->second) resub = std::pair{f, false};
-    } else if (!resub && (ntk_.fanin_size(f.index) > 1) &&
-               kitty::equal(offset, divisor))
-      resub = std::pair{f, true};
+    if (kitty::equal(onset, divisor) && arrivals_.get_time(f) < tA) {
+      resub = f;
+      tA = arrivals_.get_time(f); 
+    }
   });
   if (resub) {
-    if (resub->second)
-      ntk_.substitute_node(n, ntk_.create_not(resub->first));
-    else
-      ntk_.substitute_node(n, resub->first);
+      ntk_.substitute_node(n, *resub);
     return true;
   }
   return false;
@@ -1095,6 +1066,7 @@ void AreaResyn(Ntk& ntk, AreaResynParams ps = {},
   detail::AreaResynImpl<Ntk, StaticParams> p(ntk, ps, st);
   p.ReportNtkState();
   p.Run();
+  st.Report();
   p.ReportNtkState();
   if (pst) *pst = st;
 }

@@ -200,6 +200,11 @@ class spfd_manager {
     for (Tt_t const* ptt : targets) spfds_.emplace_back(*ptt, care);
   }
 
+  void init(std::vector<Tt_t const*> const& targets) {
+    Tt_t care = *targets[0] | ~*targets[0];
+    init(targets, care);
+  }
+
   void update(Tt_t const& tt) {
     for (auto& spfd : spfds_) spfd.update(tt);
   }

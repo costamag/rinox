@@ -18,7 +18,7 @@
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
 #include <rinox/databases/mapped_database.hpp>
 #include <rinox/network/converters.hpp>
-#include <rinox/opto/algorithms/array/area_resyn.hpp>
+#include <rinox/opto/array/orchestrate/array_orchestrate_area.hpp>
 #include <rinox/windowing/window_manager.hpp>
 #include <rinox/synthesis/lut/synth.hpp>
 #include <rinox/dependency/window/oracles.hpp>
@@ -32,7 +32,7 @@
 #include "../../../../../../common/rinox/opto/algorithms/array/area_resyn.hpp"
 
 struct StaticParams
-    : rinox::opto::algorithms::array::DefaultAreaResynStaticParams {
+    : rinox::opto::array::DefaultAreaResynStaticParams {
   static constexpr uint32_t kMaxNumLeavesXL = 20u;
   static constexpr uint32_t kMaxNumLeaves = 12;
   static constexpr uint32_t kNumVarsSign = RINOX_NUM_VARS_SIGN;
@@ -41,7 +41,7 @@ struct StaticParams
   static constexpr uint32_t kMaxInpsDual = 5u;
   static constexpr uint32_t kMaxInpsSolo = 6u;
   static constexpr rinox::synthesis::lut::LutSynthMethod kLutSynth =
-      rinox::synthesis::lut::LutSynthMethod::kShannonSolo;
+      rinox::synthesis::lut::LutSynthMethod::kSpinDec;
   static constexpr rinox::dependency::window::Oracles kSpfdMeth =
       rinox::dependency::window::Oracles::kPivs;
 };
@@ -98,7 +98,7 @@ int main() {
   auto ctx = rinox::experiments::load_context(*doc, &diag);
   auto const aig_opts = rinox::experiments::parse_aig_opto(*doc, &diag);
   auto map = rinox::experiments::load_lut_map_params(*doc, &diag);
-  using DynamicParams = rinox::opto::algorithms::array::AreaResynParams;
+  using DynamicParams = rinox::opto::array::AreaResynParams;
   auto rsy =
       rinox::experiments::array::load_area_resyn_params<DynamicParams>(*doc, &diag);
 
@@ -209,7 +209,7 @@ int main() {
         RecordFaninsDistrib(ntk, distr_bef);
         std::cout << "recorded pre " << std::endl;
 
-        rinox::opto::algorithms::array::AreaResynStats rst;
+        rinox::opto::array::AreaResynStats rst;
         std::cout << "optimizing " << std::endl;
 
         int size_before;
@@ -217,20 +217,20 @@ int main() {
         do
         {
           size_before = size_after;
-          rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+          rinox::opto::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
           rst.Report();
           size_after = (int)ntk.area();
         } while (size_after<size_before);
         
 
 
-        //rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+        //rinox::opto::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
         //rst.Report();
 
-        //rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+        //rinox::opto::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
         //rst.Report();
 
-        //rinox::opto::algorithms::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
+        //rinox::opto::array::AreaResyn<Ntk, StaticParams>(ntk, rsy.ps, &rst);
         //rst.Report();
         RecordFaninsDistrib(ntk, distr_aft);
         rTimeOpto = rst.GetTimeTotal();

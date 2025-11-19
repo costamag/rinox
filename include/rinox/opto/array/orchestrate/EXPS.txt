@@ -1,0 +1,3682 @@
+ONLY MERGING
+
+[i] Processing benchmark `adder`
+mapping 
+#kLUT5 = 257
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 74 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 74 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+257
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 64 
+|FIs|: 6 74 0 
+
+dArea   | sota: 30.35 opto: 34.6304
+#Levels | base: 51 sota: 51 opto: 73
+EQUIVALENT
+[i] Processing benchmark `bar`
+mapping 
+#kLUT5 = 512
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 202 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 458 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+512
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 128 
+|FIs|: 6 458 0 
+
+dArea   | sota: 12.5 opto: 12.5
+#Levels | base: 4 sota: 4 opto: 4
+EQUIVALENT
+[i] Processing benchmark `div`
+mapping 
+#kLUT5 = 9931
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2074 0 
+|FIs|: 3 961 0 
+|FIs|: 4 3019 0 
+|FIs|: 5 1560 0 
+|FIs|: 6 3086 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.53
+    time window simulation         =  0.19
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.73
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+9931
+|FIs|: 1 0 0 
+|FIs|: 2 31 9 
+|FIs|: 3 3 36 
+|FIs|: 4 859 536 
+|FIs|: 5 703 2428 
+|FIs|: 6 3086 0 
+
+dArea   | sota: 26.7 opto: 28.7584
+#Levels | base: 856 sota: 866 opto: 1686
+EQUIVALENT
+[i] Processing benchmark `log2`
+mapping 
+#kLUT5 = 8077
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2941 0 
+|FIs|: 3 1969 0 
+|FIs|: 4 4909 0 
+|FIs|: 5 3008 0 
+|FIs|: 6 5950 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.59
+    time window simulation         =  0.73
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  1.32
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+8077
+|FIs|: 1 0 0 
+|FIs|: 2 31 9 
+|FIs|: 3 68 80 
+|FIs|: 4 1354 725 
+|FIs|: 5 1576 4085 
+|FIs|: 6 5950 0 
+
+dArea   | sota: 19.82 opto: 23.3998
+#Levels | base: 71 sota: 76 opto: 308
+EQUIVALENT
+[i] Processing benchmark `max`
+mapping 
+#kLUT5 = 793
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2981 0 
+|FIs|: 3 2227 0 
+|FIs|: 4 5026 0 
+|FIs|: 5 3232 0 
+|FIs|: 6 6104 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+793
+|FIs|: 1 0 0 
+|FIs|: 2 32 10 
+|FIs|: 3 68 80 
+|FIs|: 4 1396 744 
+|FIs|: 5 1794 4254 
+|FIs|: 6 6104 0 
+
+dArea   | sota: 21.82 opto: 23.8335
+#Levels | base: 39 sota: 39 opto: 39
+EQUIVALENT
+[i] Processing benchmark `multiplier`
+mapping 
+#kLUT5 = 5922
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3274 0 
+|FIs|: 3 3341 0 
+|FIs|: 4 6707 0 
+|FIs|: 5 3731 0 
+|FIs|: 6 8439 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.15
+    time window simulation         =  0.08
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.23
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+5922
+|FIs|: 1 0 0 
+|FIs|: 2 32 10 
+|FIs|: 3 126 210 
+|FIs|: 4 1673 947 
+|FIs|: 5 1878 5505 
+|FIs|: 6 8439 0 
+
+dArea   | sota: 26.98 opto: 26.7477
+#Levels | base: 53 sota: 54 opto: 190
+EQUIVALENT
+[i] Processing benchmark `sin`
+mapping 
+#kLUT5 = 1476
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3425 0 
+|FIs|: 3 3554 0 
+|FIs|: 4 6986 0 
+|FIs|: 5 4038 0 
+|FIs|: 6 8965 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.12
+    time window simulation         =  0.10
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.22
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+1477
+|FIs|: 1 0 0 
+|FIs|: 2 32 10 
+|FIs|: 3 148 225 
+|FIs|: 4 1770 992 
+|FIs|: 5 2072 5765 
+|FIs|: 6 8963 0 
+
+dArea   | sota: 18.55 opto: 21.5978
+#Levels | base: 36 sota: 40 opto: 67
+EQUIVALENT
+[i] Processing benchmark `sqrt`
+mapping 
+#kLUT5 = 4645
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3975 0 
+|FIs|: 3 3733 0 
+|FIs|: 4 8211 0 
+|FIs|: 5 5430 0 
+|FIs|: 6 10264 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.17
+    time window simulation         =  0.05
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.21
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+4645
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 161 225 
+|FIs|: 4 2197 1080 
+|FIs|: 5 2885 6722 
+|FIs|: 6 10262 0 
+
+dArea   | sota: 15.87 opto: 22.4973
+#Levels | base: 1017 sota: 1118 opto: 1155
+EQUIVALENT
+[i] Processing benchmark `square`
+mapping 
+#kLUT5 = 3948
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 5905 0 
+|FIs|: 4 8276 0 
+|FIs|: 5 5616 0 
+|FIs|: 6 11665 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.16
+    time window simulation         =  0.03
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.19
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+3949
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 581 409 
+|FIs|: 4 2197 1100 
+|FIs|: 5 2904 7572 
+|FIs|: 6 11663 0 
+
+dArea   | sota: 31.83 opto: 26.6903
+#Levels | base: 50 sota: 50 opto: 94
+EQUIVALENT
+[i] Processing benchmark `arbiter`
+mapping 
+#kLUT5 = 2722
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 6033 0 
+|FIs|: 4 8549 0 
+|FIs|: 5 5881 0 
+|FIs|: 6 13721 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.03
+    time window simulation         =  0.02
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.04
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+2722
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 581 409 
+|FIs|: 4 2218 1100 
+|FIs|: 5 3041 7826 
+|FIs|: 6 13719 0 
+
+dArea   | sota: 9.33 opto: 9.33137
+#Levels | base: 18 sota: 18 opto: 18
+EQUIVALENT
+[i] Processing benchmark `cavlc`
+mapping 
+#kLUT5 = 117
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4101 0 
+|FIs|: 3 6043 0 
+|FIs|: 4 8558 0 
+|FIs|: 5 5901 0 
+|FIs|: 6 13796 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+117
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 582 409 
+|FIs|: 4 2220 1101 
+|FIs|: 5 3050 7840 
+|FIs|: 6 13794 0 
+
+dArea   | sota: 11.02 opto: 13.5593
+#Levels | base: 4 sota: 4 opto: 5
+EQUIVALENT
+[i] Processing benchmark `ctrl`
+mapping 
+#kLUT5 = 28
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4103 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8561 0 
+|FIs|: 5 5919 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+29
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 582 409 
+|FIs|: 4 2220 1101 
+|FIs|: 5 3050 7852 
+|FIs|: 6 13798 0 
+
+dArea   | sota: 37.93 opto: 41.3793
+#Levels | base: 2 sota: 2 opto: 2
+EQUIVALENT
+[i] Processing benchmark `dec`
+mapping 
+#kLUT5 = 287
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4343 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8592 0 
+|FIs|: 5 5935 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+287
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 582 427 
+|FIs|: 4 2220 1211 
+|FIs|: 5 3051 7867 
+|FIs|: 6 13798 0 
+
+dArea   | sota: 49.83 opto: 49.8258
+#Levels | base: 2 sota: 2 opto: 3
+EQUIVALENT
+[i] Processing benchmark `i2c`
+mapping 
+#kLUT5 = 314
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4374 0 
+|FIs|: 3 6072 0 
+|FIs|: 4 8673 0 
+|FIs|: 5 6002 0 
+|FIs|: 6 13893 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+315
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 585 427 
+|FIs|: 4 2250 1219 
+|FIs|: 5 3093 7932 
+|FIs|: 6 13891 0 
+
+dArea   | sota: 23.42 opto: 23.4177
+#Levels | base: 4 sota: 4 opto: 8
+EQUIVALENT
+[i] Processing benchmark `int2float`
+mapping 
+#kLUT5 = 47
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4376 0 
+|FIs|: 3 6074 0 
+|FIs|: 4 8678 0 
+|FIs|: 5 6014 0 
+|FIs|: 6 13919 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+47
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 585 427 
+|FIs|: 4 2254 1219 
+|FIs|: 5 3100 7937 
+|FIs|: 6 13917 0 
+
+dArea   | sota: 12.77 opto: 10.6383
+#Levels | base: 3 sota: 3 opto: 6
+EQUIVALENT
+[i] Processing benchmark `mem_ctrl`
+mapping 
+#kLUT5 = 11742
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5409 0 
+|FIs|: 3 8215 0 
+|FIs|: 4 10200 0 
+|FIs|: 5 8730 0 
+|FIs|: 6 17976 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  1.74
+    time window simulation         =  0.42
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  2.16
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+11743
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 620 431 
+|FIs|: 4 2443 1367 
+|FIs|: 5 4797 10667 
+|FIs|: 6 17974 0 
+
+dArea   | sota: 19.34 opto: 24.568
+#Levels | base: 25 sota: 30 opto: 271
+EQUIVALENT
+[i] Processing benchmark `priority`
+mapping 
+#kLUT5 = 178
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5424 0 
+|FIs|: 3 8223 0 
+|FIs|: 4 10243 0 
+|FIs|: 5 8776 0 
+|FIs|: 6 18042 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+178
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 620 431 
+|FIs|: 4 2475 1369 
+|FIs|: 5 4835 10686 
+|FIs|: 6 18040 0 
+
+dArea   | sota: 10.67 opto: 11.7978
+#Levels | base: 26 sota: 26 opto: 33
+EQUIVALENT
+[i] Processing benchmark `router`
+mapping 
+#kLUT5 = 49
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5425 0 
+|FIs|: 3 8226 0 
+|FIs|: 4 10256 0 
+|FIs|: 5 8786 0 
+|FIs|: 6 18064 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+50
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 621 431 
+|FIs|: 4 2487 1369 
+|FIs|: 5 4841 10690 
+|FIs|: 6 18062 0 
+
+dArea   | sota: 5.26 opto: 8
+#Levels | base: 6 sota: 6 opto: 7
+EQUIVALENT
+[i] Processing benchmark `voter`
+mapping 
+#kLUT5 = 1736
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5575 0 
+|FIs|: 3 8473 0 
+|FIs|: 4 10482 0 
+|FIs|: 5 9039 0 
+|FIs|: 6 18924 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.02
+    time window simulation         =  0.03
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.05
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+1736
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 657 478 
+|FIs|: 4 2504 1501 
+|FIs|: 5 4846 10920 
+|FIs|: 6 18922 0 
+
+dArea   | sota: 20.51 opto: 23.5599
+#Levels | base: 13 sota: 16 opto: 23
+EQUIVALENT
+[i] dataset ##GITHUB##
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto | EQ(sota) | EQ(opto) |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.01 |     true |     true |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.04 |     true |     true |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7075 |          1686 |      40.37 |   28.76 |  12.53 |     true |     true |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6187 |           308 |      30.55 |   23.40 |  12.67 |     true |     true |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.07 |     true |     true |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4338 |           190 |      36.51 |   26.75 |   6.12 |     true |     true |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1158 |            67 |      27.63 |   21.60 |   0.48 |     true |     true |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3600 |          1155 |      29.03 |   22.50 |   1.66 |     true |     true |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2895 |            94 |      36.41 |   26.69 |   2.39 |     true |     true |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   1.95 |     true |     true |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         102 |             5 |      14.71 |   13.56 |   0.01 |     true |     true |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |     true |     true |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.03 |     true |     true |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         242 |             8 |      30.17 |   23.42 |   0.02 |     true |     true |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.00 |     true |     true |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8861 |           271 |      32.52 |   24.57 |  38.39 |     true |     true |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.01 |     true |     true |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.00 |     true |     true |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1327 |            23 |      30.82 |   23.56 |   1.01 |     true |     true |
+
+==== Average Results over 19 benchmarks ====
+Metric              SOTA           Proposed       Improvement    
+-----------------------------------------------------------------
+Area                21.2895        22.9859        7.96853       %
+Dual                31.9963        32.7069        2.22087       %
+Runtime (s)         8.70895        4.07323        53.2294       %
+HISTOGRAM MERGING
+[552469, 528442, 389429, 349789, 328134, 324315, 293822, 238943, 188482, 145855, 116196, 94261, 100900, 121252, 72560, 63055, 52857, 50795, 41794, 29401, 23727, 17899, 9474, 4190, 3584, 1501, 1058, 1178, 1349, 1191, 1261, 1084, 1120, 1215, 1077, 1039, 883, 678, 593, 664, 646, 565, 479, 541, 468, 573, 604, 379, 440, 621, 344, 567, 336, 350, 276, 318, 441, 274, 388, 212, 169, 123, 301, 182, 264, 265, 147, 191, 197, 281, 271, 308, 306, 224, 228, 286, 302, 349, 290, 272, 201, 151, 218, 194, 299, 336, 205, 358, 114, 215, 344, 361, 297, 433, 239, 346, 107, 104, 117, 172, 256, 157, 337, 155, 394, 257, 177, 232, 218, 268, 278, 458, 128, 240, 304, 184, 176, 303, 282, 253, 366, 510, 259, 369, 119, 78, 92, 138, 198, 187, 315, 310, 330, 273, 53, 93, 83, 86, 126, 202, 197, 274, 40, 240, 194, 108, 20, 137, 162, 187, 192, 292, 384, 173, 303, 61, 12, 169, 58, 186, 219, 212, 310, 542, 169, 200, 300, 0, 24, 116, 108, 211, 380, 359, 348, 803, 188, 261, 0, 60, 11, 44, 181, 256, 218, 228, 378, 464, 348, 367, 86, 0, 15, 16, 73, 124, 299, 229, 196, 580, 107, 381, 89, 35, 10, 48, 48, 77, 122, 172, 208, 378, 468, 217, 394, 138, 81, 55, 57, 70, 26, 69, 119, 170, 208, 354, 379, 215, 345, 31, 78, 26, 11, 12, 46, 95, 139, 194, 167, 451, 114, 415, 26, 0, 0, 2, 63, 18, 49, 152, 145, 181, 233, 436, 183, 392, 159, 35, 34, 35, 37, 53, 31, 104, 161, 265, 335, 386, 558, 277, 674, 111, 129, 88, 22, 62, 84, 78, 215, 209, 187, 223, 497, 186, 140, 342, 7, 6, 5, 145, 2, 17, 22, 56, 103, 145, 206, 332, 460, 200, 293, 25, 22, 0, 0, 23, 46, 94, 40, 140, 232, 273, 418, 809, 205, 495, 91, 21, 46, 0, 0, 0, 0, 5, 127, 179, 227, 282, 481, 574, 266, 440, 0, 0, 44, 0, 44, 0, 0, 0, 15, 76, 147, 264, 181, 383, 139, 310, 80, 0, 42, 42, 42, 42, 42, 42, 42, 6, 52, 92, 124, 310, 363, 205, 332, 25, 22, 19, 42, 21, 0, 0, 0, 0, 4, 81, 95, 118, 207, 449, 105, 453, 29, 32, 29, 72, 29, 32, 69, 32, 67, 26, 67, 114, 268, 238, 349, 850, 235, 394, 160, 34, 48, 34, 48, 34, 48, 72, 67, 34, 57, 85, 177, 211, 416, 487, 256, 542, 14, 48, 69, 81, 32, 42, 29, 26, 65, 25, 25, 89, 139, 209, 315, 441, 302, 657, 82, 33, 46, 33, 46, 87, 82, 87, 64, 32, 42, 27, 95, 91, 127, 214, 447, 179, 451, 4, 7, 11, 26, 25, 35, 24, 71, 75, 20, 7, 21, 48, 86, 199, 302, 421, 837, 239, 36, 38, 40, 19, 19, 9, 46, 35, 20, 18, 84, 39, 28, 46, 98, 148, 193, 295, 271, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 45, 70, 112, 182, 301, 352, 321, 41, 47, 12, 32, 33, 19, 4, 39, 48, 7, 16, 39, 16, 42, 55, 71, 168, 202, 320, 167, 268, 14, 11, 32, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 50, 113, 114, 231, 517, 278, 35, 16, 20, 0, 30, 0, 0, 0, 30, 0, 30, 30, 0, 0, 42, 75, 97, 123, 262, 401, 217, 26, 93, 53, 60, 33, 0, 30, 0, 0, 30, 15, 0, 0, 1, 6, 28, 36, 71, 131, 244, 105, 152, 0, 0, 14, 28, 0, 0, 0, 0, 0, 28, 0, 28, 0, 28, 1, 29, 0, 34, 123, 232, 152, 194, 19, 42, 47, 39, 11, 11, 50, 11, 8, 0, 0, 0, 0, 3, 11, 8, 0, 3, 22, 108, 228, 150, 15, 12, 15, 6, 0, 0, 0, 0, 12, 24, 0, 0, 0, 0, 0, 25, 1, 24, 14, 122, 225, 192, 18, 39, 12, 39, 33, 30, 24, 24, 0, 24, 24, 0, 0, 22, 22, 11, 0, 1, 0, 3, 30, 190, 291, 27, 27, 24, 15, 9, 9, 9, 6, 0, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 4, 92, 270, 164, 20, 0, 20, 0, 20, 0, 20, 0, 20, 0, 20, 20, 20, 20, 20, 0, 21, 0, 0, 29, 46, 130, 193, 80, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 64, 120, 72, 4, 4, 4, 4, 20, 2, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 0, 0, 2, 10, 62, 104, 54, 6, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 4, 63, 119, 66, 8, 2, 0, 0, 6, 6, 6, 0, 0, 0, 0, 12, 12, 0, 12, 6, 0, 12, 0, 12, 0, 14, 5, 12, 0, 12, 0, 12, 12, 0, 12, 12, 0, 0, 0, 10, 15, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 8, 0, 8, 0, 8, 0, 8, 8, 8, 0, 8, 0, 8, 0, 8, 0, 8, 8, 0, 8, 8, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 12, 0, 0, 0, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1]
+
+{0-RESUB} -> MERGE
+
+mapping 
+#kLUT5 = 257
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 74 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 74 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+257
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 64 
+|FIs|: 6 74 0 
+
+dArea   | sota: 30.35 opto: 34.6304
+#Levels | base: 51 sota: 51 opto: 73
+EQUIVALENT
+[i] Processing benchmark `bar`
+mapping 
+#kLUT5 = 512
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 202 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 458 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+512
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 128 
+|FIs|: 6 458 0 
+
+dArea   | sota: 12.5 opto: 12.5
+#Levels | base: 4 sota: 4 opto: 4
+EQUIVALENT
+[i] Processing benchmark `div`
+mapping 
+#kLUT5 = 9931
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2074 0 
+|FIs|: 3 961 0 
+|FIs|: 4 3019 0 
+|FIs|: 5 1560 0 
+|FIs|: 6 3086 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.59
+    time window simulation         =  0.20
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.79
+================ QUALITY ==================
+    count 0-cost basic version     =     3
+    count 0-cost with augmentation =     0
+    count total                    =     3
+9928
+|FIs|: 1 0 0 
+|FIs|: 2 29 12 
+|FIs|: 3 2 39 
+|FIs|: 4 862 544 
+|FIs|: 5 701 2415 
+|FIs|: 6 3083 0 
+
+dArea   | sota: 26.7 opto: 28.7987
+#Levels | base: 856 sota: 866 opto: 1718
+EQUIVALENT
+[i] Processing benchmark `log2`
+mapping 
+#kLUT5 = 8077
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2941 0 
+|FIs|: 3 1969 0 
+|FIs|: 4 4909 0 
+|FIs|: 5 3008 0 
+|FIs|: 6 5950 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.59
+    time window simulation         =  0.72
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  1.31
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+8077
+|FIs|: 1 0 0 
+|FIs|: 2 29 12 
+|FIs|: 3 67 83 
+|FIs|: 4 1357 733 
+|FIs|: 5 1574 4072 
+|FIs|: 6 5947 0 
+
+dArea   | sota: 19.82 opto: 23.3998
+#Levels | base: 71 sota: 76 opto: 308
+EQUIVALENT
+[i] Processing benchmark `max`
+mapping 
+#kLUT5 = 793
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2981 0 
+|FIs|: 3 2227 0 
+|FIs|: 4 5026 0 
+|FIs|: 5 3232 0 
+|FIs|: 6 6104 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+793
+|FIs|: 1 0 0 
+|FIs|: 2 30 13 
+|FIs|: 3 67 83 
+|FIs|: 4 1399 752 
+|FIs|: 5 1792 4241 
+|FIs|: 6 6101 0 
+
+dArea   | sota: 21.82 opto: 23.8335
+#Levels | base: 39 sota: 39 opto: 39
+EQUIVALENT
+[i] Processing benchmark `multiplier`
+mapping 
+#kLUT5 = 5922
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3274 0 
+|FIs|: 3 3341 0 
+|FIs|: 4 6707 0 
+|FIs|: 5 3731 0 
+|FIs|: 6 8439 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.15
+    time window simulation         =  0.08
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.22
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+5922
+|FIs|: 1 0 0 
+|FIs|: 2 30 13 
+|FIs|: 3 125 213 
+|FIs|: 4 1676 955 
+|FIs|: 5 1876 5492 
+|FIs|: 6 8436 0 
+
+dArea   | sota: 26.98 opto: 26.7477
+#Levels | base: 53 sota: 54 opto: 190
+EQUIVALENT
+[i] Processing benchmark `sin`
+mapping 
+#kLUT5 = 1476
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3425 0 
+|FIs|: 3 3554 0 
+|FIs|: 4 6986 0 
+|FIs|: 5 4038 0 
+|FIs|: 6 8965 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.12
+    time window simulation         =  0.10
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.22
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+1477
+|FIs|: 1 0 0 
+|FIs|: 2 30 13 
+|FIs|: 3 147 228 
+|FIs|: 4 1773 1000 
+|FIs|: 5 2070 5752 
+|FIs|: 6 8960 0 
+
+dArea   | sota: 18.55 opto: 21.5978
+#Levels | base: 36 sota: 40 opto: 67
+EQUIVALENT
+[i] Processing benchmark `sqrt`
+mapping 
+#kLUT5 = 4645
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3975 0 
+|FIs|: 3 3733 0 
+|FIs|: 4 8211 0 
+|FIs|: 5 5430 0 
+|FIs|: 6 10264 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.17
+    time window simulation         =  0.05
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.22
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+4645
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 160 228 
+|FIs|: 4 2200 1088 
+|FIs|: 5 2883 6709 
+|FIs|: 6 10259 0 
+
+dArea   | sota: 15.87 opto: 22.4973
+#Levels | base: 1017 sota: 1118 opto: 1155
+EQUIVALENT
+[i] Processing benchmark `square`
+mapping 
+#kLUT5 = 3948
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 5905 0 
+|FIs|: 4 8276 0 
+|FIs|: 5 5616 0 
+|FIs|: 6 11665 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.16
+    time window simulation         =  0.03
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.19
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     0
+    count total                    =     1
+3948
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 578 410 
+|FIs|: 4 2201 1108 
+|FIs|: 5 2900 7562 
+|FIs|: 6 11660 0 
+
+dArea   | sota: 31.83 opto: 26.7409
+#Levels | base: 50 sota: 50 opto: 124
+EQUIVALENT
+[i] Processing benchmark `arbiter`
+mapping 
+#kLUT5 = 2722
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 6033 0 
+|FIs|: 4 8549 0 
+|FIs|: 5 5881 0 
+|FIs|: 6 13721 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.03
+    time window simulation         =  0.02
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.04
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+2722
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 578 410 
+|FIs|: 4 2222 1108 
+|FIs|: 5 3037 7816 
+|FIs|: 6 13716 0 
+
+dArea   | sota: 9.33 opto: 9.33137
+#Levels | base: 18 sota: 18 opto: 18
+EQUIVALENT
+[i] Processing benchmark `cavlc`
+mapping 
+#kLUT5 = 117
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4101 0 
+|FIs|: 3 6043 0 
+|FIs|: 4 8558 0 
+|FIs|: 5 5901 0 
+|FIs|: 6 13796 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+117
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 579 410 
+|FIs|: 4 2224 1109 
+|FIs|: 5 3046 7830 
+|FIs|: 6 13791 0 
+
+dArea   | sota: 11.02 opto: 13.5593
+#Levels | base: 4 sota: 4 opto: 5
+EQUIVALENT
+[i] Processing benchmark `ctrl`
+mapping 
+#kLUT5 = 28
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4103 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8561 0 
+|FIs|: 5 5919 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+29
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 579 410 
+|FIs|: 4 2224 1109 
+|FIs|: 5 3046 7842 
+|FIs|: 6 13795 0 
+
+dArea   | sota: 37.93 opto: 41.3793
+#Levels | base: 2 sota: 2 opto: 2
+EQUIVALENT
+[i] Processing benchmark `dec`
+mapping 
+#kLUT5 = 287
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4343 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8592 0 
+|FIs|: 5 5935 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+287
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 579 428 
+|FIs|: 4 2224 1219 
+|FIs|: 5 3047 7857 
+|FIs|: 6 13795 0 
+
+dArea   | sota: 49.83 opto: 49.8258
+#Levels | base: 2 sota: 2 opto: 3
+EQUIVALENT
+[i] Processing benchmark `i2c`
+mapping 
+#kLUT5 = 314
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4374 0 
+|FIs|: 3 6072 0 
+|FIs|: 4 8673 0 
+|FIs|: 5 6002 0 
+|FIs|: 6 13893 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =    14
+    count 0-cost with augmentation =     0
+    count total                    =    14
+301
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 582 428 
+|FIs|: 4 2261 1224 
+|FIs|: 5 3092 7913 
+|FIs|: 6 13888 0 
+
+dArea   | sota: 23.42 opto: 24.0506
+#Levels | base: 4 sota: 4 opto: 8
+EQUIVALENT
+[i] Processing benchmark `int2float`
+mapping 
+#kLUT5 = 47
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4376 0 
+|FIs|: 3 6074 0 
+|FIs|: 4 8678 0 
+|FIs|: 5 6014 0 
+|FIs|: 6 13919 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+47
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 582 428 
+|FIs|: 4 2265 1224 
+|FIs|: 5 3099 7918 
+|FIs|: 6 13914 0 
+
+dArea   | sota: 12.77 opto: 10.6383
+#Levels | base: 3 sota: 3 opto: 6
+EQUIVALENT
+[i] Processing benchmark `mem_ctrl`
+mapping 
+#kLUT5 = 11742
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5409 0 
+|FIs|: 3 8215 0 
+|FIs|: 4 10200 0 
+|FIs|: 5 8730 0 
+|FIs|: 6 17976 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  1.33
+    time window simulation         =  0.31
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  1.64
+================ QUALITY ==================
+    count 0-cost basic version     =   247
+    count 0-cost with augmentation =     0
+    count total                    =   247
+11495
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 623 434 
+|FIs|: 4 2595 1369 
+|FIs|: 5 4838 10433 
+|FIs|: 6 17966 0 
+
+dArea   | sota: 19.34 opto: 24.8404
+#Levels | base: 25 sota: 30 opto: 252
+EQUIVALENT
+[i] Processing benchmark `priority`
+mapping 
+#kLUT5 = 178
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5424 0 
+|FIs|: 3 8223 0 
+|FIs|: 4 10243 0 
+|FIs|: 5 8776 0 
+|FIs|: 6 18042 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+178
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 623 434 
+|FIs|: 4 2627 1371 
+|FIs|: 5 4876 10452 
+|FIs|: 6 18032 0 
+
+dArea   | sota: 10.67 opto: 11.7978
+#Levels | base: 26 sota: 26 opto: 33
+EQUIVALENT
+[i] Processing benchmark `router`
+mapping 
+#kLUT5 = 49
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5425 0 
+|FIs|: 3 8226 0 
+|FIs|: 4 10256 0 
+|FIs|: 5 8786 0 
+|FIs|: 6 18064 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+50
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 624 434 
+|FIs|: 4 2639 1371 
+|FIs|: 5 4882 10456 
+|FIs|: 6 18054 0 
+
+dArea   | sota: 5.26 opto: 8
+#Levels | base: 6 sota: 6 opto: 7
+EQUIVALENT
+[i] Processing benchmark `voter`
+mapping 
+#kLUT5 = 1736
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5575 0 
+|FIs|: 3 8473 0 
+|FIs|: 4 10482 0 
+|FIs|: 5 9039 0 
+|FIs|: 6 18924 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.02
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.03
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+1736
+|FIs|: 1 0 0 
+|FIs|: 2 33 13 
+|FIs|: 3 660 481 
+|FIs|: 4 2656 1503 
+|FIs|: 5 4887 10686 
+|FIs|: 6 18914 0 
+
+dArea   | sota: 20.51 opto: 23.5599
+#Levels | base: 13 sota: 16 opto: 23
+EQUIVALENT
+[i] dataset ##GITHUB##
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto | EQ(sota) | EQ(opto) |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.02 |     true |     true |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.04 |     true |     true |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7071 |          1718 |      40.40 |   28.80 |  12.82 |     true |     true |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6187 |           308 |      30.55 |   23.40 |  12.78 |     true |     true |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.07 |     true |     true |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4338 |           190 |      36.51 |   26.75 |   6.13 |     true |     true |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1158 |            67 |      27.63 |   21.60 |   0.49 |     true |     true |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3600 |          1155 |      29.03 |   22.50 |   1.66 |     true |     true |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2893 |           124 |      36.47 |   26.74 |   2.39 |     true |     true |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   1.90 |     true |     true |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         102 |             5 |      14.71 |   13.56 |   0.01 |     true |     true |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |     true |     true |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.03 |     true |     true |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         240 |             8 |      25.42 |   24.05 |   0.02 |     true |     true |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.00 |     true |     true |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8829 |           252 |      30.20 |   24.84 |  31.36 |     true |     true |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.01 |     true |     true |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.00 |     true |     true |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1327 |            23 |      30.82 |   23.56 |   0.51 |     true |     true |
+
+==== Average Results over 19 benchmarks ====
+Metric              SOTA           Proposed       Improvement    
+-----------------------------------------------------------------
+Area                21.2895        23.0384        8.21482       %
+Dual                31.9963        32.3395        1.07262       %
+Runtime (s)         8.70895        3.69686        57.551        %
+HISTOGRAM MERGING
+[552469, 528442, 389429, 349789, 328134, 324315, 293822, 238943, 188482, 145855, 116196, 94261, 100900, 121252, 72560, 63055, 52857, 50795, 41794, 29401, 23727, 17899, 9474, 4190, 3584, 1501, 1058, 1178, 1349, 1191, 1261, 1084, 1120, 1215, 1077, 1039, 883, 678, 593, 664, 646, 565, 479, 541, 468, 573, 604, 379, 440, 621, 344, 567, 336, 350, 276, 318, 441, 274, 388, 212, 169, 123, 301, 182, 264, 265, 147, 191, 197, 281, 271, 308, 306, 224, 228, 286, 302, 349, 290, 272, 201, 151, 218, 194, 299, 336, 205, 358, 114, 215, 344, 361, 297, 433, 239, 346, 107, 104, 117, 172, 256, 157, 337, 155, 394, 257, 177, 232, 218, 268, 278, 458, 128, 240, 304, 184, 176, 303, 282, 253, 366, 510, 259, 369, 119, 78, 92, 138, 198, 187, 315, 310, 330, 273, 53, 93, 83, 86, 126, 202, 197, 274, 40, 240, 194, 108, 20, 137, 162, 187, 192, 292, 384, 173, 303, 61, 12, 169, 58, 186, 219, 212, 310, 542, 169, 200, 300, 0, 24, 116, 108, 211, 380, 359, 348, 803, 188, 261, 0, 60, 11, 44, 181, 256, 218, 228, 378, 464, 348, 367, 86, 0, 15, 16, 73, 124, 299, 229, 196, 580, 107, 381, 89, 35, 10, 48, 48, 77, 122, 172, 208, 378, 468, 217, 394, 138, 81, 55, 57, 70, 26, 69, 119, 170, 208, 354, 379, 215, 345, 31, 78, 26, 11, 12, 46, 95, 139, 194, 167, 451, 114, 415, 26, 0, 0, 2, 63, 18, 49, 152, 145, 181, 233, 436, 183, 392, 159, 35, 34, 35, 37, 53, 31, 104, 161, 265, 335, 386, 558, 277, 674, 111, 129, 88, 22, 62, 84, 78, 215, 209, 187, 223, 497, 186, 140, 342, 7, 6, 5, 145, 2, 17, 22, 56, 103, 145, 206, 332, 460, 200, 293, 25, 22, 0, 0, 23, 46, 94, 40, 140, 232, 273, 418, 809, 205, 495, 91, 21, 46, 0, 0, 0, 0, 5, 127, 179, 227, 282, 481, 574, 266, 440, 0, 0, 44, 0, 44, 0, 0, 0, 15, 76, 147, 264, 181, 383, 139, 310, 80, 0, 42, 42, 42, 42, 42, 42, 42, 6, 52, 92, 124, 310, 363, 205, 332, 25, 22, 19, 42, 21, 0, 0, 0, 0, 4, 81, 95, 118, 207, 449, 105, 453, 29, 32, 29, 72, 29, 32, 69, 32, 67, 26, 67, 114, 268, 238, 349, 850, 235, 394, 160, 34, 48, 34, 48, 34, 48, 72, 67, 34, 57, 85, 177, 211, 416, 487, 256, 542, 14, 48, 69, 81, 32, 42, 29, 26, 65, 25, 25, 89, 139, 209, 315, 441, 302, 657, 82, 33, 46, 33, 46, 87, 82, 87, 64, 32, 42, 27, 95, 91, 127, 214, 447, 179, 451, 4, 7, 11, 26, 25, 35, 24, 71, 75, 20, 7, 21, 48, 86, 199, 302, 421, 837, 239, 36, 38, 40, 19, 19, 9, 46, 35, 20, 18, 84, 39, 28, 46, 98, 148, 193, 295, 271, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 45, 70, 112, 182, 301, 352, 321, 41, 47, 12, 32, 33, 19, 4, 39, 48, 7, 16, 39, 16, 42, 55, 71, 168, 202, 320, 167, 268, 14, 11, 32, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 50, 113, 114, 231, 517, 278, 35, 16, 20, 0, 30, 0, 0, 0, 30, 0, 30, 30, 0, 0, 42, 75, 97, 123, 262, 401, 217, 26, 93, 53, 60, 33, 0, 30, 0, 0, 30, 15, 0, 0, 1, 6, 28, 36, 71, 131, 244, 105, 152, 0, 0, 14, 28, 0, 0, 0, 0, 0, 28, 0, 28, 0, 28, 1, 29, 0, 34, 123, 232, 152, 194, 19, 42, 47, 39, 11, 11, 50, 11, 8, 0, 0, 0, 0, 3, 11, 8, 0, 3, 22, 108, 228, 150, 15, 12, 15, 6, 0, 0, 0, 0, 12, 24, 0, 0, 0, 0, 0, 25, 1, 24, 14, 122, 225, 192, 18, 39, 12, 39, 33, 30, 24, 24, 0, 24, 24, 0, 0, 22, 22, 11, 0, 1, 0, 3, 30, 190, 291, 27, 27, 24, 15, 9, 9, 9, 6, 0, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 4, 92, 270, 164, 20, 0, 20, 0, 20, 0, 20, 0, 20, 0, 20, 20, 20, 20, 20, 0, 21, 0, 0, 29, 46, 130, 193, 80, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 64, 120, 72, 4, 4, 4, 4, 20, 2, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 0, 0, 2, 10, 62, 104, 54, 6, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 4, 63, 119, 66, 8, 2, 0, 0, 6, 6, 6, 0, 0, 0, 0, 12, 12, 0, 12, 6, 0, 12, 0, 12, 0, 14, 5, 12, 0, 12, 0, 12, 12, 0, 12, 12, 0, 0, 0, 10, 15, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 8, 0, 8, 0, 8, 0, 8, 8, 8, 0, 8, 0, 8, 0, 8, 0, 8, 8, 0, 8, 8, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 12, 0, 0, 0, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1]
+
+
+MERGE -> {0B-resub 0X-resub}
+
+[i] Processing benchmark `adder`
+mapping 
+#kLUT5 = 257
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 74 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 74 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+168
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 64 
+|FIs|: 6 74 0 
+
+dArea   | sota: 30.35 opto: 34.6304
+#Levels | base: 51 sota: 51 opto: 73
+EQUIVALENT
+[i] Processing benchmark `bar`
+mapping 
+#kLUT5 = 512
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 202 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 458 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+448
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 128 
+|FIs|: 6 458 0 
+
+dArea   | sota: 12.5 opto: 12.5
+#Levels | base: 4 sota: 4 opto: 4
+EQUIVALENT
+[i] Processing benchmark `div`
+mapping 
+#kLUT5 = 9931
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2074 0 
+|FIs|: 3 961 0 
+|FIs|: 4 3019 0 
+|FIs|: 5 1560 0 
+|FIs|: 6 3086 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.26
+    time window simulation         =  0.16
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.06
+    time total                     =  0.49
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     0
+    count total                    =     1
+7074
+|FIs|: 1 0 0 
+|FIs|: 2 31 9 
+|FIs|: 3 3 36 
+|FIs|: 4 859 536 
+|FIs|: 5 703 2428 
+|FIs|: 6 3085 0 
+
+dArea   | sota: 26.7 opto: 28.7685
+#Levels | base: 856 sota: 866 opto: 1686
+EQUIVALENT
+[i] Processing benchmark `log2`
+mapping 
+#kLUT5 = 8077
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2941 0 
+|FIs|: 3 1969 0 
+|FIs|: 4 4909 0 
+|FIs|: 5 3008 0 
+|FIs|: 6 5950 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.33
+    time window simulation         =  0.16
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.04
+    time total                     =  0.53
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     5
+    count total                    =     5
+6182
+|FIs|: 1 0 0 
+|FIs|: 2 31 9 
+|FIs|: 3 68 80 
+|FIs|: 4 1351 725 
+|FIs|: 5 1573 4090 
+|FIs|: 6 5945 0 
+
+dArea   | sota: 19.82 opto: 23.4617
+#Levels | base: 71 sota: 76 opto: 308
+EQUIVALENT
+[i] Processing benchmark `max`
+mapping 
+#kLUT5 = 793
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2981 0 
+|FIs|: 3 2227 0 
+|FIs|: 4 5026 0 
+|FIs|: 5 3232 0 
+|FIs|: 6 6104 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+604
+|FIs|: 1 0 0 
+|FIs|: 2 32 10 
+|FIs|: 3 68 80 
+|FIs|: 4 1393 744 
+|FIs|: 5 1791 4259 
+|FIs|: 6 6099 0 
+
+dArea   | sota: 21.82 opto: 23.8335
+#Levels | base: 39 sota: 39 opto: 39
+EQUIVALENT
+[i] Processing benchmark `multiplier`
+mapping 
+#kLUT5 = 5922
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3274 0 
+|FIs|: 3 3341 0 
+|FIs|: 4 6707 0 
+|FIs|: 5 3731 0 
+|FIs|: 6 8439 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.11
+    time window simulation         =  0.06
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time total                     =  0.20
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+4338
+|FIs|: 1 0 0 
+|FIs|: 2 32 10 
+|FIs|: 3 126 210 
+|FIs|: 4 1670 947 
+|FIs|: 5 1875 5510 
+|FIs|: 6 8434 0 
+
+dArea   | sota: 26.98 opto: 26.7477
+#Levels | base: 53 sota: 54 opto: 190
+EQUIVALENT
+[i] Processing benchmark `sin`
+mapping 
+#kLUT5 = 1476
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3425 0 
+|FIs|: 3 3554 0 
+|FIs|: 4 6986 0 
+|FIs|: 5 4038 0 
+|FIs|: 6 8965 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.07
+    time window simulation         =  0.05
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.01
+    time total                     =  0.12
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     3
+    count total                    =     3
+1155
+|FIs|: 1 0 0 
+|FIs|: 2 32 10 
+|FIs|: 3 147 225 
+|FIs|: 4 1765 993 
+|FIs|: 5 2068 5772 
+|FIs|: 6 8956 0 
+
+dArea   | sota: 18.55 opto: 21.8009
+#Levels | base: 36 sota: 40 opto: 67
+EQUIVALENT
+[i] Processing benchmark `sqrt`
+mapping 
+#kLUT5 = 4645
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3975 0 
+|FIs|: 3 3733 0 
+|FIs|: 4 8211 0 
+|FIs|: 5 5430 0 
+|FIs|: 6 10264 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.10
+    time window simulation         =  0.04
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time total                     =  0.17
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     2
+    count total                    =     2
+3598
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 160 225 
+|FIs|: 4 2190 1081 
+|FIs|: 5 2881 6731 
+|FIs|: 6 10253 0 
+
+dArea   | sota: 15.87 opto: 22.5404
+#Levels | base: 1017 sota: 1118 opto: 1156
+EQUIVALENT
+[i] Processing benchmark `square`
+mapping 
+#kLUT5 = 3948
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 5905 0 
+|FIs|: 4 8276 0 
+|FIs|: 5 5616 0 
+|FIs|: 6 11665 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.11
+    time window simulation         =  0.03
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.01
+    time total                     =  0.15
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     4
+    count total                    =     4
+2891
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 572 409 
+|FIs|: 4 2190 1101 
+|FIs|: 5 2900 7585 
+|FIs|: 6 11654 0 
+
+dArea   | sota: 31.83 opto: 26.7916
+#Levels | base: 50 sota: 50 opto: 94
+EQUIVALENT
+[i] Processing benchmark `arbiter`
+mapping 
+#kLUT5 = 2722
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 6033 0 
+|FIs|: 4 8549 0 
+|FIs|: 5 5881 0 
+|FIs|: 6 13721 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.03
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+2468
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 572 409 
+|FIs|: 4 2211 1101 
+|FIs|: 5 3037 7839 
+|FIs|: 6 13710 0 
+
+dArea   | sota: 9.33 opto: 9.33137
+#Levels | base: 18 sota: 18 opto: 18
+EQUIVALENT
+[i] Processing benchmark `cavlc`
+mapping 
+#kLUT5 = 117
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4101 0 
+|FIs|: 3 6043 0 
+|FIs|: 4 8558 0 
+|FIs|: 5 5901 0 
+|FIs|: 6 13796 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     1
+    count total                    =     1
+101
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 572 409 
+|FIs|: 4 2213 1102 
+|FIs|: 5 3045 7854 
+|FIs|: 6 13785 0 
+
+dArea   | sota: 11.02 opto: 14.4068
+#Levels | base: 4 sota: 4 opto: 5
+EQUIVALENT
+[i] Processing benchmark `ctrl`
+mapping 
+#kLUT5 = 28
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4103 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8561 0 
+|FIs|: 5 5919 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+17
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 572 409 
+|FIs|: 4 2213 1102 
+|FIs|: 5 3045 7866 
+|FIs|: 6 13789 0 
+
+dArea   | sota: 37.93 opto: 41.3793
+#Levels | base: 2 sota: 2 opto: 2
+EQUIVALENT
+[i] Processing benchmark `dec`
+mapping 
+#kLUT5 = 287
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4343 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8592 0 
+|FIs|: 5 5935 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+144
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 572 427 
+|FIs|: 4 2213 1212 
+|FIs|: 5 3046 7881 
+|FIs|: 6 13789 0 
+
+dArea   | sota: 49.83 opto: 49.8258
+#Levels | base: 2 sota: 2 opto: 3
+EQUIVALENT
+[i] Processing benchmark `i2c`
+mapping 
+#kLUT5 = 314
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4374 0 
+|FIs|: 3 6072 0 
+|FIs|: 4 8673 0 
+|FIs|: 5 6002 0 
+|FIs|: 6 13893 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+242
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 575 427 
+|FIs|: 4 2243 1220 
+|FIs|: 5 3088 7946 
+|FIs|: 6 13882 0 
+
+dArea   | sota: 23.42 opto: 23.4177
+#Levels | base: 4 sota: 4 opto: 8
+EQUIVALENT
+[i] Processing benchmark `int2float`
+mapping 
+#kLUT5 = 47
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4376 0 
+|FIs|: 3 6074 0 
+|FIs|: 4 8678 0 
+|FIs|: 5 6014 0 
+|FIs|: 6 13919 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+42
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 575 427 
+|FIs|: 4 2247 1220 
+|FIs|: 5 3095 7951 
+|FIs|: 6 13908 0 
+
+dArea   | sota: 12.77 opto: 10.6383
+#Levels | base: 3 sota: 3 opto: 6
+EQUIVALENT
+[i] Processing benchmark `mem_ctrl`
+mapping 
+#kLUT5 = 11742
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5409 0 
+|FIs|: 3 8215 0 
+|FIs|: 4 10200 0 
+|FIs|: 5 8730 0 
+|FIs|: 6 17976 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.37
+    time window simulation         =  0.24
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time total                     =  0.64
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     2
+    count total                    =     3
+8857
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 608 431 
+|FIs|: 4 2436 1368 
+|FIs|: 5 4791 10683 
+|FIs|: 6 17962 0 
+
+dArea   | sota: 19.34 opto: 24.602
+#Levels | base: 25 sota: 30 opto: 271
+EQUIVALENT
+[i] Processing benchmark `priority`
+mapping 
+#kLUT5 = 178
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5424 0 
+|FIs|: 3 8223 0 
+|FIs|: 4 10243 0 
+|FIs|: 5 8776 0 
+|FIs|: 6 18042 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+157
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 608 431 
+|FIs|: 4 2468 1370 
+|FIs|: 5 4829 10702 
+|FIs|: 6 18028 0 
+
+dArea   | sota: 10.67 opto: 11.7978
+#Levels | base: 26 sota: 26 opto: 33
+EQUIVALENT
+[i] Processing benchmark `router`
+mapping 
+#kLUT5 = 49
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5425 0 
+|FIs|: 3 8226 0 
+|FIs|: 4 10256 0 
+|FIs|: 5 8786 0 
+|FIs|: 6 18064 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count total                    =     0
+46
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 609 431 
+|FIs|: 4 2480 1370 
+|FIs|: 5 4835 10706 
+|FIs|: 6 18050 0 
+
+dArea   | sota: 5.26 opto: 8
+#Levels | base: 6 sota: 6 opto: 7
+EQUIVALENT
+[i] Processing benchmark `voter`
+mapping 
+#kLUT5 = 1736
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5575 0 
+|FIs|: 3 8473 0 
+|FIs|: 4 10482 0 
+|FIs|: 5 9039 0 
+|FIs|: 6 18924 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time total                     =  0.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =    25
+    count total                    =    25
+1302
+|FIs|: 1 0 0 
+|FIs|: 2 35 10 
+|FIs|: 3 620 503 
+|FIs|: 4 2497 1502 
+|FIs|: 5 4840 10936 
+|FIs|: 6 18885 0 
+
+dArea   | sota: 20.51 opto: 25
+#Levels | base: 13 sota: 16 opto: 24
+EQUIVALENT
+[i] dataset ##GITHUB##
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto | EQ(sota) | EQ(opto) |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.01 |     true |     true |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.04 |     true |     true |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7074 |          1686 |      40.37 |   28.77 |  11.54 |     true |     true |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6182 |           308 |      30.65 |   23.46 |  11.81 |     true |     true |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.07 |     true |     true |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4338 |           190 |      36.51 |   26.75 |   5.97 |     true |     true |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1155 |            67 |      27.97 |   21.80 |   0.39 |     true |     true |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3598 |          1156 |      29.10 |   22.54 |   1.66 |     true |     true |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2891 |            94 |      36.60 |   26.79 |   2.28 |     true |     true |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   1.89 |     true |     true |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         101 |             5 |      15.84 |   14.41 |   0.02 |     true |     true |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |     true |     true |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.02 |     true |     true |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         242 |             8 |      30.17 |   23.42 |   0.02 |     true |     true |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.00 |     true |     true |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8857 |           271 |      32.56 |   24.60 |  29.62 |     true |     true |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.01 |     true |     true |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.00 |     true |     true |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1302 |            24 |      33.33 |   25.00 |   0.49 |     true |     true |
+
+==== Average Results over 19 benchmarks ====
+Metric              SOTA           Proposed       Improvement    
+-----------------------------------------------------------------
+Area                21.2895        23.1302        8.64617       %
+Dual                31.9963        32.9379        2.94269       %
+Runtime (s)         8.70895        3.46393        60.2256       %
+HISTOGRAM MERGING
+[552469, 528442, 389429, 349789, 328134, 324315, 293822, 238943, 188482, 145855, 116196, 94261, 100900, 121252, 72560, 63055, 52857, 50795, 41794, 29401, 23727, 17899, 9474, 4190, 3584, 1501, 1058, 1178, 1349, 1191, 1261, 1084, 1120, 1215, 1077, 1039, 883, 678, 593, 664, 646, 565, 479, 541, 468, 573, 604, 379, 440, 621, 344, 567, 336, 350, 276, 318, 441, 274, 388, 212, 169, 123, 301, 182, 264, 265, 147, 191, 197, 281, 271, 308, 306, 224, 228, 286, 302, 349, 290, 272, 201, 151, 218, 194, 299, 336, 205, 358, 114, 215, 344, 361, 297, 433, 239, 346, 107, 104, 117, 172, 256, 157, 337, 155, 394, 257, 177, 232, 218, 268, 278, 458, 128, 240, 304, 184, 176, 303, 282, 253, 366, 510, 259, 369, 119, 78, 92, 138, 198, 187, 315, 310, 330, 273, 53, 93, 83, 86, 126, 202, 197, 274, 40, 240, 194, 108, 20, 137, 162, 187, 192, 292, 384, 173, 303, 61, 12, 169, 58, 186, 219, 212, 310, 542, 169, 200, 300, 0, 24, 116, 108, 211, 380, 359, 348, 803, 188, 261, 0, 60, 11, 44, 181, 256, 218, 228, 378, 464, 348, 367, 86, 0, 15, 16, 73, 124, 299, 229, 196, 580, 107, 381, 89, 35, 10, 48, 48, 77, 122, 172, 208, 378, 468, 217, 394, 138, 81, 55, 57, 70, 26, 69, 119, 170, 208, 354, 379, 215, 345, 31, 78, 26, 11, 12, 46, 95, 139, 194, 167, 451, 114, 415, 26, 0, 0, 2, 63, 18, 49, 152, 145, 181, 233, 436, 183, 392, 159, 35, 34, 35, 37, 53, 31, 104, 161, 265, 335, 386, 558, 277, 674, 111, 129, 88, 22, 62, 84, 78, 215, 209, 187, 223, 497, 186, 140, 342, 7, 6, 5, 145, 2, 17, 22, 56, 103, 145, 206, 332, 460, 200, 293, 25, 22, 0, 0, 23, 46, 94, 40, 140, 232, 273, 418, 809, 205, 495, 91, 21, 46, 0, 0, 0, 0, 5, 127, 179, 227, 282, 481, 574, 266, 440, 0, 0, 44, 0, 44, 0, 0, 0, 15, 76, 147, 264, 181, 383, 139, 310, 80, 0, 42, 42, 42, 42, 42, 42, 42, 6, 52, 92, 124, 310, 363, 205, 332, 25, 22, 19, 42, 21, 0, 0, 0, 0, 4, 81, 95, 118, 207, 449, 105, 453, 29, 32, 29, 72, 29, 32, 69, 32, 67, 26, 67, 114, 268, 238, 349, 850, 235, 394, 160, 34, 48, 34, 48, 34, 48, 72, 67, 34, 57, 85, 177, 211, 416, 487, 256, 542, 14, 48, 69, 81, 32, 42, 29, 26, 65, 25, 25, 89, 139, 209, 315, 441, 302, 657, 82, 33, 46, 33, 46, 87, 82, 87, 64, 32, 42, 27, 95, 91, 127, 214, 447, 179, 451, 4, 7, 11, 26, 25, 35, 24, 71, 75, 20, 7, 21, 48, 86, 199, 302, 421, 837, 239, 36, 38, 40, 19, 19, 9, 46, 35, 20, 18, 84, 39, 28, 46, 98, 148, 193, 295, 271, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 45, 70, 112, 182, 301, 352, 321, 41, 47, 12, 32, 33, 19, 4, 39, 48, 7, 16, 39, 16, 42, 55, 71, 168, 202, 320, 167, 268, 14, 11, 32, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 50, 113, 114, 231, 517, 278, 35, 16, 20, 0, 30, 0, 0, 0, 30, 0, 30, 30, 0, 0, 42, 75, 97, 123, 262, 401, 217, 26, 93, 53, 60, 33, 0, 30, 0, 0, 30, 15, 0, 0, 1, 6, 28, 36, 71, 131, 244, 105, 152, 0, 0, 14, 28, 0, 0, 0, 0, 0, 28, 0, 28, 0, 28, 1, 29, 0, 34, 123, 232, 152, 194, 19, 42, 47, 39, 11, 11, 50, 11, 8, 0, 0, 0, 0, 3, 11, 8, 0, 3, 22, 108, 228, 150, 15, 12, 15, 6, 0, 0, 0, 0, 12, 24, 0, 0, 0, 0, 0, 25, 1, 24, 14, 122, 225, 192, 18, 39, 12, 39, 33, 30, 24, 24, 0, 24, 24, 0, 0, 22, 22, 11, 0, 1, 0, 3, 30, 190, 291, 27, 27, 24, 15, 9, 9, 9, 6, 0, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 4, 92, 270, 164, 20, 0, 20, 0, 20, 0, 20, 0, 20, 0, 20, 20, 20, 20, 20, 0, 21, 0, 0, 29, 46, 130, 193, 80, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 64, 120, 72, 4, 4, 4, 4, 20, 2, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 0, 0, 2, 10, 62, 104, 54, 6, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 4, 63, 119, 66, 8, 2, 0, 0, 6, 6, 6, 0, 0, 0, 0, 12, 12, 0, 12, 6, 0, 12, 0, 12, 0, 14, 5, 12, 0, 12, 0, 12, 12, 0, 12, 12, 0, 0, 0, 10, 15, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 8, 0, 8, 0, 8, 0, 8, 8, 8, 0, 8, 0, 8, 0, 8, 0, 8, 8, 0, 8, 8, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 12, 0, 0, 0, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1]c
+
+
+[i] Processing benchmark `adder`
+mapping 
+#kLUT5 = 257
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 74 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 74 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+168
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 64 
+|FIs|: 6 74 0 
+
+dArea   | sota: 30.35 opto: 34.6304
+#Levels | base: 51 sota: 51 opto: 73
+EQUIVALENT
+[i] Processing benchmark `bar`
+mapping 
+#kLUT5 = 512
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 202 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 458 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+448
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 128 
+|FIs|: 6 458 0 
+
+dArea   | sota: 12.5 opto: 12.5
+#Levels | base: 4 sota: 4 opto: 4
+EQUIVALENT
+[i] Processing benchmark `div`
+mapping 
+#kLUT5 = 9931
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2074 0 
+|FIs|: 3 961 0 
+|FIs|: 4 3019 0 
+|FIs|: 5 1560 0 
+|FIs|: 6 3086 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.27
+    time window simulation         =  0.16
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.06
+    time 1-cost basic version      =  0.32
+    time total                     =  0.81
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =    26
+    count total                    =    27
+7048
+|FIs|: 1 0 0 
+|FIs|: 2 26 9 
+|FIs|: 3 6 36 
+|FIs|: 4 842 537 
+|FIs|: 5 684 2427 
+|FIs|: 6 3097 0 
+
+dArea   | sota: 26.7 opto: 29.0303
+#Levels | base: 856 sota: 866 opto: 1691
+EQUIVALENT
+[i] Processing benchmark `log2`
+mapping 
+#kLUT5 = 8077
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2941 0 
+|FIs|: 3 1969 0 
+|FIs|: 4 4909 0 
+|FIs|: 5 3008 0 
+|FIs|: 6 5950 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.34
+    time window simulation         =  0.16
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.04
+    time 1-cost basic version      =  0.41
+    time total                     =  0.95
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     5
+    count 1-cost basic version     =    16
+    count total                    =    21
+6166
+|FIs|: 1 0 0 
+|FIs|: 2 26 9 
+|FIs|: 3 71 81 
+|FIs|: 4 1334 732 
+|FIs|: 5 1553 4082 
+|FIs|: 6 5942 0 
+
+dArea   | sota: 19.82 opto: 23.6598
+#Levels | base: 71 sota: 76 opto: 309
+EQUIVALENT
+[i] Processing benchmark `max`
+mapping 
+#kLUT5 = 793
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2981 0 
+|FIs|: 3 2227 0 
+|FIs|: 4 5026 0 
+|FIs|: 5 3232 0 
+|FIs|: 6 6104 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.03
+    time total                     =  0.04
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+604
+|FIs|: 1 0 0 
+|FIs|: 2 27 10 
+|FIs|: 3 71 81 
+|FIs|: 4 1376 751 
+|FIs|: 5 1771 4251 
+|FIs|: 6 6096 0 
+
+dArea   | sota: 21.82 opto: 23.8335
+#Levels | base: 39 sota: 39 opto: 39
+EQUIVALENT
+[i] Processing benchmark `multiplier`
+mapping 
+#kLUT5 = 5922
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3274 0 
+|FIs|: 3 3341 0 
+|FIs|: 4 6707 0 
+|FIs|: 5 3731 0 
+|FIs|: 6 8439 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.11
+    time window simulation         =  0.06
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time 1-cost basic version      =  0.81
+    time total                     =  1.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =    10
+    count total                    =    10
+4328
+|FIs|: 1 0 0 
+|FIs|: 2 27 10 
+|FIs|: 3 129 208 
+|FIs|: 4 1651 955 
+|FIs|: 5 1854 5504 
+|FIs|: 6 8424 0 
+
+dArea   | sota: 26.98 opto: 26.9166
+#Levels | base: 53 sota: 54 opto: 190
+EQUIVALENT
+[i] Processing benchmark `sin`
+mapping 
+#kLUT5 = 1476
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3425 0 
+|FIs|: 3 3554 0 
+|FIs|: 4 6986 0 
+|FIs|: 5 4038 0 
+|FIs|: 6 8965 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.07
+    time window simulation         =  0.05
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.01
+    time 1-cost basic version      =  4.89
+    time total                     =  5.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     2
+    count 1-cost basic version     =     5
+    count total                    =     7
+1151
+|FIs|: 1 0 0 
+|FIs|: 2 27 10 
+|FIs|: 3 152 222 
+|FIs|: 4 1741 1000 
+|FIs|: 5 2046 5767 
+|FIs|: 6 8947 0 
+
+dArea   | sota: 18.55 opto: 22.0718
+#Levels | base: 36 sota: 40 opto: 67
+EQUIVALENT
+[i] Processing benchmark `sqrt`
+mapping 
+#kLUT5 = 4645
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3975 0 
+|FIs|: 3 3733 0 
+|FIs|: 4 8211 0 
+|FIs|: 5 5430 0 
+|FIs|: 6 10264 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.10
+    time window simulation         =  0.04
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time 1-cost basic version      =  0.03
+    time total                     =  0.20
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =    42
+    count total                    =    42
+3557
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 155 222 
+|FIs|: 4 2165 1078 
+|FIs|: 5 2859 6733 
+|FIs|: 6 10216 0 
+
+dArea   | sota: 15.87 opto: 23.423
+#Levels | base: 1017 sota: 1118 opto: 1157
+EQUIVALENT
+[i] Processing benchmark `square`
+mapping 
+#kLUT5 = 3948
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 5905 0 
+|FIs|: 4 8276 0 
+|FIs|: 5 5616 0 
+|FIs|: 6 11665 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.12
+    time window simulation         =  0.03
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.01
+    time 1-cost basic version      =  0.14
+    time total                     =  0.30
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     4
+    count 1-cost basic version     =     1
+    count total                    =     5
+2890
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2165 1098 
+|FIs|: 5 2878 7588 
+|FIs|: 6 11617 0 
+
+dArea   | sota: 31.83 opto: 26.8169
+#Levels | base: 50 sota: 50 opto: 94
+EQUIVALENT
+[i] Processing benchmark `arbiter`
+mapping 
+#kLUT5 = 2722
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 6033 0 
+|FIs|: 4 8549 0 
+|FIs|: 5 5881 0 
+|FIs|: 6 13721 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.02
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time total                     =  0.03
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+2468
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2186 1098 
+|FIs|: 5 3015 7842 
+|FIs|: 6 13673 0 
+
+dArea   | sota: 9.33 opto: 9.33137
+#Levels | base: 18 sota: 18 opto: 18
+EQUIVALENT
+[i] Processing benchmark `cavlc`
+mapping 
+#kLUT5 = 117
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4101 0 
+|FIs|: 3 6043 0 
+|FIs|: 4 8558 0 
+|FIs|: 5 5901 0 
+|FIs|: 6 13796 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  1.10
+    time total                     =  1.11
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     1
+    count 1-cost basic version     =     1
+    count total                    =     2
+100
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2188 1099 
+|FIs|: 5 3021 7857 
+|FIs|: 6 13749 0 
+
+dArea   | sota: 11.02 opto: 15.2542
+#Levels | base: 4 sota: 4 opto: 5
+EQUIVALENT
+[i] Processing benchmark `ctrl`
+mapping 
+#kLUT5 = 28
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4103 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8561 0 
+|FIs|: 5 5919 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+17
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2188 1099 
+|FIs|: 5 3021 7869 
+|FIs|: 6 13753 0 
+
+dArea   | sota: 37.93 opto: 41.3793
+#Levels | base: 2 sota: 2 opto: 2
+EQUIVALENT
+[i] Processing benchmark `dec`
+mapping 
+#kLUT5 = 287
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4343 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8592 0 
+|FIs|: 5 5935 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+144
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 423 
+|FIs|: 4 2188 1209 
+|FIs|: 5 3022 7884 
+|FIs|: 6 13753 0 
+
+dArea   | sota: 49.83 opto: 49.8258
+#Levels | base: 2 sota: 2 opto: 3
+EQUIVALENT
+[i] Processing benchmark `i2c`
+mapping 
+#kLUT5 = 314
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4374 0 
+|FIs|: 3 6072 0 
+|FIs|: 4 8673 0 
+|FIs|: 5 6002 0 
+|FIs|: 6 13893 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.02
+    time total                     =  0.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     2
+    count total                    =     2
+240
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 569 423 
+|FIs|: 4 2218 1217 
+|FIs|: 5 3063 7949 
+|FIs|: 6 13845 0 
+
+dArea   | sota: 23.42 opto: 24.0506
+#Levels | base: 4 sota: 4 opto: 8
+EQUIVALENT
+[i] Processing benchmark `int2float`
+mapping 
+#kLUT5 = 47
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4376 0 
+|FIs|: 3 6074 0 
+|FIs|: 4 8678 0 
+|FIs|: 5 6014 0 
+|FIs|: 6 13919 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.09
+    time total                     =  0.09
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+42
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 569 423 
+|FIs|: 4 2222 1217 
+|FIs|: 5 3070 7954 
+|FIs|: 6 13871 0 
+
+dArea   | sota: 12.77 opto: 10.6383
+#Levels | base: 3 sota: 3 opto: 6
+EQUIVALENT
+[i] Processing benchmark `mem_ctrl`
+mapping 
+#kLUT5 = 11742
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5409 0 
+|FIs|: 3 8215 0 
+|FIs|: 4 10200 0 
+|FIs|: 5 8730 0 
+|FIs|: 6 17976 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.54
+    time window simulation         =  0.33
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.04
+    time 1-cost basic version      =  0.92
+    time total                     =  1.83
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     2
+    count 1-cost basic version     =    30
+    count total                    =    33
+8826
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 603 427 
+|FIs|: 4 2417 1365 
+|FIs|: 5 4758 10685 
+|FIs|: 6 17896 0 
+
+dArea   | sota: 19.34 opto: 24.8659
+#Levels | base: 25 sota: 30 opto: 271
+EQUIVALENT
+[i] Processing benchmark `priority`
+mapping 
+#kLUT5 = 178
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5424 0 
+|FIs|: 3 8223 0 
+|FIs|: 4 10243 0 
+|FIs|: 5 8776 0 
+|FIs|: 6 18042 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.01
+    time total                     =  0.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+157
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 603 427 
+|FIs|: 4 2449 1367 
+|FIs|: 5 4796 10704 
+|FIs|: 6 17962 0 
+
+dArea   | sota: 10.67 opto: 11.7978
+#Levels | base: 26 sota: 26 opto: 33
+EQUIVALENT
+[i] Processing benchmark `router`
+mapping 
+#kLUT5 = 49
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5425 0 
+|FIs|: 3 8226 0 
+|FIs|: 4 10256 0 
+|FIs|: 5 8786 0 
+|FIs|: 6 18064 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count total                    =     0
+46
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 604 427 
+|FIs|: 4 2461 1367 
+|FIs|: 5 4802 10708 
+|FIs|: 6 17984 0 
+
+dArea   | sota: 5.26 opto: 8
+#Levels | base: 6 sota: 6 opto: 7
+EQUIVALENT
+[i] Processing benchmark `voter`
+mapping 
+#kLUT5 = 1736
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5575 0 
+|FIs|: 3 8473 0 
+|FIs|: 4 10482 0 
+|FIs|: 5 9039 0 
+|FIs|: 6 18924 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.08
+    time total                     =  0.10
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =    25
+    count 1-cost basic version     =     3
+    count total                    =    28
+1299
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 615 498 
+|FIs|: 4 2478 1499 
+|FIs|: 5 4807 10939 
+|FIs|: 6 18816 0 
+
+dArea   | sota: 20.51 opto: 25.1728
+#Levels | base: 13 sota: 16 opto: 24
+EQUIVALENT
+[i] dataset ##GITHUB##
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto | EQ(sota) | EQ(opto) |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.01 |     true |     true |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.04 |     true |     true |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7048 |          1691 |      40.52 |   29.03 |  11.88 |     true |     true |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6166 |           309 |      30.73 |   23.66 |  12.50 |     true |     true |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.10 |     true |     true |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4328 |           190 |      36.60 |   26.92 |   7.05 |     true |     true |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1151 |            67 |      27.98 |   22.07 |   5.27 |     true |     true |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3557 |          1157 |      29.35 |   23.42 |   1.67 |     true |     true |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2890 |            94 |      36.61 |   26.82 |   2.49 |     true |     true |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   2.15 |     true |     true |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         100 |             5 |      16.00 |   15.25 |   1.12 |     true |     true |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |     true |     true |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.02 |     true |     true |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         240 |             8 |      30.42 |   24.05 |   0.04 |     true |     true |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.09 |     true |     true |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8826 |           271 |      32.66 |   24.87 |  42.22 |     true |     true |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.02 |     true |     true |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.01 |     true |     true |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1299 |            24 |      33.41 |   25.17 |   0.61 |     true |     true |
+
+==== Average Results over 19 benchmarks ====
+Metric              SOTA           Proposed       Improvement    
+-----------------------------------------------------------------
+Area                21.2895        23.3262        9.56697       %
+Dual                31.9963        32.9998        3.13625       %
+Runtime (s)         8.70895        4.59349        47.2555       %
+HISTOGRAM MERGING
+[552469, 528442, 389429, 349789, 328134, 324315, 293822, 238943, 188482, 145855, 116196, 94261, 100900, 121252, 72560, 63055, 52857, 50795, 41794, 29401, 23727, 17899, 9474, 4190, 3584, 1501, 1058, 1178, 1349, 1191, 1261, 1084, 1120, 1215, 1077, 1039, 883, 678, 593, 664, 646, 565, 479, 541, 468, 573, 604, 379, 440, 621, 344, 567, 336, 350, 276, 318, 441, 274, 388, 212, 169, 123, 301, 182, 264, 265, 147, 191, 197, 281, 271, 308, 306, 224, 228, 286, 302, 349, 290, 272, 201, 151, 218, 194, 299, 336, 205, 358, 114, 215, 344, 361, 297, 433, 239, 346, 107, 104, 117, 172, 256, 157, 337, 155, 394, 257, 177, 232, 218, 268, 278, 458, 128, 240, 304, 184, 176, 303, 282, 253, 366, 510, 259, 369, 119, 78, 92, 138, 198, 187, 315, 310, 330, 273, 53, 93, 83, 86, 126, 202, 197, 274, 40, 240, 194, 108, 20, 137, 162, 187, 192, 292, 384, 173, 303, 61, 12, 169, 58, 186, 219, 212, 310, 542, 169, 200, 300, 0, 24, 116, 108, 211, 380, 359, 348, 803, 188, 261, 0, 60, 11, 44, 181, 256, 218, 228, 378, 464, 348, 367, 86, 0, 15, 16, 73, 124, 299, 229, 196, 580, 107, 381, 89, 35, 10, 48, 48, 77, 122, 172, 208, 378, 468, 217, 394, 138, 81, 55, 57, 70, 26, 69, 119, 170, 208, 354, 379, 215, 345, 31, 78, 26, 11, 12, 46, 95, 139, 194, 167, 451, 114, 415, 26, 0, 0, 2, 63, 18, 49, 152, 145, 181, 233, 436, 183, 392, 159, 35, 34, 35, 37, 53, 31, 104, 161, 265, 335, 386, 558, 277, 674, 111, 129, 88, 22, 62, 84, 78, 215, 209, 187, 223, 497, 186, 140, 342, 7, 6, 5, 145, 2, 17, 22, 56, 103, 145, 206, 332, 460, 200, 293, 25, 22, 0, 0, 23, 46, 94, 40, 140, 232, 273, 418, 809, 205, 495, 91, 21, 46, 0, 0, 0, 0, 5, 127, 179, 227, 282, 481, 574, 266, 440, 0, 0, 44, 0, 44, 0, 0, 0, 15, 76, 147, 264, 181, 383, 139, 310, 80, 0, 42, 42, 42, 42, 42, 42, 42, 6, 52, 92, 124, 310, 363, 205, 332, 25, 22, 19, 42, 21, 0, 0, 0, 0, 4, 81, 95, 118, 207, 449, 105, 453, 29, 32, 29, 72, 29, 32, 69, 32, 67, 26, 67, 114, 268, 238, 349, 850, 235, 394, 160, 34, 48, 34, 48, 34, 48, 72, 67, 34, 57, 85, 177, 211, 416, 487, 256, 542, 14, 48, 69, 81, 32, 42, 29, 26, 65, 25, 25, 89, 139, 209, 315, 441, 302, 657, 82, 33, 46, 33, 46, 87, 82, 87, 64, 32, 42, 27, 95, 91, 127, 214, 447, 179, 451, 4, 7, 11, 26, 25, 35, 24, 71, 75, 20, 7, 21, 48, 86, 199, 302, 421, 837, 239, 36, 38, 40, 19, 19, 9, 46, 35, 20, 18, 84, 39, 28, 46, 98, 148, 193, 295, 271, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 45, 70, 112, 182, 301, 352, 321, 41, 47, 12, 32, 33, 19, 4, 39, 48, 7, 16, 39, 16, 42, 55, 71, 168, 202, 320, 167, 268, 14, 11, 32, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 50, 113, 114, 231, 517, 278, 35, 16, 20, 0, 30, 0, 0, 0, 30, 0, 30, 30, 0, 0, 42, 75, 97, 123, 262, 401, 217, 26, 93, 53, 60, 33, 0, 30, 0, 0, 30, 15, 0, 0, 1, 6, 28, 36, 71, 131, 244, 105, 152, 0, 0, 14, 28, 0, 0, 0, 0, 0, 28, 0, 28, 0, 28, 1, 29, 0, 34, 123, 232, 152, 194, 19, 42, 47, 39, 11, 11, 50, 11, 8, 0, 0, 0, 0, 3, 11, 8, 0, 3, 22, 108, 228, 150, 15, 12, 15, 6, 0, 0, 0, 0, 12, 24, 0, 0, 0, 0, 0, 25, 1, 24, 14, 122, 225, 192, 18, 39, 12, 39, 33, 30, 24, 24, 0, 24, 24, 0, 0, 22, 22, 11, 0, 1, 0, 3, 30, 190, 291, 27, 27, 24, 15, 9, 9, 9, 6, 0, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 4, 92, 270, 164, 20, 0, 20, 0, 20, 0, 20, 0, 20, 0, 20, 20, 20, 20, 20, 0, 21, 0, 0, 29, 46, 130, 193, 80, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 64, 120, 72, 4, 4, 4, 4, 20, 2, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 0, 0, 2, 10, 62, 104, 54, 6, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 4, 63, 119, 66, 8, 2, 0, 0, 6, 6, 6, 0, 0, 0, 0, 12, 12, 0, 12, 6, 0, 12, 0, 12, 0, 14, 5, 12, 0, 12, 0, 12, 12, 0, 12, 12, 0, 0, 0, 10, 15, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 8, 0, 8, 0, 8, 0, 8, 8, 8, 0, 8, 0, 8, 0, 8, 0, 8, 8, 0, 8, 8, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 12, 0, 0, 0, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1]
+
+
+
+[i] Processing benchmark `adder`
+mapping 
+#kLUT5 = 257
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 74 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 74 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+168
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 64 
+|FIs|: 6 74 0 
+
+dArea   | sota: 30.35 opto: 34.6304
+#Levels | base: 51 sota: 51 opto: 73
+EQUIVALENT
+[i] Processing benchmark `bar`
+mapping 
+#kLUT5 = 512
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 54 0 
+|FIs|: 3 202 0 
+|FIs|: 4 23 0 
+|FIs|: 5 32 0 
+|FIs|: 6 458 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+448
+|FIs|: 1 0 0 
+|FIs|: 2 1 0 
+|FIs|: 3 0 16 
+|FIs|: 4 0 9 
+|FIs|: 5 4 128 
+|FIs|: 6 458 0 
+
+dArea   | sota: 12.5 opto: 12.5
+#Levels | base: 4 sota: 4 opto: 4
+EQUIVALENT
+[i] Processing benchmark `div`
+mapping 
+#kLUT5 = 9931
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2074 0 
+|FIs|: 3 961 0 
+|FIs|: 4 3019 0 
+|FIs|: 5 1560 0 
+|FIs|: 6 3086 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.27
+    time window simulation         =  0.16
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.07
+    time 1-cost basic version      =  0.31
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.81
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =    26
+    count 1-cost with augmentation =     0
+    count total                    =    27
+7048
+|FIs|: 1 0 0 
+|FIs|: 2 26 9 
+|FIs|: 3 6 36 
+|FIs|: 4 842 537 
+|FIs|: 5 684 2427 
+|FIs|: 6 3097 0 
+
+dArea   | sota: 26.7 opto: 29.0303
+#Levels | base: 856 sota: 866 opto: 1691
+EQUIVALENT
+[i] Processing benchmark `log2`
+mapping 
+#kLUT5 = 8077
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2941 0 
+|FIs|: 3 1969 0 
+|FIs|: 4 4909 0 
+|FIs|: 5 3008 0 
+|FIs|: 6 5950 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.33
+    time window simulation         =  0.16
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.04
+    time 1-cost basic version      =  0.40
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.93
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     5
+    count 1-cost basic version     =    16
+    count 1-cost with augmentation =     0
+    count total                    =    21
+6166
+|FIs|: 1 0 0 
+|FIs|: 2 26 9 
+|FIs|: 3 71 81 
+|FIs|: 4 1334 732 
+|FIs|: 5 1553 4082 
+|FIs|: 6 5942 0 
+
+dArea   | sota: 19.82 opto: 23.6598
+#Levels | base: 71 sota: 76 opto: 309
+EQUIVALENT
+[i] Processing benchmark `max`
+mapping 
+#kLUT5 = 793
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 2981 0 
+|FIs|: 3 2227 0 
+|FIs|: 4 5026 0 
+|FIs|: 5 3232 0 
+|FIs|: 6 6104 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.03
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.04
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+604
+|FIs|: 1 0 0 
+|FIs|: 2 27 10 
+|FIs|: 3 71 81 
+|FIs|: 4 1376 751 
+|FIs|: 5 1771 4251 
+|FIs|: 6 6096 0 
+
+dArea   | sota: 21.82 opto: 23.8335
+#Levels | base: 39 sota: 39 opto: 39
+EQUIVALENT
+[i] Processing benchmark `multiplier`
+mapping 
+#kLUT5 = 5922
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3274 0 
+|FIs|: 3 3341 0 
+|FIs|: 4 6707 0 
+|FIs|: 5 3731 0 
+|FIs|: 6 8439 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.12
+    time window simulation         =  0.07
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time 1-cost basic version      =  0.79
+    time 1-cost with augmentation  =  0.00
+    time total                     =  1.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =    10
+    count 1-cost with augmentation =     0
+    count total                    =    10
+4328
+|FIs|: 1 0 0 
+|FIs|: 2 27 10 
+|FIs|: 3 129 208 
+|FIs|: 4 1651 955 
+|FIs|: 5 1854 5504 
+|FIs|: 6 8424 0 
+
+dArea   | sota: 26.98 opto: 26.9166
+#Levels | base: 53 sota: 54 opto: 190
+EQUIVALENT
+[i] Processing benchmark `sin`
+mapping 
+#kLUT5 = 1476
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3425 0 
+|FIs|: 3 3554 0 
+|FIs|: 4 6986 0 
+|FIs|: 5 4038 0 
+|FIs|: 6 8965 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.07
+    time window simulation         =  0.05
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.01
+    time 1-cost basic version      =  4.76
+    time 1-cost with augmentation  =  0.00
+    time total                     =  4.88
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     2
+    count 1-cost basic version     =     5
+    count 1-cost with augmentation =     0
+    count total                    =     7
+1151
+|FIs|: 1 0 0 
+|FIs|: 2 27 10 
+|FIs|: 3 152 222 
+|FIs|: 4 1741 1000 
+|FIs|: 5 2046 5767 
+|FIs|: 6 8947 0 
+
+dArea   | sota: 18.55 opto: 22.0718
+#Levels | base: 36 sota: 40 opto: 67
+EQUIVALENT
+[i] Processing benchmark `sqrt`
+mapping 
+#kLUT5 = 4645
+checking 
+recording pre
+|FIs|: 1 0 0 
+|FIs|: 2 3975 0 
+|FIs|: 3 3733 0 
+|FIs|: 4 8211 0 
+|FIs|: 5 5430 0 
+|FIs|: 6 10264 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.10
+    time window simulation         =  0.04
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time 1-cost basic version      =  0.03
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.20
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =    42
+    count 1-cost with augmentation =     0
+    count total                    =    42
+3557
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 155 222 
+|FIs|: 4 2165 1078 
+|FIs|: 5 2859 6733 
+|FIs|: 6 10216 0 
+
+dArea   | sota: 15.87 opto: 23.423
+#Levels | base: 1017 sota: 1118 opto: 1157
+EQUIVALENT
+[i] Processing benchmark `square`
+mapping 
+#kLUT5 = 3948
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 5905 0 
+|FIs|: 4 8276 0 
+|FIs|: 5 5616 0 
+|FIs|: 6 11665 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.11
+    time window simulation         =  0.03
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.01
+    time 1-cost basic version      =  0.14
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.29
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     4
+    count 1-cost basic version     =     1
+    count 1-cost with augmentation =     0
+    count total                    =     5
+2890
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2165 1098 
+|FIs|: 5 2878 7588 
+|FIs|: 6 11617 0 
+
+dArea   | sota: 31.83 opto: 26.8169
+#Levels | base: 50 sota: 50 opto: 94
+EQUIVALENT
+[i] Processing benchmark `arbiter`
+mapping 
+#kLUT5 = 2722
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4098 0 
+|FIs|: 3 6033 0 
+|FIs|: 4 8549 0 
+|FIs|: 5 5881 0 
+|FIs|: 6 13721 0 
+
+recorded pre 
+optimizing 
+Possible cycle detected in topological_sort
+================ TIME  ====================
+    time window construction       =  0.02
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.03
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+2468
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2186 1098 
+|FIs|: 5 3015 7842 
+|FIs|: 6 13673 0 
+
+dArea   | sota: 9.33 opto: 9.33137
+#Levels | base: 18 sota: 18 opto: 18
+EQUIVALENT
+[i] Processing benchmark `cavlc`
+mapping 
+#kLUT5 = 117
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4101 0 
+|FIs|: 3 6043 0 
+|FIs|: 4 8558 0 
+|FIs|: 5 5901 0 
+|FIs|: 6 13796 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.99
+    time 1-cost with augmentation  =  0.00
+    time total                     =  1.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     1
+    count 1-cost basic version     =     1
+    count 1-cost with augmentation =     0
+    count total                    =     2
+100
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2188 1099 
+|FIs|: 5 3021 7857 
+|FIs|: 6 13749 0 
+
+dArea   | sota: 11.02 opto: 15.2542
+#Levels | base: 4 sota: 4 opto: 5
+EQUIVALENT
+[i] Processing benchmark `ctrl`
+mapping 
+#kLUT5 = 28
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4103 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8561 0 
+|FIs|: 5 5919 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+17
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 405 
+|FIs|: 4 2188 1099 
+|FIs|: 5 3021 7869 
+|FIs|: 6 13753 0 
+
+dArea   | sota: 37.93 opto: 41.3793
+#Levels | base: 2 sota: 2 opto: 2
+EQUIVALENT
+[i] Processing benchmark `dec`
+mapping 
+#kLUT5 = 287
+checking 
+recording pre
+|FIs|: 1 1 0 
+|FIs|: 2 4343 0 
+|FIs|: 3 6044 0 
+|FIs|: 4 8592 0 
+|FIs|: 5 5935 0 
+|FIs|: 6 13800 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+144
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 566 423 
+|FIs|: 4 2188 1209 
+|FIs|: 5 3022 7884 
+|FIs|: 6 13753 0 
+
+dArea   | sota: 49.83 opto: 49.8258
+#Levels | base: 2 sota: 2 opto: 3
+EQUIVALENT
+[i] Processing benchmark `i2c`
+mapping 
+#kLUT5 = 314
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4374 0 
+|FIs|: 3 6072 0 
+|FIs|: 4 8673 0 
+|FIs|: 5 6002 0 
+|FIs|: 6 13893 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.02
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.02
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     2
+    count 1-cost with augmentation =     0
+    count total                    =     2
+240
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 569 423 
+|FIs|: 4 2218 1217 
+|FIs|: 5 3063 7949 
+|FIs|: 6 13845 0 
+
+dArea   | sota: 23.42 opto: 24.0506
+#Levels | base: 4 sota: 4 opto: 8
+EQUIVALENT
+[i] Processing benchmark `int2float`
+mapping 
+#kLUT5 = 47
+checking 
+recording pre
+|FIs|: 1 15 0 
+|FIs|: 2 4376 0 
+|FIs|: 3 6074 0 
+|FIs|: 4 8678 0 
+|FIs|: 5 6014 0 
+|FIs|: 6 13919 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.08
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.08
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+42
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 569 423 
+|FIs|: 4 2222 1217 
+|FIs|: 5 3070 7954 
+|FIs|: 6 13871 0 
+
+dArea   | sota: 12.77 opto: 10.6383
+#Levels | base: 3 sota: 3 opto: 6
+EQUIVALENT
+[i] Processing benchmark `mem_ctrl`
+mapping 
+#kLUT5 = 11742
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5409 0 
+|FIs|: 3 8215 0 
+|FIs|: 4 10200 0 
+|FIs|: 5 8730 0 
+|FIs|: 6 17976 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.38
+    time window simulation         =  0.24
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.03
+    time 1-cost basic version      =  0.71
+    time 1-cost with augmentation  =  0.00
+    time total                     =  1.36
+================ QUALITY ==================
+    count 0-cost basic version     =     1
+    count 0-cost with augmentation =     2
+    count 1-cost basic version     =    30
+    count 1-cost with augmentation =     0
+    count total                    =    33
+8826
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 603 427 
+|FIs|: 4 2417 1365 
+|FIs|: 5 4758 10685 
+|FIs|: 6 17896 0 
+
+dArea   | sota: 19.34 opto: 24.8659
+#Levels | base: 25 sota: 30 opto: 271
+EQUIVALENT
+[i] Processing benchmark `priority`
+mapping 
+#kLUT5 = 178
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5424 0 
+|FIs|: 3 8223 0 
+|FIs|: 4 10243 0 
+|FIs|: 5 8776 0 
+|FIs|: 6 18042 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.01
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.01
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+157
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 603 427 
+|FIs|: 4 2449 1367 
+|FIs|: 5 4796 10704 
+|FIs|: 6 17962 0 
+
+dArea   | sota: 10.67 opto: 11.7978
+#Levels | base: 26 sota: 26 opto: 33
+EQUIVALENT
+[i] Processing benchmark `router`
+mapping 
+#kLUT5 = 49
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5425 0 
+|FIs|: 3 8226 0 
+|FIs|: 4 10256 0 
+|FIs|: 5 8786 0 
+|FIs|: 6 18064 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.00
+    time window simulation         =  0.00
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.00
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.00
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =     0
+    count 1-cost basic version     =     0
+    count 1-cost with augmentation =     0
+    count total                    =     0
+46
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 604 427 
+|FIs|: 4 2461 1367 
+|FIs|: 5 4802 10708 
+|FIs|: 6 17984 0 
+
+dArea   | sota: 5.26 opto: 8
+#Levels | base: 6 sota: 6 opto: 7
+EQUIVALENT
+[i] Processing benchmark `voter`
+mapping 
+#kLUT5 = 1736
+checking 
+recording pre
+|FIs|: 1 288 0 
+|FIs|: 2 5575 0 
+|FIs|: 3 8473 0 
+|FIs|: 4 10482 0 
+|FIs|: 5 9039 0 
+|FIs|: 6 18924 0 
+
+recorded pre 
+optimizing 
+================ TIME  ====================
+    time window construction       =  0.01
+    time window simulation         =  0.01
+    time 0-cost basic version      =  0.00
+    time 0-cost with augmentation  =  0.00
+    time 1-cost basic version      =  0.08
+    time 1-cost with augmentation  =  0.00
+    time total                     =  0.10
+================ QUALITY ==================
+    count 0-cost basic version     =     0
+    count 0-cost with augmentation =    25
+    count 1-cost basic version     =     3
+    count 1-cost with augmentation =     0
+    count total                    =    28
+1299
+|FIs|: 1 0 0 
+|FIs|: 2 31 10 
+|FIs|: 3 615 498 
+|FIs|: 4 2478 1499 
+|FIs|: 5 4807 10939 
+|FIs|: 6 18816 0 
+
+dArea   | sota: 20.51 opto: 25.1728
+#Levels | base: 13 sota: 16 opto: 24
+EQUIVALENT
+[i] dataset ##GITHUB##
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto | EQ(sota) | EQ(opto) |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.01 |     true |     true |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.04 |     true |     true |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7048 |          1691 |      40.52 |   29.03 |  11.99 |     true |     true |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6166 |           309 |      30.73 |   23.66 |  12.34 |     true |     true |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.10 |     true |     true |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4328 |           190 |      36.60 |   26.92 |   6.96 |     true |     true |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1151 |            67 |      27.98 |   22.07 |   5.16 |     true |     true |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3557 |          1157 |      29.35 |   23.42 |   2.78 |     true |     true |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2890 |            94 |      36.61 |   26.82 |   2.48 |     true |     true |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   1.94 |     true |     true |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         100 |             5 |      16.00 |   15.25 |   1.00 |     true |     true |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |     true |     true |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.02 |     true |     true |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         240 |             8 |      30.42 |   24.05 |   0.04 |     true |     true |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.08 |     true |     true |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8826 |           271 |      32.66 |   24.87 |  31.62 |     true |     true |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.02 |     true |     true |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.00 |     true |     true |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1299 |            24 |      33.41 |   25.17 |   0.57 |     true |     true |
+
+==== Average Results over 19 benchmarks ====
+Metric              SOTA           Proposed       Improvement    
+-----------------------------------------------------------------
+Area                21.2895        23.3262        9.56697       %
+Dual                31.9963        32.9998        3.13625       %
+Runtime (s)         8.70895        4.0613         53.3663       %
+HISTOGRAM MERGING
+[552469, 528442, 389429, 349789, 328134, 324315, 293822, 238943, 188482, 145855, 116196, 94261, 100900, 121252, 72560, 63055, 52857, 50795, 41794, 29401, 23727, 17899, 9474, 4190, 3584, 1501, 1058, 1178, 1349, 1191, 1261, 1084, 1120, 1215, 1077, 1039, 883, 678, 593, 664, 646, 565, 479, 541, 468, 573, 604, 379, 440, 621, 344, 567, 336, 350, 276, 318, 441, 274, 388, 212, 169, 123, 301, 182, 264, 265, 147, 191, 197, 281, 271, 308, 306, 224, 228, 286, 302, 349, 290, 272, 201, 151, 218, 194, 299, 336, 205, 358, 114, 215, 344, 361, 297, 433, 239, 346, 107, 104, 117, 172, 256, 157, 337, 155, 394, 257, 177, 232, 218, 268, 278, 458, 128, 240, 304, 184, 176, 303, 282, 253, 366, 510, 259, 369, 119, 78, 92, 138, 198, 187, 315, 310, 330, 273, 53, 93, 83, 86, 126, 202, 197, 274, 40, 240, 194, 108, 20, 137, 162, 187, 192, 292, 384, 173, 303, 61, 12, 169, 58, 186, 219, 212, 310, 542, 169, 200, 300, 0, 24, 116, 108, 211, 380, 359, 348, 803, 188, 261, 0, 60, 11, 44, 181, 256, 218, 228, 378, 464, 348, 367, 86, 0, 15, 16, 73, 124, 299, 229, 196, 580, 107, 381, 89, 35, 10, 48, 48, 77, 122, 172, 208, 378, 468, 217, 394, 138, 81, 55, 57, 70, 26, 69, 119, 170, 208, 354, 379, 215, 345, 31, 78, 26, 11, 12, 46, 95, 139, 194, 167, 451, 114, 415, 26, 0, 0, 2, 63, 18, 49, 152, 145, 181, 233, 436, 183, 392, 159, 35, 34, 35, 37, 53, 31, 104, 161, 265, 335, 386, 558, 277, 674, 111, 129, 88, 22, 62, 84, 78, 215, 209, 187, 223, 497, 186, 140, 342, 7, 6, 5, 145, 2, 17, 22, 56, 103, 145, 206, 332, 460, 200, 293, 25, 22, 0, 0, 23, 46, 94, 40, 140, 232, 273, 418, 809, 205, 495, 91, 21, 46, 0, 0, 0, 0, 5, 127, 179, 227, 282, 481, 574, 266, 440, 0, 0, 44, 0, 44, 0, 0, 0, 15, 76, 147, 264, 181, 383, 139, 310, 80, 0, 42, 42, 42, 42, 42, 42, 42, 6, 52, 92, 124, 310, 363, 205, 332, 25, 22, 19, 42, 21, 0, 0, 0, 0, 4, 81, 95, 118, 207, 449, 105, 453, 29, 32, 29, 72, 29, 32, 69, 32, 67, 26, 67, 114, 268, 238, 349, 850, 235, 394, 160, 34, 48, 34, 48, 34, 48, 72, 67, 34, 57, 85, 177, 211, 416, 487, 256, 542, 14, 48, 69, 81, 32, 42, 29, 26, 65, 25, 25, 89, 139, 209, 315, 441, 302, 657, 82, 33, 46, 33, 46, 87, 82, 87, 64, 32, 42, 27, 95, 91, 127, 214, 447, 179, 451, 4, 7, 11, 26, 25, 35, 24, 71, 75, 20, 7, 21, 48, 86, 199, 302, 421, 837, 239, 36, 38, 40, 19, 19, 9, 46, 35, 20, 18, 84, 39, 28, 46, 98, 148, 193, 295, 271, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 45, 70, 112, 182, 301, 352, 321, 41, 47, 12, 32, 33, 19, 4, 39, 48, 7, 16, 39, 16, 42, 55, 71, 168, 202, 320, 167, 268, 14, 11, 32, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 50, 113, 114, 231, 517, 278, 35, 16, 20, 0, 30, 0, 0, 0, 30, 0, 30, 30, 0, 0, 42, 75, 97, 123, 262, 401, 217, 26, 93, 53, 60, 33, 0, 30, 0, 0, 30, 15, 0, 0, 1, 6, 28, 36, 71, 131, 244, 105, 152, 0, 0, 14, 28, 0, 0, 0, 0, 0, 28, 0, 28, 0, 28, 1, 29, 0, 34, 123, 232, 152, 194, 19, 42, 47, 39, 11, 11, 50, 11, 8, 0, 0, 0, 0, 3, 11, 8, 0, 3, 22, 108, 228, 150, 15, 12, 15, 6, 0, 0, 0, 0, 12, 24, 0, 0, 0, 0, 0, 25, 1, 24, 14, 122, 225, 192, 18, 39, 12, 39, 33, 30, 24, 24, 0, 24, 24, 0, 0, 22, 22, 11, 0, 1, 0, 3, 30, 190, 291, 27, 27, 24, 15, 9, 9, 9, 6, 0, 0, 0, 0, 0, 0, 0, 10, 0, 10, 0, 0, 4, 92, 270, 164, 20, 0, 20, 0, 20, 0, 20, 0, 20, 0, 20, 20, 20, 20, 20, 0, 21, 0, 0, 29, 46, 130, 193, 80, 3, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 64, 120, 72, 4, 4, 4, 4, 20, 2, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 16, 0, 0, 0, 2, 10, 62, 104, 54, 6, 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 4, 63, 119, 66, 8, 2, 0, 0, 6, 6, 6, 0, 0, 0, 0, 12, 12, 0, 12, 6, 0, 12, 0, 12, 0, 14, 5, 12, 0, 12, 0, 12, 12, 0, 12, 12, 0, 0, 0, 10, 15, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 8, 0, 8, 0, 8, 0, 8, 8, 8, 0, 8, 0, 8, 0, 8, 0, 8, 8, 0, 8, 8, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 12, 0, 0, 0, 0, 4, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 1]
+
+
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto | EQ(sota) | EQ(opto) |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.01 |     true |     true |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.05 |     true |     true |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7048 |          1691 |      40.52 |   29.03 |  12.06 |     true |     true |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6166 |           309 |      30.73 |   23.66 |  12.21 |     true |     true |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.15 |     true |     true |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4328 |           190 |      36.60 |   26.92 |   7.02 |     true |     true |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1151 |            67 |      27.98 |   22.07 |   5.30 |     true |     true |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3557 |          1157 |      29.35 |   23.42 |   1.71 |     true |     true |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2890 |            94 |      36.61 |   26.82 |   2.45 |     true |     true |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   1.88 |     true |     true |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         100 |             5 |      16.00 |   15.25 |   1.03 |     true |     true |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |     true |     true |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.02 |     true |     true |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         240 |             8 |      30.42 |   24.05 |   0.06 |     true |     true |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.10 |     true |     true |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8825 |           271 |      32.67 |   24.87 |  31.27 |     true |     true |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.03 |     true |     true |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.02 |     true |     true |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1299 |            24 |      33.41 |   25.17 |   0.57 |     true |     true |
+
+sota=[179,448,7279,6476,620,4324,1203,3908,2692,2468,105,18,144,242,41,9475,159,72,1380]
+opto=[168,448,7048,6166,604,4328,1151,3557,2890,2468,100,17,144,240,42,8825,157,46,1299]
+
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         168 |            73 |      52.98 |   34.63 |   0.01 |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.05 |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        7048 |          1691 |      40.52 |   29.03 |  12.06 |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6166 |           309 |      30.73 |   23.66 |  12.21 |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         604 |            39 |      31.29 |   23.83 |   0.15 |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4328 |           190 |      36.60 |   26.92 |   7.02 |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1151 |            67 |      27.98 |   22.07 |   5.30 |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3557 |          1157 |      29.35 |   23.42 |   1.71 |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2890 |            94 |      36.61 |   26.82 |   2.45 |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2468 |            18 |      10.29 |    9.33 |   1.88 |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         100 |             5 |      16.00 |   15.25 |   1.03 |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          17 |             2 |      70.59 |   41.38 |   0.00 |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         144 |             3 |      99.31 |   49.83 |   0.02 |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         240 |             8 |      30.42 |   24.05 |   0.06 |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          42 |             6 |      11.90 |   10.64 |   0.10 |
+|   mem_ctrl |     11743 |      11747 |        9475 |            30 |      27.91 |   19.34 |  59.88 |        8825 |           271 |      32.67 |   24.87 |  31.27 |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         157 |            33 |      13.38 |   11.80 |   0.03 |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             7 |       8.70 |    8.00 |   0.02 |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1299 |            24 |      33.41 |   25.17 |   0.57 |
+
+
+
+|  benchmark | |6LUT|abc | |6LUT*|abc | |65LUT|sota | D(65LUT)|sota | fDUAL|sota | dA|sota | t|sota | |65LUT|opto | D(65LUT)|opto | fDUAL|opto | dA|opto | t|opto |
+|      adder |       257 |        257 |         179 |            51 |      44.69 |   30.35 |   0.29 |         156 |            72 |      48.72 |   39.30 |   0.02 |
+|        bar |       512 |        512 |         448 |             4 |      14.29 |   12.50 |   0.39 |         448 |             4 |      14.29 |   12.50 |   0.02 |
+|        div |      9931 |       9931 |        7279 |           866 |      38.27 |   26.70 |  56.31 |        6756 |          1709 |      30.14 |   31.97 |   7.98 |
+|       log2 |      8077 |       8077 |        6476 |            76 |      27.53 |   19.82 |  16.26 |        6188 |           194 |      27.99 |   23.39 |  15.45 |
+|        max |       793 |        793 |         620 |            39 |      28.55 |   21.82 |   0.54 |         606 |            39 |      30.86 |   23.58 |   0.26 |
+| multiplier |      5922 |       5922 |        4324 |            54 |      37.44 |   26.98 |   9.98 |        4316 |           121 |      33.80 |   27.12 |  10.52 |
+|        sin |      1477 |       1477 |        1203 |            40 |      25.35 |   18.55 |   1.33 |        1128 |            87 |      26.68 |   23.63 |  25.41 |
+|       sqrt |      4645 |       4645 |        3908 |          1118 |      42.14 |   15.87 |   9.71 |        3554 |          1085 |      25.83 |   23.49 |   3.44 |
+|     square |      3949 |       3949 |        2692 |            50 |      46.84 |   31.83 |   6.34 |        2848 |            95 |      37.22 |   27.88 |   2.05 |
+|    arbiter |      2722 |       2722 |        2468 |            18 |      10.29 |    9.33 |   2.98 |        2594 |            18 |       4.93 |    4.70 |   0.75 |
+|      cavlc |       117 |        118 |         105 |             4 |      12.38 |   11.02 |   0.10 |         102 |             6 |       9.80 |   13.56 |   0.86 |
+|       ctrl |        29 |         29 |          18 |             2 |      61.11 |   37.93 |   0.06 |          16 |             3 |      68.75 |   44.83 |   0.00 |
+|        dec |       287 |        287 |         144 |             2 |      99.31 |   49.83 |   0.09 |         152 |             2 |      88.82 |   47.04 |   0.03 |
+|        i2c |       315 |        316 |         242 |             4 |      30.58 |   23.42 |   0.21 |         240 |             6 |      21.25 |   24.05 |   0.17 |
+|  int2float |        47 |         47 |          41 |             3 |      14.63 |   12.77 |   0.07 |          41 |             3 |       9.76 |   12.77 |   0.10 |
+|   priority |       178 |        178 |         159 |            26 |      12.58 |   10.67 |   0.14 |         158 |            26 |      11.39 |   11.24 |   0.05 |
+|     router |        50 |         50 |          72 |             6 |       5.56 |    5.26 |   0.07 |          46 |             6 |       8.70 |    8.00 |   0.03 |
+|      voter |      1736 |       1736 |        1380 |            16 |      28.48 |   20.51 |   0.72 |        1307 |            28 |      26.32 |   24.71 |   0.38 |
