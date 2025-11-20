@@ -39,6 +39,8 @@
 
 #include <cstdint>
 
+#include "../../boolean/spfd.hpp"
+
 namespace rinox {
 namespace dependency {
 namespace window {

@@ -65,7 +65,7 @@ struct AreaStructDynamicParams {
   uint32_t stop_after_nth = std::numeric_limits<uint32_t>::max();
   uint32_t max_num_divisors = 128;
   uint32_t max_reconvergence = 10;
-  int32_t odc_levels = 2;
+  int32_t max_num_levels_tfo = 2;
 };
 
 struct AreaStructStats {
@@ -123,7 +123,7 @@ class AreaStructImpl {
     static constexpr uint32_t max_num_leaves = StaticParams::kMaxNumLeaves;
     uint32_t max_num_divisors;
     uint32_t max_reconvergence;
-    int32_t odc_levels;
+    int32_t max_num_levels_tfo;
   };
 
   using Node = typename Ntk::node;
@@ -191,7 +191,7 @@ void AreaStructImpl<Ntk, StaticParams>::Run() {
   windowing::window_manager_stats st_manager;
   ps_manager.max_num_divisors = ps_.max_num_divisors;
   ps_manager.max_reconvergence = ps_.max_reconvergence;
-  ps_manager.odc_levels = ps_.odc_levels;
+  ps_manager.max_num_levels_tfo = ps_.max_num_levels_tfo;
 
   WindowManager manager(ntk_, ps_manager, st_manager);
   WindowSimulator simulator(ntk_);
@@ -229,7 +229,7 @@ void AreaStructImpl<Ntk, StaticParams>::AnalyzeStructure() {
   windowing::window_manager_stats st_manager;
   ps_manager.max_num_divisors = ps_.max_num_divisors;
   ps_manager.max_reconvergence = ps_.max_reconvergence;
-  ps_manager.odc_levels = ps_.odc_levels;
+  ps_manager.max_num_levels_tfo = ps_.max_num_levels_tfo;
 
   WindowManager manager(ntk_, ps_manager, st_manager);
   WindowSimulator simulator(ntk_);

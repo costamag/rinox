@@ -108,7 +108,7 @@ TEST_CASE("CEC a small window with ODCs", "[window_checking]") {
   DNtk dntk(ntk);
 
   window_manager_params ps;
-  ps.odc_levels = 2;
+  ps.max_num_levels_tfo = 2;
 
   using Manager = rinox::windowing::window_manager<DNtk>;
   Manager window(dntk, ps, st);
@@ -147,8 +147,8 @@ TEST_CASE("CEC a small two-outputs window with ODCs", "[window_checking]") {
 
   fs.emplace_back(ntk.create_node({fs[0], fs[1]}, 2));  // 2
   fs.emplace_back(ntk.create_node({fs[0], fs[1]}, 1));  // 3
-  fs.emplace_back(ntk.create_node({fs[3]}, 0));  // 4
-  fs.emplace_back(ntk.create_node({fs[2]}, 0));  // 5
+  fs.emplace_back(ntk.create_node({fs[3]}, 0));         // 4
+  fs.emplace_back(ntk.create_node({fs[2]}, 0));         // 5
   fs.emplace_back(ntk.create_node({fs[3], fs[5]}, 2));  // 6
   fs.emplace_back(ntk.create_node({fs[2], fs[4]}, 1));  // 7
 
@@ -160,7 +160,7 @@ TEST_CASE("CEC a small two-outputs window with ODCs", "[window_checking]") {
   DNtk dntk(ntk);
 
   window_manager_params ps;
-  ps.odc_levels = 2;
+  ps.max_num_levels_tfo = 2;
 
   using Manager = rinox::windowing::window_manager<DNtk>;
   Manager window(dntk, ps, st);

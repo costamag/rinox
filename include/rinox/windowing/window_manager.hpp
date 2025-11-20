@@ -514,7 +514,8 @@ class window_t {
 struct default_window_manager_params {
   uint32_t max_num_divisors = 128;
   uint32_t max_reconvergence = 10;
-  int32_t odc_levels = 0;
+  int32_t max_num_levels_tfi = 10;
+  int32_t max_num_levels_tfo = -1;
   static constexpr uint32_t max_num_leaves = 8;
 };
 
@@ -525,7 +526,6 @@ struct window_manager_stats {
 template <class Ntk, typename Params = default_window_manager_params>
 class window_manager {
  public:
-  
   using node_index_t = typename Ntk::node;
   using signal_t = typename Ntk::signal;
   static constexpr uint32_t kMaxNumLeaves = Params::max_num_leaves;
@@ -637,15 +637,11 @@ class window_manager {
 
   void print() const { window_.print(); }
 
-  void MarkTfoInside(node_index_t n, uint32_t color)
-  {
+  void MarkTfoInside(node_index_t n, uint32_t color) {
     if (!is_contained(n)) return;
     ntk_.set_visited(n, color);
-    ntk_.foreach_fanout(n, [&](auto const no){
-      MarkTfoInside(no, color);
-    });
+    ntk_.foreach_fanout(n, [&](auto const no) { MarkTfoInside(no, color); });
   }
-
 
  private:
   /* ----------------------------- INPS collection ---------------------------
@@ -902,7 +898,7 @@ class window_manager {
 
   bool collect_tfos() {
     // Case 1: no ODC levels -> pivot is only output
-    if (ps_.odc_levels == 0) {
+    if (ps_.max_num_levels_tfo == 0) {
       ntk_.foreach_output(window_.pivot, [&](auto const& f) {
         window_.outs_.insert_unique(f);
       });
@@ -952,8 +948,8 @@ class window_manager {
     for (auto const& n : current_front) window_.make_tfos(n);
     for (auto const& n : extra_nodes) window_.make_inps(n);
 
-    // -- grow up to odc_levels
-    for (int level = 1; level < ps_.odc_levels; ++level) {
+    // -- grow up to num_levels_tfo
+    for (int level = 1; level < ps_.max_num_levels_tfo; ++level) {
       next_front.clear();
 
       for (auto const& n : current_front) {
@@ -1055,17 +1051,15 @@ class window_manager {
            (window_.outs_.size() <= outs_capacity);
   }
 
-  void fix_labels()
-  {
+  void fix_labels() {
     std::set<signal_t> inps;
-    foreach_input( [&]( auto const& f, auto i ){
+    foreach_input([&](auto const& f, auto i) {
       window_.make_inps(ntk_.get_node(f));
       inps.insert(f);
-    } );
-    foreach_divisor( [&]( auto const& f, auto i ){
-      if ( inps.find(f) == inps.end() )
-        window_.make_divs(ntk_.get_node(f));
-    } );
+    });
+    foreach_divisor([&](auto const& f, auto i) {
+      if (inps.find(f) == inps.end()) window_.make_divs(ntk_.get_node(f));
+    });
   }
 
  private:

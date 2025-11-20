@@ -216,7 +216,7 @@ int main() {
           ps.stop_after_nth = std::numeric_limits<uint32_t>::max();
           ps.max_num_divisors = 1024;
           ps.max_reconvergence = 10;
-          ps.odc_levels = 0;
+          ps.max_num_levels_tfo = 0;
           ps.preserve_time = true;
           ps.try_0Bresub = true;
           ps.try_0Xresub = true;
