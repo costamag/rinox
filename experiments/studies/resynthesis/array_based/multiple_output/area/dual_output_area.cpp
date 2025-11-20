@@ -17,12 +17,12 @@
 #include <mockturtle/views/names_view.hpp>
 #include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
 #include <rinox/databases/mapped_database.hpp>
-#include <rinox/network/converters.hpp>
-#include <rinox/opto/array/orchestrate/array_orchestrate_area2.hpp>
-#include <rinox/opto/array/merge/array_merge_area2.hpp>
-#include <rinox/windowing/window_manager.hpp>
-#include <rinox/synthesis/lut/synth.hpp>
 #include <rinox/dependency/window/oracles.hpp>
+#include <rinox/network/converters.hpp>
+#include <rinox/opto/array/merge/array_merge_area.hpp>
+#include <rinox/opto/array/orchestrate/array_orchestrate_area.hpp>
+#include <rinox/synthesis/lut/synth.hpp>
+#include <rinox/windowing/window_manager.hpp>
 #include <string>
 #include <vector>
 
@@ -36,15 +36,19 @@ abc_lut_map(std::string const&,
             std::vector<rinox::experiments::aig_opto_t> const&,
             rinox::experiments::lut_map_t const&, std::string, int);
 
-template<typename Ntk>
-void RecordFaninsDistrib(Ntk&, std::vector<std::array<double, Ntk::kMaxNumOutputs>>&);
+template <typename Ntk>
+void RecordFaninsDistrib(Ntk&,
+                         std::vector<std::array<double, Ntk::kMaxNumOutputs>>&);
 
-
-template<typename Ntk>
-void AnalyzeMerging(Ntk & ntk, rinox::analyzers::evaluators::LevelsEvaluator<Ntk> & times, std::vector<int> & hist);
+template <typename Ntk>
+void AnalyzeMerging(Ntk& ntk,
+                    rinox::analyzers::evaluators::LevelsEvaluator<Ntk>& times,
+                    std::vector<int>& hist);
 
 template <class Ntk>
-bool ExistsPath(Ntk & ntk, rinox::analyzers::evaluators::LevelsEvaluator<Ntk> & times, typename Ntk::node_index_t n1, typename Ntk::node_index_t n2);
+bool ExistsPath(Ntk& ntk,
+                rinox::analyzers::evaluators::LevelsEvaluator<Ntk>& times,
+                typename Ntk::node_index_t n1, typename Ntk::node_index_t n2);
 
 struct perf_t {
   int nLuts;
@@ -185,7 +189,9 @@ int main() {
         mockturtle::klut_network klut_sota = convert_bound_to_klut(ntk);
         std::cout << "checking " << std::endl;
 
-        bool cec_sota = name == "hyp" ? false :  rinox::experiments::abc_cec(klut_sota, path);
+        bool cec_sota = name == "hyp"
+                            ? false
+                            : rinox::experiments::abc_cec(klut_sota, path);
 
         /* ==========================================================================
          */
@@ -203,7 +209,7 @@ int main() {
 
         rTimeOpto = 0;
 
-        //for(int i=0; i < 4; ++i)
+        // for(int i=0; i < 4; ++i)
         {
           rinox::opto::array::OrchestrateAreaParamsDefault ps;
           rinox::opto::array::OrchestrateAreaStatsDefault st;
@@ -218,18 +224,18 @@ int main() {
           ps.try_1Xresub = false;
           rinox::opto::array::OrchestrateArea(ntk, ps, &st);
           std::cout << ntk.area() << std::endl;
-          rTimeOpto+=st.GetTimeTotal();
+          rTimeOpto += st.GetTimeTotal();
         }
         {
           rinox::opto::array::MergeAreaParamsDefault ps;
           ps.preserve_time = true;
           rinox::opto::array::MergeAreaStatsDefault st;
           rinox::opto::array::MergeArea(ntk, ps, &st);
-          rTimeOpto+=st.GetTimeTotal();
+          rTimeOpto += st.GetTimeTotal();
         }
         RecordFaninsDistrib(ntk, distr_aft);
 
-        fDualOpto = (100.0 * ntk.CountDuals())/(1.0*ntk.CountGates());
+        fDualOpto = (100.0 * ntk.CountDuals()) / (1.0 * ntk.CountGates());
         nLutsOpto = static_cast<int>(ntk.area());
         dAreaOpto = 100 * (1 - ((double)nLutsOpto) / ((double)abc_ifK6[name]));
         mockturtle::depth_view dntk{ntk};
@@ -249,12 +255,16 @@ int main() {
         dAreaSota = sota[name].dArea;
         rTimeSota = sota[name].rTime;
 
-        std::cout << "dArea   | sota: " << dAreaSota << " opto: " << dAreaOpto << std::endl;
-        std::cout << "#Levels | base: " << depthBase << " sota: " << depthSota << " opto: " << depthOpto << std::endl;
+        std::cout << "dArea   | sota: " << dAreaSota << " opto: " << dAreaOpto
+                  << std::endl;
+        std::cout << "#Levels | base: " << depthBase << " sota: " << depthSota
+                  << " opto: " << depthOpto << std::endl;
 
         mockturtle::klut_network klut_opto =
             rinox::network::convert_bound_to_klut<max_num_outputs>(ntk);
-        bool cec_opto = name == "hyp" ? false : rinox::experiments::abc_cec(klut_opto, path);
+        bool cec_opto = name == "hyp"
+                            ? false
+                            : rinox::experiments::abc_cec(klut_opto, path);
         if (!cec_opto) std::cout << "NOT ";
         std::cout << "EQUIVALENT" << std::endl;
         /* ==========================================================================
@@ -311,11 +321,10 @@ int main() {
             << std::setw(15) << avgRunTimeOpto << std::setw(14)
             << pct(avgRunTimeSota, avgRunTimeOpto) << "%\n";
 
-std::cout << "HISTOGRAM MERGING" << std::endl;
-std::cout << "[";
-for (int i=0; i < hist.size()-1; ++i)
-  std::cout << hist[i] << ", ";
-std::cout << hist.back() << "]";
+  std::cout << "HISTOGRAM MERGING" << std::endl;
+  std::cout << "[";
+  for (int i = 0; i < hist.size() - 1; ++i) std::cout << hist[i] << ", ";
+  std::cout << hist.back() << "]";
 
   return 0;
 }
@@ -324,7 +333,7 @@ rinox::network::bound_network<rinox::network::design_type_t::ARRAY_BASED, 2u>
 abc_lut_map(std::string const& path,
             std::vector<rinox::experiments::aig_opto_t> const& aig_optos,
             rinox::experiments::lut_map_t const& map, std::string name, int K) {
-  std::string command =  fmt::format(
+  std::string command = fmt::format(
       "abc -q \"read_aiger {}; resyn; resyn2; if -K {}; write_blif "
       "/tmp/abc_{}.blif\"",
       path, K, name);
@@ -363,64 +372,64 @@ abc_lut_map(std::string const& path,
       rinox::network::design_type_t::ARRAY_BASED, 2u>(klut);
 }
 
-  template<typename Ntk>
-  void RecordFaninsDistrib(Ntk&ntk, std::vector<std::array<double, Ntk::kMaxNumOutputs>>& distr)
-  {
-    std::array<double, Ntk::kMaxNumOutputs> zero;
-    for(uint32_t i=0; i<Ntk::kMaxNumOutputs; ++i) zero[i]=0;
+template <typename Ntk>
+void RecordFaninsDistrib(
+    Ntk& ntk, std::vector<std::array<double, Ntk::kMaxNumOutputs>>& distr) {
+  std::array<double, Ntk::kMaxNumOutputs> zero;
+  for (uint32_t i = 0; i < Ntk::kMaxNumOutputs; ++i) zero[i] = 0;
 
-    double total = 0;
-    ntk.foreach_gate([&](auto const& n){
-      if(ntk.is_dead(n)) return true;
-      uint32_t num_fanins = ntk.fanin_size(n);
-      while (distr.size()<=num_fanins)
-        distr.push_back(zero);
-      distr[num_fanins][ntk.num_outputs(n)-1]+=1;
-      total+=1;
-      return true;
-    });
-    for(int num_fanins=1; num_fanins<distr.size();++num_fanins)
-    {
-      std::cout << "|FIs|: " << num_fanins << " ";
-      for(int i=0; i<Ntk::kMaxNumOutputs;++i)
-        std::cout << distr[num_fanins][i] << " ";
-      std::cout << std::endl;
-    }
+  double total = 0;
+  ntk.foreach_gate([&](auto const& n) {
+    if (ntk.is_dead(n)) return true;
+    uint32_t num_fanins = ntk.fanin_size(n);
+    while (distr.size() <= num_fanins) distr.push_back(zero);
+    distr[num_fanins][ntk.num_outputs(n) - 1] += 1;
+    total += 1;
+    return true;
+  });
+  for (int num_fanins = 1; num_fanins < distr.size(); ++num_fanins) {
+    std::cout << "|FIs|: " << num_fanins << " ";
+    for (int i = 0; i < Ntk::kMaxNumOutputs; ++i)
+      std::cout << distr[num_fanins][i] << " ";
     std::cout << std::endl;
   }
-
-
-template<typename Ntk>
-void AnalyzeMerging(Ntk & ntk, rinox::analyzers::evaluators::LevelsEvaluator<Ntk> & times, std::vector<int> & hist) {
-    ntk.foreach_gate([&](auto const& n1){
-        if (ntk.num_outputs(n1)>1) return true;
-        auto const f1 = ntk.make_signal(n1);
-        ntk.foreach_gate([&](auto const& n2){
-            if(n1<=n2) return false;
-            if (ntk.num_outputs(n2)>1) return true;
-            auto const f2 = ntk.make_signal(n2);
-            if(times.GetArrival(f1)>times.GetRequired(f2)) return true;
-            if(times.GetArrival(f2)>times.GetRequired(f1)) return true;
-            
-            std::set<typename Ntk::signal_t> fanins;
-            ntk.foreach_fanin(n1, [&](auto const& fi, auto){ fanins.insert(fi);});
-            ntk.foreach_fanin(n2, [&](auto const& fi, auto){ fanins.insert(fi);});
-            int const w = fanins.size();
-            if (w <= 5u)
-            {
-              auto const cnt = static_cast<int>(std::abs(times.GetArrival(f1)-times.GetArrival(f2)));
-              while (cnt >= hist.size()) hist.push_back(0);
-              hist[cnt]+=1;
-            }
-            return true;
-        });
-        return true;
-    });
+  std::cout << std::endl;
 }
 
+template <typename Ntk>
+void AnalyzeMerging(Ntk& ntk,
+                    rinox::analyzers::evaluators::LevelsEvaluator<Ntk>& times,
+                    std::vector<int>& hist) {
+  ntk.foreach_gate([&](auto const& n1) {
+    if (ntk.num_outputs(n1) > 1) return true;
+    auto const f1 = ntk.make_signal(n1);
+    ntk.foreach_gate([&](auto const& n2) {
+      if (n1 <= n2) return false;
+      if (ntk.num_outputs(n2) > 1) return true;
+      auto const f2 = ntk.make_signal(n2);
+      if (times.GetArrival(f1) > times.GetRequired(f2)) return true;
+      if (times.GetArrival(f2) > times.GetRequired(f1)) return true;
+
+      std::set<typename Ntk::signal_t> fanins;
+      ntk.foreach_fanin(n1, [&](auto const& fi, auto) { fanins.insert(fi); });
+      ntk.foreach_fanin(n2, [&](auto const& fi, auto) { fanins.insert(fi); });
+      int const w = fanins.size();
+      if (w <= 5u) {
+        auto const cnt = static_cast<int>(
+            std::abs(times.GetArrival(f1) - times.GetArrival(f2)));
+        while (cnt >= hist.size()) hist.push_back(0);
+        hist[cnt] += 1;
+      }
+      return true;
+    });
+    return true;
+  });
+}
 
 template <class Ntk>
-bool ExistsPath(Ntk & ntk, rinox::analyzers::evaluators::LevelsEvaluator<Ntk> & times, typename Ntk::node_index_t n1, typename Ntk::node_index_t n2) {
+bool ExistsPath(Ntk& ntk,
+                rinox::analyzers::evaluators::LevelsEvaluator<Ntk>& times,
+                typename Ntk::node_index_t n1, typename Ntk::node_index_t n2) {
   if (n1 == n2) return true;
   typename Ntk::node_index_t n_upper = n1;
   typename Ntk::node_index_t n_lower = n2;
@@ -436,21 +445,22 @@ bool ExistsPath(Ntk & ntk, rinox::analyzers::evaluators::LevelsEvaluator<Ntk> & 
 
   ntk.incr_trav_id();
   bool found = false;
-  std::function<void(typename Ntk::node_index_t)> DepthFirstSearch = [&](typename Ntk::node_index_t u) {
-    if (found) return;
-    if (u == n_lower) {
-      found = true;
-      return;
-    }
-    ntk.foreach_fanin(u, [&](auto fi, auto) {
-      auto v = ntk.get_node(fi);
-      if (ntk.visited(v) != ntk.trav_id() &&
-          (times.GetArrival(fi) > times.GetArrival(f_lower))) {
-        ntk.set_visited(v, ntk.trav_id());
-        DepthFirstSearch(v);
-      }
-    });
-  };
+  std::function<void(typename Ntk::node_index_t)> DepthFirstSearch =
+      [&](typename Ntk::node_index_t u) {
+        if (found) return;
+        if (u == n_lower) {
+          found = true;
+          return;
+        }
+        ntk.foreach_fanin(u, [&](auto fi, auto) {
+          auto v = ntk.get_node(fi);
+          if (ntk.visited(v) != ntk.trav_id() &&
+              (times.GetArrival(fi) > times.GetArrival(f_lower))) {
+            ntk.set_visited(v, ntk.trav_id());
+            DepthFirstSearch(v);
+          }
+        });
+      };
   DepthFirstSearch(n_upper);
   return found;
 }

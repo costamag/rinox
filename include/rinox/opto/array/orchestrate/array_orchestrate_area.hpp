@@ -1,5 +1,5 @@
 /* rinox: C++ logic network library
- * Copyright (C) 2018-2023  EPFL
+ * Copyright (C) 20X8-2023  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,8 @@
   \author Andrea Costamagna
 */
 
-#ifndef RINOX_ALGORITHMS_ARRAY_AREA_ORCHESTRA_HPP_
-#define RINOX_ALGORITHMS_ARRAY_AREA_ORCHESTRA_HPP_
+#ifndef RINOX_ALGORITHMS_ARRAY_ORCHESTRATE_AREA_HPP_
+#define RINOX_ALGORITHMS_ARRAY_ORCHESTRATE_AREA_HPP_
 
 #include <fmt/format.h>
 
@@ -43,6 +43,7 @@
 #include <mockturtle/utils/stopwatch.hpp>
 #include <optional>
 
+#include "../../../analyzers/evaluators/levels_evaluator.hpp"
 #include "../../../analyzers/trackers/arrival_times_tracker.hpp"
 #include "../../../boolean/simd.hpp"
 #include "../../../boolean/spfd.hpp"
@@ -77,286 +78,193 @@ namespace rinox {
 namespace opto {
 namespace array {
 
-struct DefaultAreaResynStaticParams {
-  static constexpr uint32_t kMaxNumLeavesXL = 20u;
+struct OrchestrateAreaParamsDefault {
   static constexpr uint32_t kMaxNumLeaves = RINOX_MAX_NUM_LEAVES;
-  static constexpr uint32_t kNumVarsSign = RINOX_NUM_VARS_SIGN;
   static constexpr uint32_t kMaxCutsSize = RINOX_MAX_CUTS_SIZE;
-  static constexpr uint32_t kMaxCubeSpfd = RINOX_MAX_CUBE_SPFD;
   static constexpr uint32_t kMaxInpsDual = 5u;
   static constexpr uint32_t kMaxInpsSolo = 6u;
   static constexpr dependency::window::Oracles kSpfdMeth =
       dependency::window::Oracles::kPivs;
-};
-
-struct AreaResynParams {
   uint32_t stop_after_nth = std::numeric_limits<uint32_t>::max();
-  uint32_t max_num_divisors = 128;
+  uint32_t max_num_divisors = 1024;
   uint32_t max_reconvergence = 10;
   int32_t odc_levels = 0;
-  bool cec = false;
-  bool try_0resub_solo = true;
-  bool try_1resub_solo = true;
-  bool try_2resub_solo = true;
-  bool try_1resub_dual = true;
-  bool try_1rexub_solo = true;
-  bool try_0rexub_solo = true;
-  bool try_merger_solo = true;
+  bool try_0Bresub = false;
+  bool try_0Xresub = false;
+  bool try_1Bresub = false;
+  bool try_1Xresub = false;
+  bool preserve_time = false;
 };
 
-struct AreaResynStats {
-  mockturtle::stopwatch<>::duration time_window_constr{0};
-  mockturtle::stopwatch<>::duration time_window_simula{0};
-  mockturtle::stopwatch<>::duration time_0resub_solo{0};
-  mockturtle::stopwatch<>::duration time_1resub_solo{0};
-  mockturtle::stopwatch<>::duration time_2resub_solo{0};
-  mockturtle::stopwatch<>::duration time_1resub_dual{0};
-  mockturtle::stopwatch<>::duration time_1rexub_solo{0};
-  mockturtle::stopwatch<>::duration time_0rexub_solo{0};
-  mockturtle::stopwatch<>::duration time_merger_solo{0};
+struct OrchestrateAreaStatsDefault {
+  mockturtle::stopwatch<>::duration time_window_construction{0};
+  mockturtle::stopwatch<>::duration time_window_simulation{0};
+  mockturtle::stopwatch<>::duration time_0Bresub{0};
+  mockturtle::stopwatch<>::duration time_0Xresub{0};
+  mockturtle::stopwatch<>::duration time_1Bresub{0};
+  mockturtle::stopwatch<>::duration time_1Xresub{0};
   uint32_t num_changes{0};
-  uint32_t num_0resub_solo{0};
-  uint32_t num_1resub_solo{0};
-  uint32_t num_2resub_solo{0};
-  uint32_t num_1resub_dual{0};
-  uint32_t num_1rexub_solo{0};
-  uint32_t num_0rexub_solo{0};
-  uint32_t num_merger_solo{0};
+  uint32_t num_0Bresub{0};
+  uint32_t num_0Xresub{0};
+  uint32_t num_1Bresub{0};
+  uint32_t num_1Xresub{0};
 
   double GetTimeWindowConstr() const {
-    return mockturtle::to_seconds(time_window_constr);
+    return mockturtle::to_seconds(time_window_construction);
   }
   double GetTimeWindowSimula() const {
-    return mockturtle::to_seconds(time_window_simula);
+    return mockturtle::to_seconds(time_window_simulation);
   }
-  double GetTimeMergerSolo() const {return mockturtle::to_seconds(time_merger_solo);}
-
-  double GetTime0ResubSolo() const {return mockturtle::to_seconds(time_0resub_solo);}
-  double GetTime1ResubSolo() const {return mockturtle::to_seconds(time_1resub_solo);}
-  double GetTime2ResubSolo() const {return mockturtle::to_seconds(time_2resub_solo);}
-
-  double GetTime0RexubSolo() const {return mockturtle::to_seconds(time_0rexub_solo);}
-  double GetTime1RexubSolo() const {return mockturtle::to_seconds(time_1rexub_solo);}
-
-  double GetTime1ResubDual() const {return mockturtle::to_seconds(time_1resub_dual);}
+  double GetTime0BResub() const { return mockturtle::to_seconds(time_0Bresub); }
+  double GetTime0XResub() const { return mockturtle::to_seconds(time_0Xresub); }
+  double GetTime1BResub() const { return mockturtle::to_seconds(time_1Bresub); }
+  double GetTime1XResub() const { return mockturtle::to_seconds(time_1Xresub); }
 
   double GetTimeTotal() const {
-    return GetTimeWindowConstr() + GetTimeWindowSimula() + GetTimeOptoSolo();
+    return GetTimeWindowConstr() + GetTimeWindowSimula() + GetTimeOpto();
   }
 
-  double GetTimeOptoSolo() const {
-    return GetTime0ResubSolo() + GetTime1ResubSolo() + GetTime2ResubSolo() + 
-           GetTime1ResubDual() + 
-           GetTime0RexubSolo() + GetTime1RexubSolo() +
-           GetTimeMergerSolo();
+  double GetTimeOpto() const {
+    return GetTime0BResub() + GetTime0XResub() + GetTime1BResub() +
+           GetTime1XResub();
   }
 
-  void Record0ResubSolo() { num_0resub_solo++; }
-  void Record1ResubSolo() { num_1resub_solo++; }
-  void Record2ResubSolo() { num_2resub_solo++; }
+  void Record0BResub() { num_0Bresub++; }
+  void Record0XResub() { num_0Xresub++; }
+  void Record1BResub() { num_1Bresub++; }
+  void Record1XResub() { num_1Xresub++; }
 
-  void Record0RexubSolo() { num_0rexub_solo++; }
-  void Record1RexubSolo() { num_1rexub_solo++; }
-
-  void Record1ResubDual() { num_1resub_dual++; }
-
-  void RecordMergerSolo() { num_merger_solo++; }
-
-  uint32_t GetNum0ResubSolo() const { return num_0resub_solo; }
-  uint32_t GetNum1ResubSolo() const { return num_1resub_solo; }
-  uint32_t GetNum2ResubSolo() const { return num_2resub_solo; }
-
-  uint32_t GetNum0RexubSolo() const { return num_0rexub_solo; }
-  uint32_t GetNum1RexubSolo() const { return num_1rexub_solo; }
-
-  uint32_t GetNum1ResubDual() const { return num_1resub_dual; }
-
-  uint32_t GetNumMergerSolo() const { return num_merger_solo; }
+  uint32_t GetNum0BResub() const { return num_0Bresub; }
+  uint32_t GetNum0XResub() const { return num_0Xresub; }
+  uint32_t GetNum1BResub() const { return num_1Bresub; }
+  uint32_t GetNum1XResub() const { return num_1Xresub; }
 
   uint32_t GetNumOptos() const {
-    return GetNum0ResubSolo() + GetNum1ResubSolo() + GetNum2ResubSolo() + 
-           GetNum0RexubSolo() + GetNum1RexubSolo() +
-           GetNum1ResubDual() +
-           GetNumMergerSolo();
+    return GetNum0BResub() + GetNum0XResub() + GetNum1BResub() +
+           GetNum1XResub();
   }
 
   void Report() const {
     std::cout << fmt::format("================ TIME  ====================\n");
-    std::cout << fmt::format("    time window construction      = {:5.2f}\n",
+    std::cout << fmt::format("    time window construction       = {:5.2f}\n",
                              GetTimeWindowConstr());
-    std::cout << fmt::format("    time window simulation        = {:5.2f}\n",
+    std::cout << fmt::format("    time window simulation         = {:5.2f}\n",
                              GetTimeWindowSimula());
 
-    std::cout << fmt::format("    time 0-resub solo             = {:5.2f}\n",
-                             GetTime0ResubSolo());
-    std::cout << fmt::format("    time 1-resub solo             = {:5.2f}\n",
-                             GetTime1ResubSolo());
-    std::cout << fmt::format("    time 2-resub solo             = {:5.2f}\n",
-                             GetTime2ResubSolo());
+    std::cout << fmt::format("    time 0-cost basic version      = {:5.2f}\n",
+                             GetTime0BResub());
+    std::cout << fmt::format("    time 0-cost with augmentation  = {:5.2f}\n",
+                             GetTime0XResub());
+    std::cout << fmt::format("    time 1-cost basic version      = {:5.2f}\n",
+                             GetTime1BResub());
+    std::cout << fmt::format("    time 1-cost with augmentation  = {:5.2f}\n",
+                             GetTime1XResub());
 
-    std::cout << fmt::format("    time 0-rexub solo             = {:5.2f}\n",
-                             GetTime0RexubSolo());
-    std::cout << fmt::format("    time 1-rexub solo             = {:5.2f}\n",
-                            GetTime1RexubSolo());
-
-    std::cout << fmt::format("    time merger solo              = {:5.2f}\n",
-                             GetTimeMergerSolo());
-
-    std::cout << fmt::format("    time 1-resub dual             = {:5.2f}\n",
-                             GetTime1ResubDual());
-
-    std::cout << fmt::format("    time total                    = {:5.2f}\n",
+    std::cout << fmt::format("    time total                     = {:5.2f}\n",
                              GetTimeTotal());
     std::cout << fmt::format("================ QUALITY ==================\n");
-    std::cout << fmt::format("    count 0-resub solo            = {:5d}\n",
-                             GetNum0ResubSolo());
-    std::cout << fmt::format("    count 1-resub solo            = {:5d}\n",
-                             GetNum1ResubSolo());
-    std::cout << fmt::format("    count 2-resub solo            = {:5d}\n",
-                             GetNum2ResubSolo());
-
-    std::cout << fmt::format("    count 0-rexub solo            = {:5d}\n",
-                             GetNum0RexubSolo());
-    std::cout << fmt::format("    count 1-rexub solo            = {:5d}\n",
-                             GetNum1RexubSolo());
-
-    std::cout << fmt::format("    count 1-resub dual            = {:5d}\n",
-                             GetNum1ResubDual());
-
-    std::cout << fmt::format("    count merger solo             = {:5d}\n",
-                             GetNumMergerSolo());
-
-    std::cout << fmt::format("    count total                   = {:5d}\n",
+    std::cout << fmt::format("    count 0-cost basic version     = {:5d}\n",
+                             GetNum0BResub());
+    std::cout << fmt::format("    count 0-cost with augmentation = {:5d}\n",
+                             GetNum0XResub());
+    std::cout << fmt::format("    count 1-cost basic version     = {:5d}\n",
+                             GetNum1BResub());
+    std::cout << fmt::format("    count 1-cost with augmentation = {:5d}\n",
+                             GetNum1XResub());
+    std::cout << fmt::format("    count total                    = {:5d}\n",
                              GetNumOptos());
   }
 };
 
 namespace detail {
 
-template <class Ntk, typename StaticParams = DefaultAreaResynStaticParams>
-class AreaResynImpl {
+template <class Ntk, typename Params, typename Stats>
+class OrchestrateAreaImpl {
   struct WindowManagerParams {
-    static constexpr uint32_t max_num_leaves = StaticParams::kMaxNumLeaves;
-    uint32_t max_num_divisors;
-    uint32_t max_reconvergence;
-    int32_t odc_levels;
-  };
-
-  struct SimulaManagerParams {
-    uint32_t max_num_divisors = 128;
+    uint32_t max_num_divisors = 1024;
     uint32_t max_reconvergence = 10;
     int32_t odc_levels = 0;
-    static constexpr uint32_t kMaxNumLeaves = StaticParams::kMaxNumLeavesXL;
-    static constexpr uint32_t kNumVarsSigns = StaticParams::kNumVarsSign;
+    static constexpr uint32_t max_num_leaves = Params::kMaxNumLeaves;
   };
 
   using Node = typename Ntk::node;
   using Signal = typename Ntk::signal;
-  using ArrivalsTracker = analyzers::trackers::arrival_times_tracker<Ntk>;
-  using Signature = kitty::static_truth_table<StaticParams::kMaxNumLeaves>;
-  using SimulaManager = windowing::SimulaManager<Ntk, SimulaManagerParams>;
+  using Signature = kitty::static_truth_table<Params::kMaxNumLeaves>;
   using WindowManager = windowing::window_manager<Ntk, WindowManagerParams>;
   using WindowSimulator =
-      windowing::window_simulator<Ntk, StaticParams::kMaxNumLeaves>;
-  using Spfds =
-      boolean::spfd<Signature, 1u << StaticParams::kMaxCutsSize>;
-
+      windowing::window_simulator<Ntk, Params::kMaxNumLeaves>;
+  using Spfd = boolean::spfd<Signature, 1u << Params::kMaxCutsSize>;
   static constexpr uint32_t kMaxNumOutputs = Ntk::kMaxNumOutputs;
-
-  struct SharedOptoWindow {
-    WindowManager manager;
-    WindowSimulator simulator;
-    SimulaManager simula;
-    Node root{};
-  };
-
-  using SpfdMeth = typename dependency::window::OracleDispatch<
-      StaticParams::kSpfdMeth, Ntk, WindowManager, WindowSimulator,
-      StaticParams::kMaxCutsSize>::type;
+  using Dependencies = typename dependency::window::OracleDispatch<
+      Params::kSpfdMeth, Ntk, WindowManager, WindowSimulator,
+      Params::kMaxCutsSize>::type;
 
  public:
-  AreaResynImpl(Ntk& ntk, AreaResynParams ps, AreaResynStats& st)
-      : ntk_(ntk),
+  OrchestrateAreaImpl(Ntk& ntk, Params ps, Stats& st)
+      :  // parameters
         ps_(ps),
+        window_manager_ps_{ps_.max_num_divisors, ps_.max_reconvergence,
+                           ps_.odc_levels},
+        // statistics
         st_(st),
-        wm_params_{ps_.max_num_divisors, ps_.max_reconvergence, ps_.odc_levels},
-        sm_params_{ps_.max_num_divisors, ps_.max_reconvergence, ps_.odc_levels},
-        window_{WindowManager(ntk_, wm_params_, wm_stats_),
-                WindowSimulator(ntk_),
-                SimulaManager(ntk_, sm_params_, sm_stats_)},
-        spfds_(ntk, window_.manager, window_.simulator),
-        arrivals_(ntk_) {
-    for (int n = 0; n <= StaticParams::kMaxInpsSolo; ++n) {
-      proj_fns_.emplace_back();
-      for (int i = 0; i < n; ++i) {
-        proj_fns_[n].emplace_back(n);
-        kitty::create_nth_var(proj_fns_[n][i], i);
-      }
-    }
-  }
+        // attributes
+        ntk_(ntk),
+        window_manager_(ntk_, window_manager_ps_, window_manager_st_),
+        window_simulator_(ntk_),
+        dependencies_(ntk, window_manager_, window_simulator_),
+        levels_(ntk) {}
 
+  void Report();
   void Run();
-  void ReportNtkState();
 
  private:
   bool SkipNode(Node) const;
-  bool ExistsPath(Node, Node) const;
-  bool NeedWindow() const;
+  bool Try0BResub(Node);
+  bool Try0XResub(Node);
+  bool Try1BResub(Node);
+  bool Try1XResub(Node);
+  bool Try1XResubSolo(Node);
+  bool Try1XResubDual(Node);
 
-  void OptimizeSolo(Node);
-
-  bool Try0ResubSolo(Node);
-  bool Try1ResubSolo(Node);
-  bool Try2ResubSolo(Node);
-
-  bool Try0RexubSolo(Node);
-  bool Try1RexubSolo(Node);
-
-  bool Try1ResubDual(Node);
-  bool TryMergerSolo(Node);
-
-  std::optional<Signal> AddOutput(Node, Signature const&);
-  std::optional<Signal> AddOutput(Node, Signature const&, Signature const&);
-  kitty::dynamic_truth_table Interpolate(std::vector<Signal> const&,
-                                         Signature const&, Signature const&);
+  std::optional<Node> FindBestAugmentableNode(Spfd& spfd);
+  std::optional<Signal> AugmentNode(Node, Signature const&);
+  std::optional<Signal> AugmentNode(Node, Signature const&, Signature const&);
   kitty::dynamic_truth_table Interpolate(std::vector<Signal> const&,
                                          Signature const&);
-
-  void OptimizeDual(Node);
-  void Merge(Node, Node);
-  kitty::dynamic_truth_table Approximate(Signature const&, Signature const&, Node);
-  void InferBestSignature(Signature&, Signature&, Spfds&);
+  kitty::dynamic_truth_table Interpolate(std::vector<Signal> const&,
+                                         Signature const&, Signature const&);
 
  private:
+  // Parameters
+  Params ps_;
+  WindowManagerParams window_manager_ps_;
+  // Statistics
+  Stats& st_;
+  windowing::window_manager_stats window_manager_st_;
+  windowing::SimulaManagerStats window_simulator_st_;
+  // Attributes
   Ntk& ntk_;
-  AreaResynParams ps_;
-  AreaResynStats& st_;
-  WindowManagerParams wm_params_;
-  SimulaManagerParams sm_params_;
-  windowing::window_manager_stats wm_stats_;
-  windowing::SimulaManagerStats sm_stats_;
-  SharedOptoWindow window_;
-  SpfdMeth spfds_;
-  Spfds spfd_;
-
-  ArrivalsTracker arrivals_;
-  std::vector<std::vector<kitty::dynamic_truth_table>> proj_fns_;
+  Spfd spfd_;
+  WindowManager window_manager_;
+  WindowSimulator window_simulator_;
+  Dependencies dependencies_;
+  rinox::analyzers::evaluators::LevelsEvaluator<Ntk> levels_;
+  rinox::boolean::Smoother<Signature, int, Params::kMaxInpsSolo> smoother_;
+  rinox::math::SpinSystem<Signature, 1u << Params::kMaxInpsSolo, kMaxNumOutputs>
+      spins_;
 };
 
-template <class Ntk, typename StaticParams>
-void AreaResynImpl<Ntk, StaticParams>::ReportNtkState() {
+template <typename Ntk, typename Params, typename Stats>
+void OrchestrateAreaImpl<Ntk, Params, Stats>::Report() {
   std::vector<uint32_t> mffc_sizes_solo;
   std::vector<uint32_t> mffc_sizes_dual;
   ntk_.foreach_gate([&](auto const& n) {
-    window_.manager.run(n);
-    uint32_t mffc_size = window_.manager.num_mffc();
-    if (ntk_.num_outputs(n)==1)
-    {
+    window_manager_.run(n);
+    uint32_t mffc_size = window_manager_.num_mffc();
+    if (ntk_.num_outputs(n) == 1) {
       while (mffc_sizes_solo.size() <= mffc_size) mffc_sizes_solo.push_back(0);
       mffc_sizes_solo[mffc_size] += 1;
-    }
-    else
-    {
+    } else {
       while (mffc_sizes_dual.size() <= mffc_size) mffc_sizes_dual.push_back(0);
       mffc_sizes_dual[mffc_size] += 1;
     }
@@ -371,466 +279,397 @@ void AreaResynImpl<Ntk, StaticParams>::ReportNtkState() {
 }
 
 // Implementation of Run split into steps
-template <class Ntk, typename StaticParams>
-void AreaResynImpl<Ntk, StaticParams>::Run() {
-  const auto nmax = ntk_.size();
-  int cnt = 0;
+template <typename Ntk, typename Params, typename Stats>
+void OrchestrateAreaImpl<Ntk, Params, Stats>::Run() {
+  levels_.ComputeLevels();
+  int const last_level = levels_.GetLast();
 
-  ntk_.foreach_gate([&](auto const& n) {
-    if (ntk_.is_pi(n)) return true;
-    if (cnt++ >= nmax) return false;
-    if (st_.GetNumOptos() >= ps_.stop_after_nth) return false;
-    if (SkipNode(n)) return true;
-    if (ntk_.num_outputs(n) != 1) return true;
+  for (int level = last_level; level > 0; --level) {
+    bool update = false;
+    levels_.ForeachNode(level, [&](auto const& n) {
+      if (SkipNode(n)) return true;
 
+      mockturtle::call_with_stopwatch(st_.time_window_construction,
+                                      [&]() { window_manager_.run(n); });
+      mockturtle::call_with_stopwatch(st_.time_window_simulation, [&]() {
+        window_simulator_.run(window_manager_);
+      });
 
-    mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { window_.manager.run(n); });
-    mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { window_.simulator.run(window_.manager);});
-    if(!window_.manager.is_valid()) return true;
+      if (!window_manager_.is_valid()) return true;
 
-    OptimizeSolo(n);
-    return true;
-  });
+      if (ps_.try_0Bresub &&
+          mockturtle::call_with_stopwatch(st_.time_0Bresub,
+                                          [&]() { return Try0BResub(n); })) {
+        st_.Record0BResub();
+        update = true;
+        return true;
+      }
+      if (ps_.try_0Xresub &&
+          mockturtle::call_with_stopwatch(st_.time_0Xresub,
+                                          [&]() { return Try0XResub(n); })) {
+        st_.Record0XResub();
+        update = true;
+        return true;
+      }
+      if (ps_.try_1Bresub &&
+          mockturtle::call_with_stopwatch(st_.time_1Bresub,
+                                          [&]() { return Try1BResub(n); })) {
+        st_.Record1BResub();
+        update = true;
+        return true;
+      }
+      if (ps_.try_1Xresub &&
+          mockturtle::call_with_stopwatch(st_.time_1Xresub,
+                                          [&]() { return Try1XResub(n); })) {
+        st_.Record1XResub();
+        update = true;
+        return true;
+      }
+      return true;
+    });
 
-  ntk_.foreach_gate([&](auto const& n) {
-    if (ntk_.is_pi(n)) return true;
-    if (cnt++ >= nmax) return false;
-    if (st_.GetNumOptos() >= ps_.stop_after_nth) return false;
-    if (SkipNode(n)) return true;
-    if (ntk_.num_outputs(n) != 2) return true;
-
-    mockturtle::call_with_stopwatch(st_.time_window_constr, [&]() { window_.manager.run(n); });
-    mockturtle::call_with_stopwatch(st_.time_window_simula, [&]() { window_.simulator.run(window_.manager);});
-    if(!window_.manager.is_valid()) return true;
-
-    OptimizeDual(n);
-    return true;
-  });
+    // update the levels if there was an optimization
+    if (update) levels_.ComputeLevels();
+  }
 }
 
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::SkipNode(Node n) const {
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::SkipNode(Node n) const {
   if (ntk_.fanout_size(n) <= 0) return true;
   if (ntk_.is_pi(n) || ntk_.is_constant(n)) return true;
   if (ntk_.is_dead(n)) return true;
   return false;
 }
 
-template <class Ntk, typename StaticParams>
-void AreaResynImpl<Ntk, StaticParams>::OptimizeSolo(Node n) {
-  spfds_.Init();
-  if (ps_.try_0resub_solo && mockturtle::call_with_stopwatch(st_.time_0resub_solo,
-                                      [&]() { return Try0ResubSolo(n); })) {
-    st_.Record0ResubSolo();
-    return;
-  }
-  if (ps_.try_0rexub_solo && mockturtle::call_with_stopwatch(st_.time_0rexub_solo,
-                                      [&]() { return Try0RexubSolo(n); })) {
-    st_.Record0RexubSolo();
-    return;
-  }
-  if (ps_.try_1resub_solo && mockturtle::call_with_stopwatch(st_.time_1resub_solo,
-                                      [&]() { return Try1ResubSolo(n); })) {
-    st_.Record1ResubSolo();
-    return;
-  }
-  if (ps_.try_1rexub_solo && mockturtle::call_with_stopwatch(st_.time_1rexub_solo,
-                                      [&]() { return Try1RexubSolo(n); })) {
-    st_.Record1RexubSolo();
-    return;
-  }
-  if (ps_.try_2resub_solo && mockturtle::call_with_stopwatch(st_.time_2resub_solo,
-                                      [&]() { return Try2ResubSolo(n); })) {
-    st_.Record2ResubSolo();
-    return;
-  }
-  if (ps_.try_merger_solo && mockturtle::call_with_stopwatch(st_.time_merger_solo,
-                                      [&]() { return TryMergerSolo(n); })) {
-    st_.RecordMergerSolo();
-    return;
-  }
-}
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::Try0BResub(Node n) {
+  std::vector<Signal> new_signals;
+  ntk_.foreach_output(n, [&](auto const& f) {
+    if (new_signals.size() != f.output) return;
 
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::Try0ResubSolo(Node n) {
-  std::optional<Signal> resub;
-  auto tA = std::numeric_limits<double>::max();
-  auto const& onset = window_.simulator.Get(ntk_.make_signal(n));
-  window_.manager.foreach_divisor([&](auto const& f, auto) {
-    auto const& divisor = window_.simulator.Get(f);
-    if (kitty::equal(onset, divisor) && arrivals_.get_time(f) < tA) {
-      resub = f;
-      tA = arrivals_.get_time(f); 
-    }
+    int tA = std::numeric_limits<int>::max();
+    auto const& onset = window_simulator_.Get(f);
+    std::optional<Signal> resub;
+    window_manager_.foreach_divisor([&](auto const& d, auto) {
+      if (!resub || (levels_.GetArrival(d) < tA)) {
+        auto const& divisor = window_simulator_.Get(d);
+        if (kitty::equal(onset, divisor)) {
+          resub = d;
+        }
+      }
+    });
+    if (resub) new_signals.push_back(*resub);
   });
-  if (resub) {
-      ntk_.substitute_node(n, *resub);
+
+  if (new_signals.size() == ntk_.num_outputs(n)) {
+    ntk_.substitute_node(n, new_signals);
     return true;
   }
   return false;
 }
 
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::Try0RexubSolo(Node n) {
-  // iterate one new node at a time
-  size_t min_num_needed = 0;
-  Signature target = window_.simulator.Get(ntk_.make_signal(n));
-  std::vector<Signal> fanins;
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::Try0XResub(Node n) {
+  if (ntk_.num_outputs(n) > 1) return false;
+  std::vector<Signal> new_children;
+  kitty::dynamic_truth_table new_function;
+
+  Signature target = window_simulator_.Get(ntk_.make_signal(n));
+
   spfd_.init(target);
-
-  uint32_t best_cost = std::numeric_limits<uint32_t>::max();
-  std::optional<Node> best_div;
-  window_.manager.foreach_divisor([&](auto const& fd, auto) {
-    auto nd = ntk_.get_node(fd);
-    if (!window_.manager.is_input(nd) && (ntk_.num_outputs(nd) == 1) &&
-        (ntk_.fanin_size(nd) <= StaticParams::kMaxInpsDual)) {
-      uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
-      if (cost < best_cost) {
-        best_cost = cost;
-        best_div = nd;
-      }
-    }
-  });
-  if (best_div) {
-    auto const fnew = AddOutput(*best_div, target);
+  auto node = FindBestAugmentableNode(spfd_);
+  if (node) {
+    auto const fnew = AugmentNode(*node, target);
     if (fnew) {
-      window_.simulator.compute( window_.manager, (*fnew).index );
-      bool cec1 = kitty::equal(window_.simulator.Get(Signal{(*fnew).index, 0}), window_.simulator.Get( ntk_.make_signal(*best_div) ));
-      bool cec2 = kitty::equal(window_.simulator.Get(Signal{(*fnew).index, 1}), target );
-      
-      if (cec1 && cec2)
-      {
-        ntk_.substitute_node(*best_div, Signal{(*fnew).index, 0});
-        ntk_.substitute_node(n, Signal{(*fnew).index, 1});
+      Node nnew = ntk_.get_node(*fnew);
+      window_simulator_.compute(window_manager_, nnew);
+      bool cec1 = kitty::equal(window_simulator_.Get(Signal{nnew, 0}),
+                               window_simulator_.Get(ntk_.make_signal(*node)));
+      bool cec2 = kitty::equal(window_simulator_.Get(Signal{nnew, 1}), target);
 
+      if (cec1 && cec2) {
+        ntk_.substitute_node(*node, Signal{nnew, 0});
+        ntk_.substitute_node(n, Signal{nnew, 1});
         return true;
-      }
-      else
-      {
-        std::cout << "Failed cec 0 Rexub " << std::endl;
-        ntk_.take_out_node((*fnew).index);
+      } else {
+        std::cout << "Failed cec 0XResub " << std::endl;
+        ntk_.take_out_node(nnew);
       }
     }
   }
   return false;
 }
 
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::Try1ResubSolo(Node n) {
-  if (window_.manager.num_mffc() <= 1) return false;
-  spfds_.Init();
-  auto cut = spfds_.GetNext(StaticParams::kMaxInpsSolo);
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::Try1BResub(Node n) {
+  if (window_manager_.num_mffc() <= 1) return false;
+
+  dependencies_.Init();
+  size_t cut_size =
+      ntk_.num_outputs(n) == 1 ? Params::kMaxInpsSolo : Params::kMaxInpsDual;
+  auto cut = dependencies_.GetNext(cut_size);
   if (cut) {
     std::vector<Signal> children;
-    for (auto f : *cut) children.push_back(f);
-
-    auto tt = Interpolate(children, window_.simulator.Get(ntk_.make_signal(n)));
-    auto fnew = ntk_.create_node(children, tt);
-    window_.simulator.compute(window_.manager, fnew.index);
-    if (kitty::equal(window_.simulator.Get(fnew), window_.simulator.Get(ntk_.make_signal(n))))
-    {
-      ntk_.substitute_node(n, fnew);
-      return true;
+    for (auto f : *cut) {
+      children.push_back(f);
     }
-    else
-    {
-      ntk_.take_out_node(fnew.index);
-      std::cout << "Failed cec 1 Resub " << std::endl;
+    if (ntk_.num_outputs(n) == 1) {
+      auto const& target = window_simulator_.Get(ntk_.make_signal(n));
+      auto tt = Interpolate(children, target);
+      auto fnew = ntk_.create_node(children, tt);
+      auto nnew = ntk_.get_node(fnew);
+      window_simulator_.compute(window_manager_, nnew);
+      if (kitty::equal(window_simulator_.Get(fnew), target)) {
+        ntk_.substitute_node(n, fnew);
+        return true;
+      } else {
+        ntk_.take_out_node(nnew);
+        std::cout << "Failed cec 1 Resub " << std::endl;
+      }
+    } else if (ntk_.num_outputs(n) == 2) {
+      auto const& target0 = window_simulator_.Get(Signal{n, 0});
+      auto const& target1 = window_simulator_.Get(Signal{n, 1});
+      auto tt0 = Interpolate(children, target0);
+      auto tt1 = Interpolate(children, target1);
+      auto fnew = ntk_.create_node(children, {tt0, tt1});
+      auto nnew = ntk_.get_node(fnew);
+      window_simulator_.compute(window_manager_, nnew);
+      bool cec1 = kitty::equal(target0, window_simulator_.Get(Signal{nnew, 0}));
+      bool cec2 = kitty::equal(target1, window_simulator_.Get(Signal{nnew, 1}));
+
+      if (cec1 && cec2) {
+        std::vector<Signal> new_signals = {Signal{nnew, 0}, Signal{nnew, 1}};
+        ntk_.substitute_node(n, new_signals);
+        return true;
+      } else {
+        std::cout << "Failed cec 1 Resub dual " << std::endl;
+        ntk_.take_out_node(nnew);
+      }
     }
   }
   return false;
 }
 
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::Try2ResubSolo(Node n) {
-  if (window_.manager.num_mffc() <= 2) return false;
-  spfd_.init(window_.simulator.Get(ntk_.make_signal(n)));
-  std::vector<Signal> cutT;
-  while ((cutT.size() < (StaticParams::kMaxInpsSolo-1))&&!spfd_.is_covered())
-  {
-    std::optional<Signal> d;
-    uint32_t best_cost = std::numeric_limits<uint32_t>::max();
-    window_.manager.foreach_divisor([&](auto const& fd, auto){
-      auto nd = ntk_.get_node(fd);
-      uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
-      if (cost<best_cost)
-      {
-        best_cost = cost;
-        d=fd;
-      }
-    });
-    if(d)
-    {
-      cutT.push_back(*d);
-      spfd_.update(window_.simulator.Get(*d));
-    }
-    else
-      return false;
-  }
-  if (spfd_.is_covered()) return false;
-  Signature funcB;
-  Signature careB;
-  InferBestSignature(funcB, careB, spfd_);
-
-  spfd_.init(funcB, careB);
-  std::vector<Signal> cutB;
-  while (cutB.size() < StaticParams::kMaxInpsSolo &&!spfd_.is_covered())
-  {
-    std::optional<Signal> d;
-    uint32_t best_cost = std::numeric_limits<uint32_t>::max();
-    window_.manager.foreach_divisor([&](auto const& fd, auto){
-      auto nd = ntk_.get_node(fd);
-      uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
-      if (cost<best_cost)
-      {
-        best_cost = cost;
-        d=fd;
-      }
-    });
-    if(d)
-    {
-      cutB.push_back(*d);
-      spfd_.update(window_.simulator.Get(*d));
-    }
-    else
-      return false;
-  }
-  if (spfd_.is_covered())
-  {
-    auto ttB = Interpolate(cutB, funcB, careB);
-    auto fB = ntk_.create_node(cutB, ttB);
-    window_.simulator.compute(window_.manager, fB.index);
-    cutT.push_back(fB);
-    auto ttT = Interpolate(cutT, window_.simulator.Get(ntk_.make_signal(n)));
-    auto fT = ntk_.create_node(cutT, ttT);
-    window_.simulator.compute(window_.manager, fT.index);
-    if (kitty::equal(window_.simulator.Get(fT), window_.simulator.Get(ntk_.make_signal(n))))
-    {
-      ntk_.substitute_node(n, fT);
-      return true;
-    }
-    else
-    {
-      std::cout << "Failed cec 2 Resub " << std::endl;
-      ntk_.take_out_node(fT.index);
-    }
-  }
-
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::Try1XResub(Node n) {
+  if (window_manager_.num_mffc() <= 1) return false;
+  if (ntk_.num_outputs(n) == 1)
+    return Try1XResubSolo(n);
+  else if (ntk_.num_outputs(n) == 2)
+    return Try1XResubDual(n);
   return false;
 }
 
-template <class Ntk, typename StaticParams>
-auto AreaResynImpl<Ntk, StaticParams>::AddOutput(
-    Node n, Signature const& target) -> std::optional<Signal> {
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::Try1XResubSolo(Node n) {
+  if (window_manager_.num_mffc() <= 1) return false;
+  Signature target = window_simulator_.Get(ntk_.make_signal(n));
+  Signature func = window_simulator_.Get(ntk_.make_signal(n));
+  Signature care = ~func.construct();
 
-  auto children = ntk_.get_children(n);
-
-  spfd_.init(target);
-  for (auto f : children) spfd_.update(window_.simulator.Get(f));
-
-  if(children.size() < StaticParams::kMaxInpsDual)
-  {
-    ntk_.incr_trav_id();
-    window_.manager.MarkTfoInside(n, ntk_.trav_id());
-    auto fn = ntk_.make_signal(n);
-    while ((children.size() < StaticParams::kMaxInpsDual)&&!spfd_.is_covered()) {
-      std::optional<Signal> best_div;
-      uint32_t best_cost = std::numeric_limits<uint32_t>::max();
-      window_.manager.foreach_divisor([&](auto const& fd, auto){
-        auto nd = ntk_.get_node(fd);
-        if ((ntk_.visited(nd)!=ntk_.trav_id())&&((arrivals_.get_time(fd)<arrivals_.get_time(fn)) ))//|| !ExistsPath(n,nd)))
-        {
-          uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
-          if (cost<best_cost)
-          {
-            best_cost = cost;
-            best_div = fd;
-          }
-        }
-      });
-      if ( best_div )
-      {
-        children.push_back(*best_div);
-        spfd_.update(window_.simulator.Get(*best_div) );
-      }
-      else 
-        return std::nullopt;
-    }
-  }
-
-  if (spfd_.is_covered()) {
-    auto tt1 = kitty::extend_to(ntk_.node_function(n, 0), children.size());
-    auto tt2 = Interpolate(children, target);
-    auto fnew = ntk_.create_node(children, {tt1, tt2});
-
-    return fnew;
-  }
-  return std::nullopt;
-}
-
-template <class Ntk, typename StaticParams>
-auto AreaResynImpl<Ntk, StaticParams>::AddOutput(
-    Node n, Signature const& func, Signature const& care) -> std::optional<Signal> {
-
-  auto children = ntk_.get_children(n);
-
-  spfd_.init(func, care);
-  for (auto f : children) spfd_.update(window_.simulator.Get(f));
-
-  if(children.size() < StaticParams::kMaxInpsDual)
-  {
-    ntk_.incr_trav_id();
-    window_.manager.MarkTfoInside(n, ntk_.trav_id());
-    auto fn = ntk_.make_signal(n);
-    while ((children.size() < StaticParams::kMaxInpsDual)&&!spfd_.is_covered()) {
-      std::optional<Signal> best_div;
-      uint32_t best_cost = std::numeric_limits<uint32_t>::max();
-      window_.manager.foreach_divisor([&](auto const& fd, auto){
-        auto nd = ntk_.get_node(fd);
-        if ((ntk_.visited(nd)!=ntk_.trav_id())&&((arrivals_.get_time(fd)<arrivals_.get_time(fn)) ))
-        {
-          uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
-          if (cost<best_cost)
-          {
-            best_cost = cost;
-            best_div = fd;
-          }
-        }
-      });
-      if ( best_div )
-      {
-        children.push_back(*best_div);
-        spfd_.update(window_.simulator.Get(*best_div) );
-      }
-      else 
-        return std::nullopt;
-    }
-  }
-
-  if (spfd_.is_covered()) {
-    auto tt1 = kitty::extend_to(ntk_.node_function(n, 0), children.size());
-    auto tt2 = Interpolate(children, func, care);
-    auto fnew = ntk_.create_node(children, {tt1, tt2});
-
-    return fnew;
-  }
-  return std::nullopt;
-}
-
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::TryMergerSolo(Node n) {
-  // Collect inputs of n
-  std::set<Signal> base_inputs;
-  ntk_.foreach_fanin(n, [&](auto const& fi, auto) { base_inputs.insert(fi); });
-
-  std::optional<Node> best_node;
-  int best_cost = std::numeric_limits<int>::max();
-
-  // Explore fanouts of fanins
-  ntk_.foreach_fanin(n, [&](auto const& fi, auto) {
-    ntk_.foreach_fanout(fi.index, [&](auto const& no) {
-      if (n == no) return;
-      if (ntk_.num_outputs(no) != 1u) return;
-
-      // Compute combined inputs size
-      std::set<Signal> merged_inputs = base_inputs;
-      ntk_.foreach_fanin(
-          no, [&](auto const& foi, auto) { merged_inputs.insert(foi); });
-
-      if (!ExistsPath(n, no) && ((int)merged_inputs.size() < best_cost)) {
-        {
-          best_node = no;
-          best_cost = (int)merged_inputs.size();
-        }
-      }
-    });
-  });
-
-  if (best_node) {
-    Merge(n, *best_node);
-    return true;
-  }
-  return false;
-}
-
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::ExistsPath(Node n1, Node n2) const {
-  if (n1 == n2) return true;
-  Node n_upper = n1;
-  Node n_lower = n2;
-  Signal f_upper = ntk_.make_signal(n_upper);
-  Signal f_lower = ntk_.make_signal(n_lower);
-  double t_upper = arrivals_.get_time(f_upper);
-  double t_lower = arrivals_.get_time(f_lower);
-
-  if (t_upper < t_lower) {
-    std::swap(n_upper, n_lower);
-    std::swap(f_upper, f_lower);
-  }
+  std::vector<Node> added;
+  std::vector<std::pair<Node, Signal>> todos;
+  std::vector<Signal> new_fanin;
 
   ntk_.incr_trav_id();
-  bool found = false;
-  std::function<void(Node)> DepthFirstSearch = [&](Node u) {
-    if (found) return;
-    if (u == n_lower) {
-      found = true;
-      return;
-    }
-    ntk_.foreach_fanin(u, [&](auto fi, auto) {
-      auto v = ntk_.get_node(fi);
-      if (ntk_.visited(v) != ntk_.trav_id() &&
-          (arrivals_.get_time(fi) >= (arrivals_.get_time(f_lower) * 0.9))) {
-        ntk_.set_visited(v, ntk_.trav_id());
-        DepthFirstSearch(v);
+  spfd_.init(func);
+  std::set<Node> avoid;
+  int cnt = 0;
+  while ((cnt++ < Params::kMaxInpsSolo) &&
+         (new_fanin.size() < Params::kMaxInpsSolo) && !(spfd_.is_covered())) {
+    std::optional<Signal> best_asis;
+    std::optional<Node> best_dupl;
+    uint32_t best_cost_asis = std::numeric_limits<uint32_t>::max();
+    uint32_t best_cost_dupl = std::numeric_limits<uint32_t>::max();
+    window_manager_.foreach_divisor([&](auto const& fd, auto) {
+      auto const nd = ntk_.get_node(fd);
+      if ((avoid.find(nd) == avoid.end()) &&
+          (levels_.GetArrival(fd) < levels_.GetArrival(ntk_.make_signal(n)))) {
+        uint32_t const cost = spfd_.evaluate(window_simulator_.Get(fd));
+        if (cost < best_cost_asis) {
+          best_cost_asis = cost;
+          best_asis = fd;
+        }
+        if ((!window_manager_.is_input(nd)) && (ntk_.num_outputs(nd) == 1) &&
+            (cost < best_cost_dupl) &&
+            (ntk_.fanin_size(nd) <= Params::kMaxInpsDual)) {
+          best_cost_dupl = cost;
+          best_dupl = nd;
+        }
       }
     });
-  };
-  DepthFirstSearch(n_upper);
-  return found;
-}
+    if (best_dupl) {
+      auto fnew = AugmentNode(*best_dupl, func, care);
+      avoid.insert(*best_dupl);
+      if (fnew) {
+        Node nnew = ntk_.get_node(*fnew);
+        window_simulator_.compute(window_manager_, nnew);
+        auto cost = spfd_.evaluate(window_simulator_.Get(Signal{nnew, 1}));
 
-template <class Ntk, typename StaticParams>
-void AreaResynImpl<Ntk, StaticParams>::Merge(Node n1, Node n2) {
-  if (ntk_.is_pi(n1) || ntk_.is_pi(n2)) return;
+        if (cost < best_cost_asis) {
+          added.push_back(nnew);
+          todos.push_back(std::pair{*best_dupl, Signal{nnew, 0}});
+          new_fanin.push_back(Signal{nnew, 1});
+          ntk_.set_visited(*best_dupl, ntk_.trav_id());
+        } else if (best_asis) {
+          if (ntk_.fanout_size(nnew) == 0) ntk_.take_out_node(nnew);
 
-  std::unordered_map<uint64_t, std::pair<int, int>> map;
-  std::set<Signal> inps;
-  ntk_.foreach_fanin(n1, [&](auto const& fi, auto ii) { inps.insert(fi);});
-  ntk_.foreach_fanin(n2, [&](auto const& fi, auto ii) { inps.insert(fi);});
+          new_fanin.push_back(*best_asis);
+        } else {
+          return false;
+        }
+      } else if (best_asis) {
+        new_fanin.push_back(*best_asis);
+      }
+    } else if (best_asis) {
+      new_fanin.push_back(*best_asis);
+    } else {
+      return false;
+    }
 
-  if (inps.size() > StaticParams::kMaxInpsDual) return;
-  int i = 0;
-  std::vector<Signal> children;
-  for (auto const& f : inps) {
-    children.push_back(f);
-    map[f.data] = std::pair{inps.size(), i++};
+    spfd_.init(target);
+    for (auto f : new_fanin) {
+      spfd_.update(window_simulator_.Get(f));
+    }
+    if (spfd_.is_covered()) break;
+
+    spins_.clear();
+    care ^= care;
+    ;
+    for (uint32_t m = 0; m < spfd_.num_masks_; ++m) {
+      if (!spfd_.is_killed(m)) {
+        spins_.AddSpin(target, spfd_.masks_[m], m);
+        care |= spfd_.masks_[m];
+      }
+    }
+    spins_.MinimizeEnergy();
+    func = target;
+    spins_.ForeachSpin([&](auto const& s) {
+      if (s.value < 0) func ^= s.care;
+    });
+    func = smoother_.RunLabelPropagation(func, care);
   }
-  std::vector<kitty::dynamic_truth_table const*> sim_ptrs1;
-  std::vector<kitty::dynamic_truth_table const*> sim_ptrs2;
 
-  ntk_.foreach_fanin(n1, [&](auto const& fi, auto ii) {
-    auto const p = map[fi.data];
-    sim_ptrs1.push_back(&proj_fns_[p.first][p.second]);
-  });
-  auto funcs1 = ntk_.compute(n1, sim_ptrs1);
-
-  ntk_.foreach_fanin(n2, [&](auto const& fi, auto ii) {
-    auto const p = map[fi.data];
-    sim_ptrs2.push_back(&proj_fns_[p.first][p.second]);
-  });
-  auto funcs2 = ntk_.compute(n2, sim_ptrs2);
-
-  std::vector<kitty::dynamic_truth_table> tts = {funcs1[0], funcs2[0]};
-
-  auto fnew = ntk_.create_node(children, tts);
-
-  ntk_.substitute_node(n1, Signal{fnew.index, 0});
-  ntk_.substitute_node(n2, Signal{fnew.index, 1});
+  if (spfd_.is_covered()) {
+    auto tt =
+        Interpolate(new_fanin, window_simulator_.Get(ntk_.make_signal(n)));
+    auto fnew = ntk_.create_node(new_fanin, tt);
+    window_simulator_.compute(window_manager_, fnew.index);
+    if (!kitty::equal(window_simulator_.Get(ntk_.make_signal(n)),
+                      window_simulator_.Get(fnew))) {
+      std::cout << "Failed cec 1 Rexub " << std::endl;
+      ntk_.take_out_node(fnew.index);
+      return false;
+    }
+    ntk_.substitute_node(n, fnew);
+    for (auto const p : todos) ntk_.substitute_node(p.first, p.second);
+    return true;
+  }
+  for (auto nd : added) {
+    if (ntk_.fanout_size(nd) == 0) ntk_.take_out_node(nd);
+  }
+  return false;
 }
 
-template <class Ntk, typename StaticParams>
-kitty::dynamic_truth_table AreaResynImpl<Ntk, StaticParams>::Interpolate(
-    std::vector<Signal> const& children, Signature const& target) {
+template <typename Ntk, typename Params, typename Stats>
+bool OrchestrateAreaImpl<Ntk, Params, Stats>::Try1XResubDual(Node n) {
+  return false;
+}
+
+template <typename Ntk, typename Params, typename Stats>
+auto OrchestrateAreaImpl<Ntk, Params, Stats>::FindBestAugmentableNode(
+    Spfd& spfd) -> std::optional<Node> {
+  std::optional<Node> res;
+  uint32_t best_info_cost = std::numeric_limits<uint32_t>::max();
+  uint32_t best_size_cost = Params::kMaxInpsDual;
+  int best_time_cost = std::numeric_limits<int>::max();
+
+  window_manager_.foreach_divisor([&](auto const& fd, auto) {
+    auto nd = ntk_.get_node(fd);
+    uint32_t const size_cost = ntk_.fanin_size(nd);
+    int const time_cost = levels_.GetArrival(fd);
+
+    if (!window_manager_.is_input(nd) && (ntk_.num_outputs(nd) == 1) &&
+        (size_cost <= best_size_cost) && (time_cost <= best_time_cost)) {
+      uint32_t const info_cost = spfd.evaluate(window_simulator_.Get(fd));
+      if (info_cost < best_info_cost) {
+        best_info_cost = info_cost;
+        best_time_cost = time_cost;
+        best_size_cost = size_cost;
+        res = nd;
+      }
+    }
+  });
+  return res;
+}
+
+template <typename Ntk, typename Params, typename Stats>
+auto OrchestrateAreaImpl<Ntk, Params, Stats>::AugmentNode(
+    Node n, Signature const& target) -> std::optional<Signal> {
+  Signature care = target | ~target;
+  return AugmentNode(n, target, care);
+}
+
+template <typename Ntk, typename Params, typename Stats>
+auto OrchestrateAreaImpl<Ntk, Params, Stats>::AugmentNode(
+    Node n, Signature const& target,
+    Signature const& care) -> std::optional<Signal> {
+  auto f = ntk_.make_signal(n);
+
+  auto children = ntk_.get_children(n);
+  spfd_.init(target, care);
+  for (auto fi : children) spfd_.update(window_simulator_.Get(fi));
+
+  if (children.size() < Params::kMaxInpsDual) {
+    ntk_.incr_trav_id();
+    window_manager_.MarkTfoInside(n, ntk_.trav_id());
+
+    while ((children.size() < Params::kMaxInpsDual) && !spfd_.is_covered()) {
+      std::optional<Signal> best_div;
+      uint32_t best_cost = std::numeric_limits<uint32_t>::max();
+      window_manager_.foreach_divisor([&](auto const& fd, auto) {
+        auto nd = ntk_.get_node(fd);
+        if ((ntk_.visited(nd) != ntk_.trav_id()) &&
+            ((levels_.GetArrival(fd) <
+              levels_.GetArrival(f))))  //|| !ExistsPath(n,nd)))
+        {
+          uint32_t const cost = spfd_.evaluate(window_simulator_.Get(fd));
+          if (cost < best_cost) {
+            best_cost = cost;
+            best_div = fd;
+          }
+        }
+      });
+      if (best_div) {
+        children.push_back(*best_div);
+        spfd_.update(window_simulator_.Get(*best_div));
+      } else
+        return std::nullopt;
+    }
+  }
+
+  if (spfd_.is_covered()) {
+    auto tt1 =
+        Interpolate(children, window_simulator_.Get(ntk_.make_signal(n)));
+    auto tt2 = Interpolate(children, target, care);
+    auto fnew = ntk_.create_node(children, {tt1, tt2});
+    return fnew;
+  }
+  return std::nullopt;
+}
+
+template <typename Ntk, typename Params, typename Stats>
+auto OrchestrateAreaImpl<Ntk, Params, Stats>::Interpolate(
+    std::vector<Signal> const& children,
+    Signature const& target) -> kitty::dynamic_truth_table {
+  Signature care = target | ~target;
+  return Interpolate(children, target, care);
+}
+
+template <typename Ntk, typename Params, typename Stats>
+auto OrchestrateAreaImpl<Ntk, Params, Stats>::Interpolate(
+    std::vector<Signal> const& children, Signature const& target,
+    Signature const& care) -> kitty::dynamic_truth_table {
   uint32_t const num_vars = children.size();
   kitty::dynamic_truth_table tt(num_vars);
   uint32_t const num_minterms = 1u << num_vars;
@@ -839,235 +678,33 @@ kitty::dynamic_truth_table AreaResynImpl<Ntk, StaticParams>::Interpolate(
     mask |= ~mask;
     for (uint32_t v = 0; v < num_vars; ++v) {
       if (((m >> v) & 0x1) > 0)
-        mask &= window_.simulator.Get(children[v]);
+        mask &= window_simulator_.Get(children[v]);
       else
-        mask &= ~window_.simulator.Get(children[v]);
+        mask &= ~window_simulator_.Get(children[v]);
     }
-    uint32_t c1 = kitty::count_ones(mask & target);
-    uint32_t c0 = kitty::count_ones(mask&~target);
-    if (c0==0&&c1>0)
+    uint32_t c1 = kitty::count_ones(care & mask & target);
+    uint32_t c0 = kitty::count_ones(care & mask & ~target);
+    if (c0 == 0 && c1 > 0)
       kitty::set_bit(tt, m);
-    else if (c1==0)
+    else if (c1 == 0)
       kitty::clear_bit(tt, m);
-    else
-    {
+    else {
       std::cout << "Warning: don't know how to interpolate" << std::endl;
     }
   }
   return tt;
 }
 
-template <class Ntk, typename StaticParams>
-kitty::dynamic_truth_table AreaResynImpl<Ntk, StaticParams>::Interpolate(
-    std::vector<Signal> const& children, Signature const& target, Signature const& care) {
-
-  uint32_t const num_vars = children.size();
-  kitty::dynamic_truth_table tt(num_vars);
-  uint32_t const num_minterms = 1u << num_vars;
-  Signature mask;
-  for (uint32_t m = 0; m < num_minterms; ++m) {
-    mask |= ~mask;
-    for (uint32_t v = 0; v < num_vars; ++v) {
-      if (((m >> v) & 0x1) > 0)
-        mask &= window_.simulator.Get(children[v]);
-      else
-        mask &= ~window_.simulator.Get(children[v]);
-    }
-    if (kitty::count_ones(mask & target & care) > kitty::count_ones(mask & care & ~target))
-      kitty::set_bit(tt, m);
-    else
-      kitty::clear_bit(tt, m);
-  }
-  return tt;
-}
-
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::Try1RexubSolo(Node n) {
-  return false;
-  if (window_.manager.num_mffc() <= 1) return false;
-  Signature func = window_.simulator.Get(ntk_.make_signal(n));
-  Signature care = ~func.construct();
-
-  std::vector<Node> added; 
-  std::vector<std::pair<Node, Signal>> todos;
-  std::vector<Signal> new_fanin;
-
-  ntk_.incr_trav_id();
-  spfd_.init(func);
-  while ( (new_fanin.size()<StaticParams::kMaxInpsSolo)&&!(spfd_.is_covered()) )
-  {
-    std::optional<Signal> best_asis;
-    std::optional<Node> best_dupl;
-    uint32_t best_cost_asis = std::numeric_limits<uint32_t>::max();
-    uint32_t best_cost_dupl = std::numeric_limits<uint32_t>::max();
-    window_.manager.foreach_divisor([&](auto const& fd, auto){
-      auto const nd = ntk_.get_node(fd);
-      if (ntk_.visited(nd)!=ntk_.trav_id())
-      {
-        uint32_t const cost = spfd_.evaluate(window_.simulator.Get(fd));
-        if (cost<best_cost_asis)
-        {
-          best_cost_asis=cost;
-          best_asis = fd;
-        }
-        if ((!window_.manager.is_input(nd))&&(ntk_.num_outputs(nd)==1)&&(cost<best_cost_dupl)&&(ntk_.fanin_size(nd)<=StaticParams::kMaxInpsDual))
-        {
-          best_cost_dupl=cost;
-          best_dupl = nd;
-        }
-      }
-    });
-    if (best_dupl)
-    {
-      auto fnew = AddOutput(*best_dupl, func, care);
-      if (fnew)
-      {
-        Node nnew = ntk_.get_node(*fnew);
-        window_.simulator.compute(window_.manager, nnew);
-        auto cost = spfd_.evaluate(window_.simulator.Get(Signal{nnew, 1}));
-        if (cost<best_cost_asis)
-        {
-          added.push_back(nnew);
-          todos.push_back(std::pair{*best_dupl, Signal{nnew, 0}});
-          new_fanin.push_back(Signal{nnew, 1});
-          spfd_.update(window_.simulator.Get(Signal{nnew, 1}));
-          ntk_.set_visited(*best_dupl, ntk_.trav_id());
-        }
-        else if (best_asis)
-        {
-          if (ntk_.fanout_size(nnew)==0) ntk_.take_out_node(nnew);
-  
-          new_fanin.push_back(*best_asis);
-          spfd_.update(window_.simulator.Get(*best_asis));
-        }
-      }
-    }
-    else if (best_asis)
-    {
-      new_fanin.push_back(*best_asis);
-      spfd_.update(window_.simulator.Get(*best_asis));
-    }
-    InferBestSignature( func, care, spfd_ );
-  }
-  
-  if(spfd_.is_covered())
-  {
-      auto tt = Interpolate(new_fanin, window_.simulator.Get(ntk_.make_signal(n)) );
-      auto fnew = ntk_.create_node( new_fanin, tt );
-      window_.simulator.compute(window_.manager, fnew.index);
-      if(!kitty::equal(window_.simulator.Get(ntk_.make_signal(n)), window_.simulator.Get(fnew))){
-        std::cout << "Failed cec 1 Rexub " << std::endl;
-        ntk_.take_out_node(fnew.index);
-        return false;
-      }
-      ntk_.substitute_node(n, fnew);
-      for (auto const p : todos)
-        ntk_.substitute_node( p.first, p.second );
-      return true;
-  }
-  for (auto nd : added){ 
-    if (ntk_.fanout_size(nd)==0) ntk_.take_out_node(nd);
-  }
-  return false;
-}
-
-template <class Ntk, typename StaticParams>
-kitty::dynamic_truth_table AreaResynImpl<Ntk, StaticParams>::Approximate(Signature const& target, Signature const& care, Node n)
-{
-  Signature temp;
-  uint32_t num_vars = ntk_.fanin_size(n);
-  kitty::dynamic_truth_table tt(num_vars);
-  uint32_t num_minterms = 1u << num_vars;
-  auto const children = ntk_.get_children(n);
-  for (uint32_t m=0u; m<num_minterms; ++m)
-  {
-    temp |= ~temp;
-    for (uint32_t v=0; v<num_vars; ++v)
-      temp &= ((m>>v)&0x1) ? window_.simulator.Get(children[v]) : ~window_.simulator.Get(children[v]);
-    
-    uint32_t const num_1s = kitty::count_ones(temp&target&care);
-    uint32_t const num_0s = kitty::count_ones(temp&(~target)&care);
-    if ( num_1s > num_0s )
-      kitty::set_bit(tt,m);
-    else
-      kitty::clear_bit(tt,m);
-  }
-  return tt;
-}
-
-template <class Ntk, typename StaticParams>
-void AreaResynImpl<Ntk, StaticParams>::InferBestSignature(Signature&func, Signature&care, Spfds& spfd)
-{
-  func ^= func;
-  care ^= care;
-  for ( int m=0; m<spfd.num_masks_; ++m )
-  {
-    uint32_t const num1=kitty::count_ones(spfd.masks_[m]&spfd.func_[1]);
-    uint32_t const num0=kitty::count_ones(spfd.masks_[m]);
-    if ((num1*num0)!=0) care |= spfd.masks_[m];
-
-    if (kitty::count_ones(spfd.masks_[m]&spfd.func_[1])>kitty::count_ones(spfd.masks_[m]&spfd.func_[0]))
-      func |= spfd.masks_[m] & spfd.func_[1];
-    else
-      func |= spfd.masks_[m] & spfd.func_[0];
-  }
-}
-
-template <class Ntk, typename StaticParams>
-void AreaResynImpl<Ntk, StaticParams>::OptimizeDual(Node n) {
-  if (ps_.try_1resub_dual && mockturtle::call_with_stopwatch(st_.time_1resub_dual,
-                                      [&]() { return Try1ResubDual(n); })) {
-    st_.Record1ResubDual();
-    return;
-  }
-}
-
-template <class Ntk, typename StaticParams>
-bool AreaResynImpl<Ntk, StaticParams>::Try1ResubDual(Node n) {
-  if (window_.manager.num_mffc() <= 1) return false;
-  spfds_.Init();
-  auto cut = spfds_.GetNext(StaticParams::kMaxInpsDual);
-  if (cut) {
-    std::vector<Signal> children;
-    for (auto f : *cut) {
-      children.push_back(f);
-    }
-
-    auto tt0 = Interpolate(children, window_.simulator.Get(Signal{n,0}));
-    auto tt1 = Interpolate(children, window_.simulator.Get(Signal{n,1}));
-    auto fnew = ntk_.create_node(children, {tt0, tt1});
-    auto nnew = ntk_.get_node(fnew);
-    window_.simulator.compute(window_.manager, nnew);
-    bool cec1 = kitty::equal(window_.simulator.Get(Signal{n,0}), window_.simulator.Get(Signal{nnew,0}));
-    bool cec2 = kitty::equal(window_.simulator.Get(Signal{n,1}), window_.simulator.Get(Signal{nnew,1}));
-
-    if (cec1 && cec2)
-    {
-      std::vector<Signal> new_signals = { Signal{nnew, 0}, Signal{nnew, 1} };
-      ntk_.substitute_node(n, new_signals);
-      return true;
-    }
-    {
-      std::cout << "Failed cec 1 Resub dual " << std::endl;
-      ntk_.take_out_node(nnew);
-    }
-  }
-  return false;
-}
-
-
 }  // namespace detail
 
 // Public API
-template <class Ntk, typename StaticParams = DefaultAreaResynStaticParams>
-void AreaResyn(Ntk& ntk, AreaResynParams ps = {},
-               AreaResynStats* pst = nullptr) {
-  AreaResynStats st;
-  detail::AreaResynImpl<Ntk, StaticParams> p(ntk, ps, st);
-  p.ReportNtkState();
+template <class Ntk, typename Params = OrchestrateAreaParamsDefault,
+          typename Stats = OrchestrateAreaStatsDefault>
+void OrchestrateArea(Ntk& ntk, Params ps = {}, Stats* pst = nullptr) {
+  Stats st;
+  detail::OrchestrateAreaImpl<Ntk, Params, Stats> p(ntk, ps, st);
   p.Run();
   st.Report();
-  p.ReportNtkState();
   if (pst) *pst = st;
 }
 
