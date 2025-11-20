@@ -31,52 +31,45 @@
 */
 
 #pragma once
-#include <array>
 #include <assert.h>
+
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
 #include <utility>
 
-namespace rinox
-{
+namespace rinox {
 
-namespace math
-{
+namespace math {
 
-template<typename Data, uint32_t kMaxNumSpins, uint32_t kMaxNumOutputs>
-class SpinSystem
-{
-  struct Spin{
+template <typename Data, uint32_t kMaxNumSpins, uint32_t kMaxNumOutputs>
+class SpinSystem {
+  struct Spin {
     uint32_t name;
     Data info;
     Data care;
     int value;
   };
 
-public:
-
-  void AddSpin(Data const& info, Data const& care, uint32_t name)
-  {
+ public:
+  void AddSpin(Data const& info, Data const& care, uint32_t name) {
     int n = spins_.size();
-    for ( int i = 0; i < n; ++i )
-    {
-      int Jp = kitty::count_ones( info ^ spins_[i].info );
-      int Jn = kitty::count_ones( ~info ^ spins_[i].info );
-      J[n][i] = J[i][n] = (Jp-Jn)/2;
+    for (int i = 0; i < n; ++i) {
+      int Jp = kitty::count_ones(care & ~info ^ spins_[i].info);
+      int Jn = kitty::count_ones(care & info ^ spins_[i].info);
+      J[n][i] = (Jp - Jn) / 2;
+      J[i][n] = J[n][i];
+      // std::cout << "J[" << n << "][" << i << "]=" << J[n][i] << std::endl;
     }
 
     Spin s{name, info, care, 0};
     spins_.push_back(s);
   }
 
-  void clear()
-  {
-    spins_.clear();
-  }
+  void clear() { spins_.clear(); }
 
-  int ComputeEnergy() const
-  {
+  int ComputeEnergy() const {
     int res = 0;
     const int n = static_cast<int>(spins_.size());
     for (int i = 0; i < n; ++i)
@@ -85,11 +78,43 @@ public:
     return res;
   }
 
-private:
-  int J [kMaxNumSpins][kMaxNumSpins];
+  bool GaugeTest() {
+    // std::cout << "E[0]=" << ComputeEnergy() << std::endl;
+    spins_[0].value = 1;
+    for (int i = 1; i < spins_.size(); ++i) {
+      spins_[i].value = (J[0][i] >= 0) ? 1 : -1;
+      //  std::cout << "Spin " << i << " set to " << spins_[i].value <<
+      //  std::endl;
+    }
+
+    // std::cout << "E[T]=" << ComputeEnergy() << std::endl;
+
+    for (int i = 0; i < spins_.size() - 1; ++i) {
+      for (int j = i + 1; j < spins_.size(); ++j) {
+        if (std::signbit(spins_[i].value * spins_[j].value) !=
+            std::signbit(J[i][j]))
+          return false;
+      }
+    }
+
+    return true;
+  }
+
+  void MinimizeEnergy() {
+    bool const trivial = GaugeTest();
+    // if (trivial) std::cout << "Trivial system detected" << std::endl;
+  }
+
+  template <typename Fn>
+  void ForeachSpin(Fn&& fn) const {
+    for (auto const& spin : spins_) fn(spin);
+  }
+
+ private:
+  int J[kMaxNumSpins][kMaxNumSpins];
   math::static_vector<Spin, kMaxNumSpins> spins_;
 };
 
-} // namespace math
+}  // namespace math
 
-} // namespace rinox
+}  // namespace rinox

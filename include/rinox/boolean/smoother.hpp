@@ -279,7 +279,7 @@ class Smoother {
     for (uint32_t m = 0; m < care.num_bits(); ++m) {
       if (!kitty::get_bit(care, m)) {
         dont_cares.push_back(m);
-        CSFunction flip{};  // zero-initialize!
+        CSFunction flip;  // zero-initialize!
         for (uint32_t v = 0; v < n; ++v) {
           kitty::set_bit(flip, m ^ (1u << v));  // Hamming-1 neighbors
         }
@@ -289,7 +289,7 @@ class Smoother {
 
     // Initialize: keep cares fixed, randomize don't-cares
     CSFunction new_bits;
-    kitty::create_random(new_bits);
+    // kitty::create_random(new_bits);
     new_bits = (bits & care) | (new_bits & ~care);
 
     bool changed;

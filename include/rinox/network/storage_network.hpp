@@ -250,6 +250,7 @@ class storage_network {
    * \return True if the node is a combinational input, false otherwise.
    */
   bool is_ci(node_index_t n) const {
+    if (is_multioutput(n)) return false;
     auto const& pins = nodes[n].outputs;
     return has_intersection(pins[0].type, pin_type_t::PI) ||
            has_intersection(pins[0].type, pin_type_t::CI);
@@ -523,16 +524,15 @@ class storage_network {
     assert(found && "Output signal not found in the outputs list");
   }
 
-  void remove_edge(node_index_t from, node_index_t to)
-  {
+  void remove_edge(node_index_t from, node_index_t to) {
     auto& fi = nodes[to].children;
     fi.erase(std::remove_if(fi.begin(), fi.end(),
-                       [&](signal_t x){ return x.index == from; }),
-        fi.end());
+                            [&](signal_t x) { return x.index == from; }),
+             fi.end());
     auto& fo = nodes[from].outputs[0].fanout;
     fo.erase(std::remove_if(fo.begin(), fo.end(),
-                       [&](node_index_t x){ return x == to; }),
-        fo.end());
+                            [&](node_index_t x) { return x == to; }),
+             fo.end());
     decr_fanout_size(from);
   }
 
@@ -642,9 +642,7 @@ class storage_network {
    */
   bool is_combinational() const { return true; }
 
-  bool is_multioutput(node_index_t n) const {
-    return num_outputs(n) > 1;
-  }
+  bool is_multioutput(node_index_t n) const { return num_outputs(n) > 1; }
 
   template <bool DoStrash = false, network::design_type_t D = DesignType,
             std::enable_if_t<D == network::design_type_t::CELL_BASED, int> = 0>
@@ -702,17 +700,11 @@ class storage_network {
     return static_cast<uint32_t>(nodes[n].children.size());
   }
 
-  uint32_t fanout_size(node_index_t n) const {
-    return nodes[n].fanout_count;
-  }
+  uint32_t fanout_size(node_index_t n) const { return nodes[n].fanout_count; }
 
-  uint32_t incr_fanout_size(node_index_t n) {
-    return nodes[n].fanout_count++;
-  }
+  uint32_t incr_fanout_size(node_index_t n) { return nodes[n].fanout_count++; }
 
-  uint32_t decr_fanout_size(node_index_t n) {
-    return --nodes[n].fanout_count;
-  }
+  uint32_t decr_fanout_size(node_index_t n) { return --nodes[n].fanout_count; }
 
   uint32_t incr_fanout_size_pin(node_index_t n, uint32_t pin_index) {
     return ++nodes[n].outputs[pin_index].fanout_count;
@@ -840,7 +832,7 @@ class storage_network {
   }
 
   template <typename Fn>
-  void foreach_gate(Fn&& fn) const {
+  void foreach_gate(Fn&& fn) {
     auto const nodes_size = nodes.size();
     auto r = mockturtle::range<uint64_t>(
         2u, nodes_size); /* start from 2 to avoid constants */
@@ -989,9 +981,7 @@ class storage_network {
 
   auto visited(node_index_t n) const { return nodes[n].traversal_id; }
 
-  void set_visited(node_index_t n, uint32_t v) {
-    nodes[n].traversal_id = v;
-  }
+  void set_visited(node_index_t n, uint32_t v) { nodes[n].traversal_id = v; }
 
   uint32_t get_trav_id() const { return trav_id; }
 
@@ -1057,12 +1047,11 @@ class storage_network {
             std::enable_if_t<D == network::design_type_t::ARRAY_BASED, int> = 0>
   double get_area(node_index_t n) const {
     static constexpr double array_unit_area = 1;
-    //return fanin_size(n) == 1 ? 0 : array_unit_area;
+    // return fanin_size(n) == 1 ? 0 : array_unit_area;
     return array_unit_area;
   }
 
-  std::vector<kitty::dynamic_truth_table> get_functions(
-      node_index_t n) const {
+  std::vector<kitty::dynamic_truth_table> get_functions(node_index_t n) const {
     std::vector<kitty::dynamic_truth_table> tts;
     foreach_output(n, [&](auto const& f) {
       auto const& g = get_binding(f);
@@ -1137,9 +1126,7 @@ class storage_network {
 
   bool has_binding(signal_t const& f) const { return has_binding(f.index); }
 
-  bool has_binding(node_index_t n) const {
-    return (!is_ci(n) && !is_pi(n));
-  }
+  bool has_binding(node_index_t n) const { return (!is_ci(n) && !is_pi(n)); }
 
   bool has_gate(std::string const& name) const {
     return library.has_gate(name);

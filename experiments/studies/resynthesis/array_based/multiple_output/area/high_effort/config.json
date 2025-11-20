@@ -11,8 +11,8 @@
     "input":
     {
       "extension": "aiger",
-      "benchmarks": ["epfl"],
-      "excluded": ["hyp"]
+      "benchmarks": ["log2"],
+      "excluded": []
     },
     "output":
     {
@@ -70,12 +70,12 @@
     "cec" : true,
     "preserve_times" : false,
     "use_required" : false,
-    "try_0resub_solo" : true,
-    "try_1resub_solo" : true,
-    "try_2resub_solo" : true,
-    "try_1resub_dual" : true,
-    "try_1rexub_solo" : true,
-    "try_0rexub_solo" : true,
+    "try_0resub_solo" : false,
+    "try_1resub_solo" : false,
+    "try_2resub_solo" : false,
+    "try_1resub_dual" : false,
+    "try_1rexub_solo" : false,
+    "try_0rexub_solo" : false,
     "try_merger_solo" : true
   }
 }
