@@ -31,34 +31,30 @@
 */
 
 #pragma once
-#include <array>
 #include <assert.h>
+
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
 #include <utility>
 
-namespace rinox
-{
+namespace rinox {
 
-namespace math
-{
+namespace math {
 
-constexpr uint32_t log2_ceil( uint32_t x )
-{
+constexpr uint32_t log2_ceil(uint32_t x) {
   uint32_t r = 0;
   uint32_t v = x - 1;
-  while ( v > 0 )
-  {
+  while (v > 0) {
     ++r;
     v >>= 1;
   }
   return r;
 }
 
-template<typename T, std::size_t Cap>
-struct static_vector
-{
+template <typename T, std::size_t Cap>
+struct static_vector {
   using value_type = T;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
@@ -71,6 +67,53 @@ struct static_vector
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+  static_vector() = default;
+
+  static_vector(std::vector<T> const& vec) {
+    for (auto const& x : vec) push_back(x);
+  }
+
+  explicit static_vector(size_t count, T const& value = T{}) {
+    while (n < count) push_back(value);
+  }
+
+  template <class InputIt>
+  static_vector(InputIt first, InputIt last) {
+    for (; first != last; ++first) push_back(*first);
+  }
+
+  static_vector(std::initializer_list<T> init) {
+    for (auto const& x : init) push_back(x);
+  }
+
+  static_vector(static_vector const& other) {
+    for (auto const& x : other) push_back(x);
+  }
+
+  static_vector(static_vector&& other) noexcept {
+    for (auto& x : other) push_back(std::move(x));
+    other.clear();
+  }
+
+  static_vector& operator=(static_vector const& other) {
+    if (this != &other) {
+      clear();
+      for (auto const& x : other) push_back(x);
+    }
+    return *this;
+  }
+
+  static_vector& operator=(static_vector&& other) noexcept {
+    if (this != &other) {
+      clear();
+      for (auto& x : other) push_back(std::move(x));
+      other.clear();
+    }
+    return *this;
+  }
+
+  ~static_vector() { clear(); }
+
   std::array<T, Cap> data_;
   std::size_t n = 0;
 
@@ -79,217 +122,173 @@ struct static_vector
   constexpr bool empty() const noexcept { return n == 0; }
   void clear() noexcept { n = 0; }
 
-  T& operator[]( std::size_t i ) noexcept { return data_[i]; }
-  const T& operator[]( std::size_t i ) const noexcept { return data_[i]; }
-  T& back()
-  {
-    if ( n == 0 )
-      throw std::out_of_range( "back on empty static_vector" );
+  T& operator[](std::size_t i) noexcept { return data_[i]; }
+  const T& operator[](std::size_t i) const noexcept { return data_[i]; }
+  T& back() {
+    if (n == 0) throw std::out_of_range("back on empty static_vector");
     return data_[n - 1];
   }
-  const T& back() const
-  {
-    if ( n == 0 )
-      throw std::out_of_range( "back on empty static_vector" );
+  const T& back() const {
+    if (n == 0) throw std::out_of_range("back on empty static_vector");
     return data_[n - 1];
   }
 
-  void push_back( T const& x )
-  {
-
-    if ( n >= Cap )
-    {
+  void push_back(T const& x) {
+    if (n >= Cap) {
       std::cout << n << std::endl;
-      throw std::out_of_range( "static_vector full" );
+      throw std::out_of_range("static_vector full");
     }
     data_[n++] = x;
   }
 
-  void push_back( T&& x )
-  {
-    if ( n >= Cap )
-    {
-      assert( false && "!" );
-      throw std::out_of_range( "static_vector full" );
+  void push_back(T&& x) {
+    if (n >= Cap) {
+      assert(false && "!");
+      throw std::out_of_range("static_vector full");
     }
-    data_[n++] = std::move( x );
+    data_[n++] = std::move(x);
   }
 
-  template<typename... Args>
-  T& emplace_back( Args&&... args )
-  {
-    if ( n >= Cap )
-    {
+  template <typename... Args>
+  T& emplace_back(Args&&... args) {
+    if (n >= Cap) {
       std::cout << n << std::endl;
-      throw std::out_of_range( "static_vector full" );
+      throw std::out_of_range("static_vector full");
     }
-    return data_[n++] = T( std::forward<Args>( args )... );
+    return data_[n++] = T(std::forward<Args>(args)...);
   }
 
-  void pop_back()
-  {
-    if ( n == 0 )
-      throw std::out_of_range( "pop_back on empty static_vector" );
+  void pop_back() {
+    if (n == 0) throw std::out_of_range("pop_back on empty static_vector");
     --n;
   }
 
-  void erase( std::size_t i )
-  {
-    if ( i >= n )
-      throw std::out_of_range( "erase out of range" );
-    if ( i < n - 1 )
-      std::swap( data_[i], data_[n - 1] );
+  void erase(std::size_t i) {
+    if (i >= n) throw std::out_of_range("erase out of range");
+    if (i < n - 1) std::swap(data_[i], data_[n - 1]);
     --n;
   }
 
+  iterator erase(iterator pos) {
+    if (pos < begin() || pos >= end())
+      throw std::out_of_range("erase iterator out of range");
 
-  iterator erase( iterator pos )
-  {
-    if ( pos < begin() || pos >= end() )
-      throw std::out_of_range( "erase iterator out of range" );
-
-    size_t idx = static_cast<size_t>( pos - begin() );
+    size_t idx = static_cast<size_t>(pos - begin());
 
     // shift left
-    for ( size_t i = idx; i + 1 < n; ++i )
-      data_[i] = std::move( data_[i + 1] );
+    for (size_t i = idx; i + 1 < n; ++i) data_[i] = std::move(data_[i + 1]);
 
     --n;
-    return begin() + idx; // return iterator to next element
+    return begin() + idx;  // return iterator to next element
   }
 
-  iterator erase( iterator first, iterator last )
-  {
-    if ( first < begin() || last > end() || first > last )
-      throw std::out_of_range( "erase range out of range" );
+  iterator erase(iterator first, iterator last) {
+    if (first < begin() || last > end() || first > last)
+      throw std::out_of_range("erase range out of range");
 
-    size_t idx_first = static_cast<size_t>( first - begin() );
-    size_t idx_last  = static_cast<size_t>( last - begin() );
-    size_t count     = idx_last - idx_first;
+    size_t idx_first = static_cast<size_t>(first - begin());
+    size_t idx_last = static_cast<size_t>(last - begin());
+    size_t count = idx_last - idx_first;
 
-    for ( size_t i = idx_first; i + count < n; ++i )
-      data_[i] = std::move( data_[i + count] );
+    for (size_t i = idx_first; i + count < n; ++i)
+      data_[i] = std::move(data_[i + count]);
 
     n -= count;
-    return begin() + idx_first; // iterator to next valid element
+    return begin() + idx_first;  // iterator to next valid element
   }
 
-  void erase_value( T const& v )
-  {
-    if ( empty() )
-      return;
-    for ( int i = n - 1; i >= 0; i-- )
-      if ( data_[i] == v )
-        erase( i );
+  void erase_value(T const& v) {
+    if (empty()) return;
+    for (int i = n - 1; i >= 0; i--)
+      if (data_[i] == v) erase(i);
   }
 
-  void resize( size_t new_size, T const& v )
-  {
-    if ( new_size > Cap )
-    {
-      assert( false && "resize" );
-      throw std::out_of_range( "resize out of range" );
+  void resize(size_t new_size, T const& v) {
+    if (new_size > Cap) {
+      assert(false && "resize");
+      throw std::out_of_range("resize out of range");
     }
-    while ( n < new_size )
-      push_back( v );
+    while (n < new_size) push_back(v);
   }
 
-  void insert_unique( T const& v )
-  {
-    if ( n >= Cap )
-    {
+  void insert_unique(T const& v) {
+    if (n >= Cap) {
       std::cout << n << std::endl;
-      throw std::out_of_range( "vector full" );
+      throw std::out_of_range("vector full");
     }
-    for ( std::size_t i = 0; i < n; ++i )
-      if ( data_[i] == v )
-        return;
-    push_back( v );
+    for (std::size_t i = 0; i < n; ++i)
+      if (data_[i] == v) return;
+    push_back(v);
   }
 
-  iterator insert( iterator pos, T const& value )
-  {
-    if ( n >= Cap )
-    {
+  iterator insert(iterator pos, T const& value) {
+    if (n >= Cap) {
       std::cout << n << std::endl;
-      throw std::out_of_range( "static_vector full" );
+      throw std::out_of_range("static_vector full");
     }
 
     // compute index from iterator
-    size_t idx = static_cast<size_t>( pos - begin() );
+    size_t idx = static_cast<size_t>(pos - begin());
 
     // shift elements one step to the right
-    for ( size_t i = n; i > idx; --i )
-      data_[i] = std::move( data_[i - 1] );
+    for (size_t i = n; i > idx; --i) data_[i] = std::move(data_[i - 1]);
 
     data_[idx] = value;
     ++n;
     return begin() + idx;
   }
 
-  iterator insert( iterator pos, T&& value )
-  {
-    if ( n >= Cap )
-      throw std::out_of_range( "static_vector full" );
+  iterator insert(iterator pos, T&& value) {
+    if (n >= Cap) throw std::out_of_range("static_vector full");
 
-    size_t idx = static_cast<size_t>( pos - begin() );
+    size_t idx = static_cast<size_t>(pos - begin());
 
-    for ( size_t i = n; i > idx; --i )
-      data_[i] = std::move( data_[i - 1] );
+    for (size_t i = n; i > idx; --i) data_[i] = std::move(data_[i - 1]);
 
-    data_[idx] = std::move( value );
+    data_[idx] = std::move(value);
     ++n;
     return begin() + idx;
   }
 
-  void resize( size_t new_size )
-  {
-    if ( new_size > Cap )
-    {
-      assert( false && "resize" );
-      throw std::out_of_range( "resize out of range" );
+  void resize(size_t new_size) {
+    if (new_size > Cap) {
+      assert(false && "resize");
+      throw std::out_of_range("resize out of range");
     }
     n = new_size;
   }
 
-  void shift_insert( size_t j, T const& v )
-  {
-    if ( n >= Cap )
-      throw std::out_of_range( "shif insert out of range" );
-    for ( auto i = n; i > j; --i )
-      data_[i] = data_[i - 1];
+  void shift_insert(size_t j, T const& v) {
+    if (n >= Cap) throw std::out_of_range("shif insert out of range");
+    for (auto i = n; i > j; --i) data_[i] = data_[i - 1];
     data_[j] = v;
     n++;
   }
 
-  bool operator==( static_vector<T, Cap> const& other ) const
-  {
-    return ( n == other.n ) && ( data_ == other.data_ );
-  }
-
-  bool operator==( std::vector<T> const& other ) const
-  {
-    if ( size() != other.size() )
-      return false;
-    for ( int i = 0; i < n; ++i )
-      if ( data_[i] != other[i] )
-        return false;
+  bool operator==(static_vector<T, Cap> const& other) const {
+    if (n != other.n) return false;
+    for (int i = 0; i < n; ++i) {
+      if (data_[i] != other.data_[i]) return false;
+    }
     return true;
   }
 
-  bool operator!=( std::vector<T> const& other ) const
-  {
-    if ( size() != other.size() )
-      return true;
-    for ( int i = 0; i < n; ++i )
-      if ( data_[i] != other[i] )
-        return true;
+  bool operator==(std::vector<T> const& other) const {
+    if (size() != other.size()) return false;
+    for (int i = 0; i < n; ++i)
+      if (data_[i] != other[i]) return false;
+    return true;
+  }
+
+  bool operator!=(std::vector<T> const& other) const {
+    if (size() != other.size()) return true;
+    for (int i = 0; i < n; ++i)
+      if (data_[i] != other[i]) return true;
     return false;
   }
 
-  bool operator!=( static_vector<T, Cap> const& other ) const
-  {
-    return ( n != other.n ) || ( data_ != other.data_ );
+  bool operator!=(static_vector<T, Cap> const& other) const {
+    return (n != other.n) || (data_ != other.data_);
   }
 
   T* begin() noexcept { return data_.data(); }
@@ -300,6 +299,6 @@ struct static_vector
   const T* const cend() const noexcept { return data_.data() + n; }
 };
 
-} // namespace math
+}  // namespace math
 
 } /* namespace rinox */

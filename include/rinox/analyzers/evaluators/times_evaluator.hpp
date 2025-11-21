@@ -24,7 +24,7 @@
  */
 
 /*!
- * \file timess_evaluator.hpp
+ * \file times_evaluator.hpp
  * \brief Compute  time information of a network and updates upon change
  *
  * \author Andrea Costamagna
@@ -147,6 +147,9 @@ class TimesEvaluator {
 #pragma region Interface methods
  public:
   [[nodiscard]] int GetTier(Node const& n) { return info_[n]->tier; }
+  [[nodiscard]] int GetTier(Signal const& f) {
+    return GetTier(ntk_.get_node(f));
+  }
   [[nodiscard]] double GetArrival(Signal const& f) { return arrivals_[f]; }
   [[nodiscard]] double GetRequired(Signal const& f) { return required_[f]; }
 
