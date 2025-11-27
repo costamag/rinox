@@ -101,8 +101,6 @@ class Window {
     root_ = n;
   }
 
-  Node GetRoot() { return root_; }
-
   void Make(Node const& n, WindowTags::tag target,
             std::initializer_list<WindowTags::tag> conflicts) {
     Reassign(n, target, conflicts);
@@ -269,12 +267,11 @@ class Window {
 
  public:
   auto const& GetSignalsInps() { return inps_; }
-
+  auto const& GetSignalsOuts() { return outs_; }
   auto const& GetSignalsDivs() { return divs_; }
-
   auto const& GetNodesMffc() { return mffc_; }
-
   auto const& GetNodesTfos() { return tfos_; }
+  Node GetRoot() { return root_; }
 
  public:
   Node root_;

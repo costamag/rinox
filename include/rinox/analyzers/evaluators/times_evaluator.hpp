@@ -140,8 +140,7 @@ class TimesEvaluator {
       ComputeArrival(n);
     });
 
-    ComputeTiers();
-    ComputeTimes();
+    Run();
   }
 
 #pragma region Interface methods
@@ -154,6 +153,11 @@ class TimesEvaluator {
   [[nodiscard]] double GetRequired(Signal const& f) { return required_[f]; }
 
 #pragma endregion
+
+  void Run() {
+    ComputeTiers();
+    ComputeTimes();
+  }
 
 #pragma region Tiers
 
@@ -249,6 +253,18 @@ class TimesEvaluator {
   }
 
   template <typename Fn>
+  void ForeachNode(int32_t tier, Fn&& fn) {
+    auto & list = tiers_[tier];
+    Info * p = list.tail;
+    while(p)
+    {
+      Info * next = p->next;
+      fn(p->node);
+      p=next;
+    }
+  }
+
+  template <typename Fn>
   void ForeachTierReverse(Fn&& fn) {
     int32_t const bottom = 0;
     int32_t const top = static_cast<int32_t>(tiers_.size()) - 1;
@@ -316,6 +332,15 @@ class TimesEvaluator {
     list.ForeachEntry([&](Info* p) {
       ntk_.foreach_output(
           p->node, [&](auto const& f) { res = std::max(res, arrivals_[f]); });
+    });
+    return res;
+  }
+
+  int32_t GetWorstTier() {
+    int32_t res = 0;
+    ntk_.foreach_po( [&](auto const& f){
+      auto n = ntk_.get_node(f);
+      res = std::max(res, info_[n]->tier);
     });
     return res;
   }

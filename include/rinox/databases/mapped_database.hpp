@@ -160,6 +160,7 @@ public:
     {
       sims_ptrs_.push_back( &proj_funcs_[i] );
     }
+    AddGates();
   }
 
   mapped_database() = default;
@@ -173,6 +174,30 @@ public:
   {
     return lib_;
   }
+
+#pragma region Init
+void AddGates()
+{
+  NtkDb ntk_tmp(lib_);
+  rinox::math::static_vector<signal_t, MaxNumVars> pis;
+
+  for ( auto i = 0u; i < MaxNumVars; ++i )
+    pis.push_back( ntk_tmp.create_pi() );
+
+  auto const& raw_gates = lib_.get_raw_gates();
+  for (auto const& g : raw_gates)
+  {
+    if(g.num_vars <= MaxNumVars)
+    {
+      std::vector<signal_t> children;
+      for(int i =0; i < g.num_vars; ++i)
+        children.push_back(pis[i]);
+      auto f = ntk_tmp.create_node(children, g.id);
+      add( ntk_tmp, children, f );
+    }
+  }
+}
+#pragma endregion
 
 #pragma region loading
 

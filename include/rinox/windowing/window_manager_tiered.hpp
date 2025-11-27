@@ -53,11 +53,16 @@ namespace windowing {
 // Default parameters for WindowManager. Controls window size and depth limits.
 // Inherit from the raw window parameters to share the common information.
 struct WindowManagerParamsDefault : WindowParamsDefault {
-  static constexpr uint32_t kMaxNumLeaves = 8;
-  uint32_t max_num_divisors = 128;
-  uint32_t max_reconvergence = 10;
-  int32_t max_num_levels_tfi = 10;
-  int32_t max_num_levels_tfo = 0;
+  static constexpr uint32_t kInpsCapacity = 512u;
+  static constexpr uint32_t kDivsCapacity = 2048u;
+  static constexpr uint32_t kMffcCapacity = 512u;
+  static constexpr uint32_t kTfosCapacity = 512u;
+  static constexpr uint32_t kOutsCapacity = 512u;
+  static constexpr uint32_t kMaxNumLeaves = 8u;
+  uint32_t max_num_divisors = 128u;
+  uint32_t max_reconvergence = 10u;
+  int32_t max_num_levels_tfi = 10u;
+  int32_t max_num_levels_tfo = 0u;
 };
 
 // Default statistics structure for WindowManager.
@@ -66,7 +71,8 @@ struct WindowManagerStatsDefault : WindowStatsDefault {
 };
 
 // Manages extraction of logic windows around nodes in a network.
-template <class Ntk, typename Params = WindowManagerParamsDefault,
+template <class Ntk,
+          typename Params = WindowManagerParamsDefault,
           typename Stats = WindowManagerStatsDefault>
 class WindowManager {
  public:
@@ -117,14 +123,27 @@ class WindowManager {
     return st_.valid;
   }
 
+  size_t Size() const {
+    size_t s = 0;
+    s += window_.NumInps();
+    s += window_.NumDivs();
+    s += window_.NumMffc() * Ntk::max_num_outputs;
+    s += window_.NumTfos() * Ntk::max_num_outputs;
+    return s;
+  }
+
   // Returns true if the last run produced a valid window.
   bool IsValid() const { return st_.valid; }
 
   // Returns true if n is an input of the current window.
-  bool IsInput(Node const& n) const { return window_.IsInps(n); }
+  bool IsInps(Node const& n) const { return window_.IsInps(n); }
 
   // Returns true if n is contained anywhere in the current window.
   bool IsContained(Node const& n) const {
+    return window_.IsInps(n) || window_.IsDivs(n) || window_.IsMffc(n) ||
+           window_.IsTfos(n);
+  }
+  bool is_contained(Node const& n) const {
     return window_.IsInps(n) || window_.IsDivs(n) || window_.IsMffc(n) ||
            window_.IsTfos(n);
   }
@@ -217,6 +236,7 @@ class WindowManager {
         ntk_.foreach_fanin(n, [&](auto const& fi, auto) {
           auto const ni = ntk_.get_node(fi);
           if (!window_.WasSeen(ni)) cost += ntk_.num_outputs(ni);
+          if (times_.GetTier(ni) < tier_last_tfi) cost += ps_.kMaxNumLeaves;
         });
 
         if (cost < best_cost) {
@@ -583,12 +603,14 @@ class WindowManager {
   }
 
   auto const& GetSignalsInps() { return window_.GetSignalsInps(); }
-
   auto const& GetSignalsDivs() { return window_.GetSignalsDivs(); }
-
+  auto const& GetSignalsOuts() { return window_.GetSignalsOuts(); }
   auto const& GetNodesMffc() { return window_.GetNodesMffc(); }
-
   auto const& GetNodesTfos() { return window_.GetNodesTfos(); }
+
+  Node GetRoot() { return window_.GetRoot(); }
+  Node get_pivot() { return window_.GetRoot(); }
+  TimesEvaluator & GetTimes() { return times_; };
 
  private:
   // Parameters are owned by the caller and must outlive this manager.

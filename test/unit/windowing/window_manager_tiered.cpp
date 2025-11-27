@@ -11,7 +11,8 @@
 std::string const test_library =
     "GATE   inv1    1.0 O=!a ;         PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
     "GATE   and2    1.0 O=a*b;         PIN * INV 1   999 1.0 0.0 1.0 0.0\n"
-    "GATE   xor2    1.0 O=a^b;         PIN * INV 1   999 3.0 0.0 3.0 0.0";
+    "GATE   xor2    1.0 O=a^b;         PIN * INV 1   999 3.0 0.0 3.0 0.0\n"
+    "GATE   xor3    1.0 O=a^b^c;       PIN * INV 1   999 3.0 0.0 3.0 0.0";
 
 struct WindowManagerParams1 : rinox::windowing::WindowManagerParamsDefault {
   static constexpr uint32_t kInpsCapacity = 32u;
@@ -211,8 +212,6 @@ TEST_CASE(
   fs.push_back(ntk.create_pi());                      // 2
   fs.push_back(ntk.create_pi());                      // 3
   fs.push_back(ntk.create_pi());                      // 4
-  fs.push_back(ntk.create_pi());                      // 5
-  fs.push_back(ntk.create_pi());                      // 6
   fs.push_back(ntk.create_node({fs[3]}, 0));          // 7
   fs.push_back(ntk.create_node({fs[2], fs[7]}, 1));   // 8
   fs.push_back(ntk.create_node({fs[4], fs[8]}, 1));   // 9

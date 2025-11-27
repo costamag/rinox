@@ -146,7 +146,7 @@ public:
   }
 
   template<typename WinMng, typename WinSim>
-  void struct_enumeration( WinMng const& window, WinSim& simulator )
+  void struct_enumeration( WinMng & window, WinSim& simulator )
   {
     using cut_sigs_t = math::static_vector<signal_t, max_cuts_size>;
     using front_sigs_t = math::static_vector<signal_t, max_cuts_size + 10u>;
