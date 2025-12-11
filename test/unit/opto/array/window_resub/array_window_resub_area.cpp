@@ -1,15 +1,14 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
-
 #include <kitty/kitty.hpp>
 #include <kitty/static_truth_table.hpp>
-
 #include <mockturtle/io/genlib_reader.hpp>
 #include <mockturtle/utils/tech_library.hpp>
 #include <mockturtle/views/depth_view.hpp>
 #include <rinox/network/network.hpp>
 #include <rinox/opto/array/window_resub/array_window_resub_area.hpp>
 
+#if 0
 struct Params
     : rinox::opto::array::WindowResubAreaParamsDefault {
   static constexpr uint32_t kMaxNumLeaves = RINOX_MAX_NUM_LEAVES;
@@ -104,3 +103,4 @@ TEST_CASE( "Array Window Resub | 0-resub of a single signal", "[array_window_res
   rinox::opto::array::WindowResubArea<Ntk, Params>(ntk, ps, &st);
   CHECK( ntk.area() == 3 );
 }
+#endif

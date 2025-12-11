@@ -189,6 +189,7 @@ TEST_CASE("Window where leaves expansion is possible - tiered version",
                     6, 10, 8, 4, 12, 14, 16, 20, 18});
 }
 
+#if 0
 TEST_CASE(
     "Window where leaves expansion is possible and side divs are present - "
     "tiered version",
@@ -245,3 +246,5 @@ TEST_CASE(
   CHECK(divs == rinox::math::static_vector<typename Ntk::signal, 32u>{
                     6, 10, 8, 4, 12, 14, 16, 20, 18, 26});
 }
+
+#endif

@@ -45,9 +45,9 @@
 
 #include "../../../analyzers/evaluators/times_evaluator.hpp"
 #include "../../../analyzers/trackers/arrival_times_tracker.hpp"
-#include "../../../dependency/struct_dependencies.hpp"
 #include "../../../boolean/simd.hpp"
 #include "../../../boolean/spfd.hpp"
+#include "../../../dependency/struct_dependencies.hpp"
 #include "../../../dependency/window/oracles.hpp"
 #include "../../../network/visualize.hpp"
 #include "../../../synthesis/lut/synth.hpp"
@@ -100,9 +100,7 @@ struct RewriteAreaStatsDefault : windowing::WindowManagerStatsDefault {
 
   double GetTimeRewrite() const { return mockturtle::to_seconds(time_rewrite); }
 
-  double GetTimeTotal() const {
-    return GetTimeRewrite();
-  }
+  double GetTimeTotal() const { return GetTimeRewrite(); }
 
   void RecordRewrite() { num_rewrite++; }
 
@@ -124,27 +122,36 @@ namespace detail {
 
 template <class Ntk, typename Database, typename Params, typename Stats>
 class RewriteAreaImpl {
-
   using Node = typename Ntk::node;
   using Signal = typename Ntk::signal;
+  using Signals = rinox::math::static_vector<Signal, Params::kMaxCutsSize>;
   using Signature = kitty::static_truth_table<Params::kMaxNumLeaves>;
   using WindowManagerT = windowing::WindowManager<Ntk, Params>;
   using WindowSimulatorT =
       windowing::WindowSimulator<Ntk, Params::kMaxNumLeaves>;
   static constexpr uint32_t kMaxNumOutputs = Ntk::kMaxNumOutputs;
   using TimesEvaluatorT = typename analyzers::evaluators::TimesEvaluator<Ntk>;
+  using Chain = evaluation::chains::bound_chain<
+      rinox::network::design_type_t::CELL_BASED>;
+  using StructDependencies = dependency::struct_dependencies<Ntk, Params>;
+  using Cut = typename StructDependencies::Cut;
+  using DatabaseEntry = typename Database::database_entry_t;
 
-  struct StructParams : dependency::default_struct_params
-  {
+  struct StructParams : dependency::default_struct_params {
     static constexpr uint32_t num_vars_sign = Params::kMaxNumLeaves;
     static constexpr uint32_t max_cuts_size = Params::kMaxCutsSize;
     static constexpr uint32_t max_reconv = Params::kMaxCutReconv;
   };
 
-  using StructDependencies = dependency::struct_dependencies<Ntk, StructParams>;
+  struct ResynCandidate {
+    Cut cut;
+    DatabaseEntry entry;
+    double reward;
+    double arrival_time;
+  };
 
  public:
-  RewriteAreaImpl(Ntk& ntk, Database & database, Params ps, Stats& st)
+  RewriteAreaImpl(Ntk& ntk, Database& database, Params ps, Stats& st)
       :  // parameters
         ps_(ps),
         // statistics
@@ -154,14 +161,17 @@ class RewriteAreaImpl {
         database_(database),
         window_manager_(ntk_, ps, st),
         window_simulator_(ntk_),
-        dependencies_(ntk_)
-        {}
+        dependencies_(ntk_) {}
 
   void Run();
 
  private:
   bool SkipNode(Node) const;
   bool TryRewrite(Node);
+
+  double Evaluate(Cut&);
+  double RecursiveRef(Node);
+  double RecursiveDeref(Node);
 
  private:
   // Parameters
@@ -173,13 +183,13 @@ class RewriteAreaImpl {
   WindowManagerT window_manager_;
   WindowSimulatorT window_simulator_;
   StructDependencies dependencies_;
-  Database & database_;
+  Database& database_;
 };
 
 // Implementation of Run split into steps
 template <typename Ntk, typename Database, typename Params, typename Stats>
 void RewriteAreaImpl<Ntk, Database, Params, Stats>::Run() {
-  auto & times = window_manager_.GetTimes();
+  auto& times = window_manager_.GetTimes();
   times.Run();
   int32_t const last_tier = times.GetWorstTier();
 
@@ -193,7 +203,7 @@ void RewriteAreaImpl<Ntk, Database, Params, Stats>::Run() {
 
       if (!window_manager_.IsValid()) return true;
 
-      if( TryRewrite(n) ) {
+      if (TryRewrite(n)) {
         st_.RecordRewrite();
         update = true;
       }
@@ -215,62 +225,108 @@ bool RewriteAreaImpl<Ntk, Database, Params, Stats>::SkipNode(Node n) const {
 
 template <typename Ntk, typename Database, typename Params, typename Stats>
 bool RewriteAreaImpl<Ntk, Database, Params, Stats>::TryRewrite(Node n) {
-
-  std::cout << "TFI" << std::endl;
-  window_manager_.ForeachSignalDivs([&](auto const& d, auto i){
-    std::cout << d.index << " ";
-  });
-  std::cout << std::endl;
-
-  double best_reward = 0;
-  dependencies_.run( window_manager_, window_simulator_ );
-  dependencies_.foreach_cut( [&]( auto& cut, auto i ) {
-    for(auto x : cut) std::cout << x << " ";
-    for(auto const& tt : cut.func)
-    {
-      kitty::print_binary(tt);
-      std::cout << " " << i << " \n";
-
-      std::vector<Signal> loc_leaves;
-      loc_leaves.resize( spec.inputs.size() );
-      std::vector<double> loc_times;
-      loc_times.resize( spec.inputs.size() );
-      std::vector<typename decomposer_t::cut_func_t const*> loc_sims = sim_ptrs;
-      std::transform( spec.inputs.begin(), spec.inputs.end(), loc_leaves.begin(), [&]( auto const& lit ) { return signals[lit]; } );
-      std::transform( spec.inputs.begin(), spec.inputs.end(), loc_times.begin(), [&]( auto const& lit ) { return times[lit]; } );
-      // Perform boolean matching
-      auto row = database_->boolean_matching( ctt, loc_times, loc_leaves, loc_sims );
-
-      if ( row )
-      {
-        auto [index, cost_cand] = evaluate( *row, loc_leaves );
-        if ( cost_cand < best_loc_cost )
-        {
-          best_loc_cost = cost_cand;
-          best_database_node = std::make_optional( index );
-          best_loc_leaves = loc_leaves;
-          best_loc_sims = loc_sims;
-        }
-      }
-
-
+  if (ntk_.num_outputs(n) > 1) return false;
+  std::optional<ResynCandidate> best_candidate;
+  auto& times = window_manager_.GetTimes();
+  times.Run();
+  math::static_vector<double, Params::kMaxCutsSize> input_times;
+  dependencies_.run(window_manager_, window_simulator_);
+  dependencies_.foreach_cut([&](auto& cut, auto i) {
+    double const area_curr = Evaluate(cut);
+    auto tt = cut.func[0]._bits;
+    kitty::print_binary(tt);
+    std::cout << "\n";
+    input_times.clear();
+    for (auto const& f : cut.leaves) {
+      input_times.push_back(times.GetArrival(f));
     }
-  } );
+    auto match = database_.boolean_matching(tt, input_times);
+    if (match) {
+      double reward = 0;
+      std::cout << "match found: " << *match << "\n";
+      database_.foreach_entry(*match, [&](auto& entry) {
+        std::cout << "entry area: " << entry.area << "\n";
+        reward = area_curr - entry.area;
+        double arrival_time = 0.0;
+        for (int i = 0; i < cut.leaves.size(); ++i) {
+          double const input_time = times.GetArrival(cut.leaves[i]);
+          double const delay = entry.delays[i];
+          arrival_time = std::max(arrival_time, input_time + delay);
+        }
 
-  if ( best_reward > 0 )
-  {
-    st_.num_rewrite++;
+        if (reward > 0 &&
+            (!best_candidate || (reward > best_candidate->reward) ||
+             ((reward == best_candidate->reward) &&
+              (arrival_time < best_candidate->arrival_time))))
+          best_candidate = ResynCandidate{cut, entry, reward};
+      });
+    }
+  });
+
+  if (best_candidate) {
+    auto const nnew = database_.write(best_candidate->entry, ntk_,
+                                      best_candidate->cut.leaves);
+    ntk_.substitute_node(n, ntk_.make_signal(nnew));
     return true;
   }
   return false;
 }
 
+template <typename Ntk, typename Database, typename Params, typename Stats>
+double RewriteAreaImpl<Ntk, Database, Params, Stats>::Evaluate(Cut& cut) {
+  for (auto const& f : cut.leaves) {
+    std::cout << ntk_.get_node(f) << " ";
+    ntk_.incr_fanout_size(ntk_.get_node(f));
+  }
+  double const cost_curr = RecursiveDeref(cut.root);
+  std::cout << "-> ";
+  std::cout << cut.root << " " << cost_curr << "\n";
+  double const cost_test = RecursiveRef(cut.root);
+  for (auto const& f : cut.leaves) {
+    ntk_.decr_fanout_size(ntk_.get_node(f));
+  }
+
+  return cost_curr;
 }
+
+template <typename Ntk, typename Database, typename Params, typename Stats>
+double RewriteAreaImpl<Ntk, Database, Params, Stats>::RecursiveDeref(Node n) {
+  /* terminate? */
+  if (ntk_.is_constant(n) || ntk_.is_pi(n)) return 0.0;
+
+  /* recursively collect nodes */
+  double area = ntk_.get_area(n);
+  ntk_.foreach_fanin(n, [&](auto const& fi) {
+    Node const ni = ntk_.get_node(fi);
+    if (ntk_.decr_fanout_size(ni) == 0) {
+      area += RecursiveDeref(ni);
+    }
+  });
+  return area;
+}
+
+template <typename Ntk, typename Database, typename Params, typename Stats>
+double RewriteAreaImpl<Ntk, Database, Params, Stats>::RecursiveRef(Node n) {
+  /* terminate? */
+  if (ntk_.is_constant(n) || ntk_.is_pi(n)) return 0.0;
+
+  /* recursively collect nodes */
+  double area = ntk_.get_area(n);
+
+  ntk_.foreach_fanin(n, [&](auto const& fi) {
+    Node const ni = ntk_.get_node(fi);
+    if (ntk_.incr_fanout_size(ni) == 0) {
+      area += RecursiveRef(ni);
+    }
+  });
+  return area;
+}
+
+}  // namespace detail
 
 template <class Ntk, typename Db, typename Params = RewriteAreaParamsDefault,
           typename Stats = RewriteAreaStatsDefault>
-void RewriteArea(Ntk& ntk, Db & db, Params ps = {}, Stats* pst = nullptr) {
-
+void RewriteArea(Ntk& ntk, Db& db, Params ps = {}, Stats* pst = nullptr) {
   Stats st;
   detail::RewriteAreaImpl<Ntk, Db, Params, Stats> p(ntk, db, ps, st);
   p.Run();
@@ -278,7 +334,7 @@ void RewriteArea(Ntk& ntk, Db & db, Params ps = {}, Stats* pst = nullptr) {
   if (pst) *pst = st;
 }
 
-}
-}
-}
+}  // namespace cell
+}  // namespace opto
+}  // namespace rinox
 #endif

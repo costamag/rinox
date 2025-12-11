@@ -47,7 +47,7 @@ namespace rinox {
 
 namespace windowing {
 
-template <class Ntk, uint32_t kCubeSizeLeaves = 12>
+template <class Ntk, uint32_t kCubeSizeLeaves>
 class WindowSimulator {
  public:
   using Signal = typename Ntk::signal;
@@ -63,14 +63,14 @@ class WindowSimulator {
   }
 
   template <typename WinMngr>
-  void Run(WinMngr & window) {
+  void Run(WinMngr& window) {
     sims_.reserve(window.Size());
     sims_.resize(kCubeSizeLeaves);
     sig_to_sim_.reset();
     sig_to_sim_.resize();
 
     AssignInputs(window);
-    
+
     window.ForeachSignalDivs([&](auto const& f, auto i) {
       auto const n = ntk_.get_node(f);
       if (f.output == 0 && !window.IsInps(n)) {
@@ -84,19 +84,15 @@ class WindowSimulator {
     care_ = ComputeObservabilityCareset(window);
   }
 
-  Signature const& Get(Signal const& f) const {
-    return sims_[sig_to_sim_[f]];
-  }
+  Signature const& Get(Signal const& f) const { return sims_[sig_to_sim_[f]]; }
 
-  Signature const& get(Signal const& f) const {
-    return Get(f);
-  }
+  Signature const& get(Signal const& f) const { return Get(f); }
 
   Signature const get_careset() const { return care_; }
   Signature const GetCareset() const { return care_; }
 
   template <typename WinMngr>
-  Signature ComputeObservabilityCareset(WinMngr & window) {
+  Signature ComputeObservabilityCareset(WinMngr& window) {
     Signature care;
     auto n = window.GetRoot();
     auto const& outputs = window.GetSignalsOuts();
@@ -183,8 +179,7 @@ class WindowSimulator {
     auto const tts = ntk_.compute(n, sim_ptrs);
     uint32_t io = 0;
     ntk_.foreach_output(
-        n, [&](auto const& fo) { sims_[sig_to_sim_[fo]] = tts[io++]; 
-        });
+        n, [&](auto const& fo) { sims_[sig_to_sim_[fo]] = tts[io++]; });
     return;
   }
 
@@ -210,8 +205,8 @@ class WindowSimulator {
 
   template <typename WinMngr>
   void AssignInputs(WinMngr const& window) {
-    window.ForeachSignalInps([&](auto const& f, auto i) { sig_to_sim_[f] = i; 
-    });
+    window.ForeachSignalInps(
+        [&](auto const& f, auto i) { sig_to_sim_[f] = i; });
   }
 
  private:
