@@ -90,8 +90,9 @@ struct RewriteAreaParamsDefault : windowing::WindowManagerParamsDefault {
   static constexpr uint32_t kMaxNumVarsDb = 4u;
   uint32_t max_num_divisors = 128;
   uint32_t max_reconvergence = 0;
-  int32_t max_num_tiers_tfi = 10;
-  int32_t max_num_tiers_tfo = 0;
+  int max_num_tiers_tfi = 10;
+  int max_num_tiers_tfo = 0;
+  bool delay_constrained = false;
 };
 
 struct RewriteAreaStatsDefault : windowing::WindowManagerStatsDefault {
@@ -144,14 +145,14 @@ class RewriteAreaImpl {
   };
 
   struct ResynCandidate {
-    Cut cut;
+    math::static_vector<Signal, Params::kMaxCutsSize> leaves;
     DatabaseEntry entry;
     double reward;
     double arrival_time;
   };
 
  public:
-  RewriteAreaImpl(Ntk& ntk, Database& database, Params ps, Stats& st)
+  RewriteAreaImpl(Ntk& ntk, Database& database, Params const& ps, Stats& st)
       :  // parameters
         ps_(ps),
         // statistics
@@ -175,7 +176,7 @@ class RewriteAreaImpl {
 
  private:
   // Parameters
-  Params ps_;
+  Params const& ps_;
   // Statistics
   Stats& st_;
   // Attributes
@@ -230,17 +231,30 @@ bool RewriteAreaImpl<Ntk, Database, Params, Stats>::TryRewrite(Node n) {
   auto& times = window_manager_.GetTimes();
   times.Run();
   math::static_vector<double, Params::kMaxCutsSize> input_times;
+  math::static_vector<Signal, Params::kMaxCutsSize> input_signals;
+  math::static_vector<bool, Params::kMaxCutsSize> valid;
   dependencies_.run(window_manager_, window_simulator_);
-  dependencies_.foreach_cut([&](auto& cut, auto i) {
+  dependencies_.foreach_cut([&](auto& cut, auto) {
     double const area_curr = Evaluate(cut);
     auto tt = cut.func[0]._bits;
     kitty::print_binary(tt);
     std::cout << "\n";
     input_times.clear();
+    input_signals.clear();
+    valid.clear();
+
     for (auto const& f : cut.leaves) {
       input_times.push_back(times.GetArrival(f));
+      input_signals.push_back(f);
+      valid.push_back(true);
     }
-    auto match = database_.boolean_matching(tt, input_times);
+    while (input_times.size() < Params::kMaxCutsSize) {
+      input_times.push_back(std::numeric_limits<double>::max());
+      input_signals.push_back(Signal{std::numeric_limits<uint32_t>::max()});
+      valid.push_back(false);
+    }
+    auto match =
+        database_.boolean_matching(tt, input_times, input_signals, valid);
     if (match) {
       double reward = 0;
       std::cout << "match found: " << *match << "\n";
@@ -248,24 +262,30 @@ bool RewriteAreaImpl<Ntk, Database, Params, Stats>::TryRewrite(Node n) {
         std::cout << "entry area: " << entry.area << "\n";
         reward = area_curr - entry.area;
         double arrival_time = 0.0;
-        for (int i = 0; i < cut.leaves.size(); ++i) {
-          double const input_time = times.GetArrival(cut.leaves[i]);
-          double const delay = entry.delays[i];
+        int j = 0;
+        for (int i = 0; i < Params::kMaxCutsSize; ++i) {
+          if (!valid[i]) continue;
+          double const input_time = input_times[i];
+          double const delay = entry.delays[j++];
           arrival_time = std::max(arrival_time, input_time + delay);
         }
+
+        if (ps_.delay_constrained &&
+            (arrival_time > times.GetRequired(cut.root)))
+          return;
 
         if (reward > 0 &&
             (!best_candidate || (reward > best_candidate->reward) ||
              ((reward == best_candidate->reward) &&
               (arrival_time < best_candidate->arrival_time))))
-          best_candidate = ResynCandidate{cut, entry, reward};
+          best_candidate = ResynCandidate{input_signals, entry, reward};
       });
     }
   });
 
   if (best_candidate) {
-    auto const nnew = database_.write(best_candidate->entry, ntk_,
-                                      best_candidate->cut.leaves);
+    auto const nnew =
+        database_.write(best_candidate->entry, ntk_, best_candidate->leaves);
     ntk_.substitute_node(n, ntk_.make_signal(nnew));
     return true;
   }
@@ -324,9 +344,9 @@ double RewriteAreaImpl<Ntk, Database, Params, Stats>::RecursiveRef(Node n) {
 
 }  // namespace detail
 
-template <class Ntk, typename Db, typename Params = RewriteAreaParamsDefault,
+template <class Ntk, typename Db, typename Params,
           typename Stats = RewriteAreaStatsDefault>
-void RewriteArea(Ntk& ntk, Db& db, Params ps = {}, Stats* pst = nullptr) {
+void RewriteArea(Ntk& ntk, Db& db, Params const& ps, Stats* pst = nullptr) {
   Stats st;
   detail::RewriteAreaImpl<Ntk, Db, Params, Stats> p(ntk, db, ps, st);
   p.Run();

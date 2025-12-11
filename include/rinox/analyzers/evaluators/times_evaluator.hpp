@@ -151,7 +151,12 @@ class TimesEvaluator {
   }
   [[nodiscard]] double GetArrival(Signal const& f) { return arrivals_[f]; }
   [[nodiscard]] double GetRequired(Signal const& f) { return required_[f]; }
-
+  [[nodiscard]] double GetRequired(Node const& n) {
+    double required = std::numeric_limits<double>::max();
+    ntk_.foreach_output(
+        n, [&](auto const& f) { required = std::min(required, required_[f]); });
+    return required;
+  }
 #pragma endregion
 
   void Run() {
@@ -254,13 +259,12 @@ class TimesEvaluator {
 
   template <typename Fn>
   void ForeachNode(int32_t tier, Fn&& fn) {
-    auto & list = tiers_[tier];
-    Info * p = list.tail;
-    while(p)
-    {
-      Info * next = p->next;
+    auto& list = tiers_[tier];
+    Info* p = list.tail;
+    while (p) {
+      Info* next = p->next;
       fn(p->node);
-      p=next;
+      p = next;
     }
   }
 
@@ -338,7 +342,7 @@ class TimesEvaluator {
 
   int32_t GetWorstTier() {
     int32_t res = 0;
-    ntk_.foreach_po( [&](auto const& f){
+    ntk_.foreach_po([&](auto const& f) {
       auto n = ntk_.get_node(f);
       res = std::max(res, info_[n]->tier);
     });

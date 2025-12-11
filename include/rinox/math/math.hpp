@@ -136,7 +136,7 @@ struct static_vector {
   void push_back(T const& x) {
     if (n >= Cap) {
       std::cout << n << std::endl;
-      throw std::out_of_range("static_vector full");
+      assert(n < Cap && "static_vector full");
     }
     data_[n++] = x;
   }

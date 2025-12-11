@@ -61,8 +61,8 @@ struct WindowManagerParamsDefault : WindowParamsDefault {
   static constexpr uint32_t kMaxNumLeaves = 8u;
   uint32_t max_num_divisors = 128u;
   uint32_t max_reconvergence = 10u;
-  int32_t max_num_levels_tfi = 10u;
-  int32_t max_num_levels_tfo = 0u;
+  int max_num_levels_tfi = 10;
+  int max_num_levels_tfo = 0;
 };
 
 // Default statistics structure for WindowManager.
@@ -71,8 +71,7 @@ struct WindowManagerStatsDefault : WindowStatsDefault {
 };
 
 // Manages extraction of logic windows around nodes in a network.
-template <class Ntk,
-          typename Params = WindowManagerParamsDefault,
+template <class Ntk, typename Params = WindowManagerParamsDefault,
           typename Stats = WindowManagerStatsDefault>
 class WindowManager {
  public:
@@ -208,6 +207,8 @@ class WindowManager {
 
     int32_t tier_last_tfi = times_.GetTier(n) - ps_.max_num_levels_tfi;
     int32_t tier_last_tfo = times_.GetTier(n) + ps_.max_num_levels_tfo;
+    std::cout << ps_.max_num_levels_tfi << " \n";
+    std::cout << ps_.max_num_levels_tfo << " \n";
 
     ntk_.foreach_fanin(n, [&](auto const& fi, auto) {
       auto const ni = ntk_.get_node(fi);
@@ -359,7 +360,8 @@ class WindowManager {
     Node const root = window_.GetRoot();
     int32_t tier_last_tfi = times_.GetTier(root) - ps_.max_num_levels_tfi;
     int32_t tier_last_tfo = times_.GetTier(root) + ps_.max_num_levels_tfo;
-
+    std::cout << tier_last_tfi << " \n";
+    std::cout << tier_last_tfo << " \n";
     bool expanded = true;
     while (expanded) {
       expanded = false;
@@ -610,7 +612,7 @@ class WindowManager {
 
   Node GetRoot() { return window_.GetRoot(); }
   Node get_pivot() { return window_.GetRoot(); }
-  TimesEvaluator & GetTimes() { return times_; };
+  TimesEvaluator& GetTimes() { return times_; };
 
  private:
   // Parameters are owned by the caller and must outlive this manager.
