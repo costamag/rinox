@@ -43,8 +43,8 @@ inline area_struct_t<Params> load_area_struct_params(
   if (rp.HasMember("max_reconvergence") && rp["max_reconvergence"].IsUint()) {
     ps.max_reconvergence = rp["max_reconvergence"].GetUint();
   }
-  if (rp.HasMember("odc_levels") && rp["odc_levels"].IsUint()) {
-    ps.odc_levels = rp["odc_levels"].GetUint();
+  if (rp.HasMember("num_levels_tfo") && rp["num_levels_tfo"].IsUint()) {
+    ps.max_num_levels_tfo = rp["num_levels_tfo"].GetUint();
   }
 
   return res;

@@ -88,7 +88,8 @@ struct WindowResubAreaParamsDefault {
   uint32_t stop_after_nth = std::numeric_limits<uint32_t>::max();
   uint32_t max_num_divisors = 1024;
   uint32_t max_reconvergence = 10;
-  int32_t odc_levels = 0;
+  int32_t max_num_levels_tfi = 10;
+  int32_t max_num_levels_tfo = 4;
   bool try_0Bresub = false;
   bool try_0Xresub = false;
   bool try_1Bresub = false;
@@ -183,7 +184,8 @@ class WindowResubAreaImpl {
   struct WindowManagerParams {
     uint32_t max_num_divisors = 1024;
     uint32_t max_reconvergence = 10;
-    int32_t odc_levels = 2;
+    int32_t max_num_levels_tfi = 10;
+    int32_t max_num_levels_tfo = 2;
     static constexpr uint32_t max_num_leaves = Params::kMaxNumLeaves;
   };
 
@@ -204,7 +206,7 @@ class WindowResubAreaImpl {
       :  // parameters
         ps_(ps),
         window_manager_ps_{ps_.max_num_divisors, ps_.max_reconvergence,
-                           ps_.odc_levels},
+                           ps_.max_num_levels_tfi, ps_.max_num_levels_tfo},
         // statistics
         st_(st),
         // attributes

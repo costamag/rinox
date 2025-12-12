@@ -56,7 +56,7 @@ namespace windowing {
 struct DefaultSimulaManagerParams {
   uint32_t max_num_divisors = 128;
   uint32_t max_reconvergence = 10;
-  int32_t odc_levels = 0;
+  int32_t num_levels_tfo = 0;
   static constexpr uint32_t kMaxNumLeaves = 20u;
   static constexpr uint32_t kNumVarsSigns = 12u;
 };
@@ -68,10 +68,10 @@ struct SimulaManagerStats {
 template <class Ntk, typename Params = DefaultSimulaManagerParams>
 class SimulaManager {
  public:
-  struct WindowManagerParams{
+  struct WindowManagerParams {
     uint32_t max_num_divisors;
     uint32_t max_reconvergence;
-    int32_t odc_levels;
+    int32_t num_levels_tfo;
     static constexpr uint32_t max_num_leaves = Params::kMaxNumLeaves;
   };
 
@@ -83,7 +83,8 @@ class SimulaManager {
   static constexpr uint32_t kMaxNumLeaves = Params::kMaxNumLeaves;
   using Signature = kitty::static_truth_table<kNumVarsSigns>;
 
-  SimulaManager(Ntk&ntk, Params&ps, Stats&st):ntk_(ntk), sig_to_sim_(ntk), ps_(ps), st_(st){};
+  SimulaManager(Ntk& ntk, Params& ps, Stats& st)
+      : ntk_(ntk), sig_to_sim_(ntk), ps_(ps), st_(st){};
 
  private:
   Ntk& ntk_;
