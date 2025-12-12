@@ -207,8 +207,6 @@ class WindowManager {
 
     int32_t tier_last_tfi = times_.GetTier(n) - ps_.max_num_levels_tfi;
     int32_t tier_last_tfo = times_.GetTier(n) + ps_.max_num_levels_tfo;
-    std::cout << ps_.max_num_levels_tfi << " \n";
-    std::cout << ps_.max_num_levels_tfo << " \n";
 
     ntk_.foreach_fanin(n, [&](auto const& fi, auto) {
       auto const ni = ntk_.get_node(fi);
@@ -360,8 +358,6 @@ class WindowManager {
     Node const root = window_.GetRoot();
     int32_t tier_last_tfi = times_.GetTier(root) - ps_.max_num_levels_tfi;
     int32_t tier_last_tfo = times_.GetTier(root) + ps_.max_num_levels_tfo;
-    std::cout << tier_last_tfi << " \n";
-    std::cout << tier_last_tfo << " \n";
     bool expanded = true;
     while (expanded) {
       expanded = false;

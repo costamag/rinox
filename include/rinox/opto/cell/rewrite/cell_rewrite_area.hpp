@@ -237,8 +237,6 @@ bool RewriteAreaImpl<Ntk, Database, Params, Stats>::TryRewrite(Node n) {
   dependencies_.foreach_cut([&](auto& cut, auto) {
     double const area_curr = Evaluate(cut);
     auto tt = cut.func[0]._bits;
-    kitty::print_binary(tt);
-    std::cout << "\n";
     input_times.clear();
     input_signals.clear();
     valid.clear();
@@ -257,9 +255,7 @@ bool RewriteAreaImpl<Ntk, Database, Params, Stats>::TryRewrite(Node n) {
         database_.boolean_matching(tt, input_times, input_signals, valid);
     if (match) {
       double reward = 0;
-      std::cout << "match found: " << *match << "\n";
       database_.foreach_entry(*match, [&](auto& entry) {
-        std::cout << "entry area: " << entry.area << "\n";
         reward = area_curr - entry.area;
         double arrival_time = 0.0;
         int j = 0;
@@ -295,12 +291,9 @@ bool RewriteAreaImpl<Ntk, Database, Params, Stats>::TryRewrite(Node n) {
 template <typename Ntk, typename Database, typename Params, typename Stats>
 double RewriteAreaImpl<Ntk, Database, Params, Stats>::Evaluate(Cut& cut) {
   for (auto const& f : cut.leaves) {
-    std::cout << ntk_.get_node(f) << " ";
     ntk_.incr_fanout_size(ntk_.get_node(f));
   }
   double const cost_curr = RecursiveDeref(cut.root);
-  std::cout << "-> ";
-  std::cout << cut.root << " " << cost_curr << "\n";
   double const cost_test = RecursiveRef(cut.root);
   for (auto const& f : cut.leaves) {
     ntk_.decr_fanout_size(ntk_.get_node(f));
@@ -350,7 +343,6 @@ void RewriteArea(Ntk& ntk, Db& db, Params const& ps, Stats* pst = nullptr) {
   Stats st;
   detail::RewriteAreaImpl<Ntk, Db, Params, Stats> p(ntk, db, ps, st);
   p.Run();
-  st.Report();
   if (pst) *pst = st;
 }
 

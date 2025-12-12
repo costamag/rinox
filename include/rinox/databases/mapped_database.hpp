@@ -239,7 +239,6 @@ class mapped_database {
    * at a higher level of abstraction.
    */
   bool add(evaluation::chains::bound_chain<design_t> chain) {
-    assert(chain.num_pis() == MaxNumVars);
     simulator_(chain, sims_ptrs_);
     truth_table_t const tt =
         simulator_.get_simulation(chain, sims_ptrs_, chain.po_at(0));
@@ -308,27 +307,6 @@ class mapped_database {
 
 #pragma region Lookup
  public:
-  //  template<typename E, typename T>
-  //  std::optional<uint64_t> boolean_matching( truth_table_t const& func,
-  //  std::vector<E>& leaves, std::vector<T>& times )
-  //  {
-  //    leaves.resize( MaxNumVars, std::numeric_limits<uint64_t>::max() );
-  //    times.resize( MaxNumVars, std::numeric_limits<double>::max() );
-  //    // check if the representative is already
-  //    auto match = get_match( func );
-  //    if ( match )
-  //    {
-  //      auto const row_index = ( *match ).row;
-  //      database_row_t const& row = database_[row_index];
-  //      auto const perm = ( *match ).perm;
-  //      auto const symm = row.symm;
-  //      perm_matching( leaves, times, perm );
-  //      time_matching( leaves, times, symm );
-  //      return row_index;
-  //    }
-  //    return std::nullopt;
-  //  }
-
   template <typename Times, typename... Vecs>
   std::optional<uint64_t> boolean_matching(truth_table_t const& func,
                                            Times& times, Vecs&... others) {
