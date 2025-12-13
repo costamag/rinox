@@ -1,0 +1,62 @@
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <cstdint>
+#include <lorina/genlib.hpp>
+#include <mockturtle/io/genlib_reader.hpp>
+#include <mockturtle/io/super_reader.hpp>
+#include <mockturtle/utils/tech_library.hpp>
+#include <rinox/analyzers/trackers/arrival_times_tracker.hpp>
+#include <rinox/databases/database_mining.hpp>
+#include <rinox/databases/mapped_database.hpp>
+#include <rinox/evaluation/chains/bound_chain.hpp>
+#include <rinox/network/network.hpp>
+#include <sstream>
+#include <vector>
+
+using namespace mockturtle;
+
+std::string const test_library =
+    "GATE   and2    1.0 O=a*b;                 PIN * INV 1   999 1.0 0.0 1.0 "
+    "0.0\n"
+    "GATE   xor2    0.0 O=a^b;                 PIN * INV 1   999 3.0 0.0 3.0 "
+    "0.0\n"
+    "GATE   inv1    1.0 O=!a;                  PIN * INV 1   999 1.0 0.0 1.0 "
+    "0.0";
+
+TEST_CASE("Mining from AIG - Basic addition", "[database_mining]") {
+  using bound_network =
+      rinox::network::bound_network<rinox::network::design_type_t::CELL_BASED,
+                                    2>;
+  std::vector<mockturtle::gate> gates;
+
+  std::istringstream in(test_library);
+  auto result = lorina::read_genlib(in, genlib_reader(gates));
+  CHECK(result == lorina::return_code::success);
+
+  rinox::libraries::augmented_library<rinox::network::design_type_t::CELL_BASED>
+      lib(gates);
+  static constexpr uint32_t MaxNumVars = 6u;
+  rinox::databases::mapped_database<bound_network, MaxNumVars> db(lib);
+
+  rinox::databases::MiningParamsDefault ps;
+  rinox::databases::MiningStats st;
+  rinox::databases::DatabaseMining<bound_network> miner(gates, ps, st);
+
+  {
+    bound_network ntk(gates);
+    auto const a = ntk.create_pi();
+    auto const b = ntk.create_pi();
+    auto const c = ntk.create_pi();
+    auto const d = ntk.create_pi();
+    auto const e = ntk.create_pi();
+
+    auto const f1 = ntk.create_node({a, b}, 0u);    // and2
+    auto const f2 = ntk.create_node({c, d}, 1u);    // xor2
+    auto const f3 = ntk.create_node({f1, f2}, 0u);  // and2
+    auto const f4 = ntk.create_node({f3, e}, 1u);   // xor2
+    ntk.create_po(f4);
+
+    miner.Collect(ntk);
+    CHECK(st.num_added > 0);
+  }
+}

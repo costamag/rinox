@@ -63,6 +63,16 @@ struct WindowManagerParamsDefault : WindowParamsDefault {
   uint32_t max_reconvergence = 10u;
   int max_num_levels_tfi = 10;
   int max_num_levels_tfo = 0;
+
+  void Report() {
+    std::cout << "Window Manager Parameters:" << std::endl;
+    std::cout << "  - Max number of leaves: " << kMaxNumLeaves << std::endl;
+    std::cout << "  - Max number of divisors: " << max_num_divisors
+              << std::endl;
+    std::cout << "  - Max reconvergence: " << max_reconvergence << std::endl;
+    std::cout << "  - Max TFI levels: " << max_num_levels_tfi << std::endl;
+    std::cout << "  - Max TFO levels: " << max_num_levels_tfo << std::endl;
+  }
 };
 
 // Default statistics structure for WindowManager.
