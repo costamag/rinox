@@ -45,6 +45,7 @@
 #include "../network/network.hpp"
 #include "../windowing/window_manager_tiered.hpp"
 #include "../windowing/window_simulator_tiered.hpp"
+#include "mapped_database.hpp"
 
 namespace rinox {
 

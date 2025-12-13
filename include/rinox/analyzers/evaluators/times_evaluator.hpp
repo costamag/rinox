@@ -143,6 +143,12 @@ class TimesEvaluator {
     Run();
   }
 
+  ~TimesEvaluator() {
+    if (add_event_) {
+      ntk_.events().release_add_event(add_event_);
+    }
+  }
+
 #pragma region Interface methods
  public:
   [[nodiscard]] int GetTier(Node const& n) { return info_[n]->tier; }

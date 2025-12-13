@@ -42,21 +42,37 @@ TEST_CASE("Mining from AIG - Basic addition", "[database_mining]") {
   rinox::databases::MiningStats st;
   rinox::databases::DatabaseMining<bound_network> miner(gates, ps, st);
 
-  {
-    bound_network ntk(gates);
-    auto const a = ntk.create_pi();
-    auto const b = ntk.create_pi();
-    auto const c = ntk.create_pi();
-    auto const d = ntk.create_pi();
-    auto const e = ntk.create_pi();
+  bound_network ntk(gates);
+  auto const a = ntk.create_pi();
+  auto const b = ntk.create_pi();
+  auto const c = ntk.create_pi();
+  auto const d = ntk.create_pi();
+  auto const e = ntk.create_pi();
 
-    auto const f1 = ntk.create_node({a, b}, 0u);    // and2
-    auto const f2 = ntk.create_node({c, d}, 1u);    // xor2
-    auto const f3 = ntk.create_node({f1, f2}, 0u);  // and2
-    auto const f4 = ntk.create_node({f3, e}, 1u);   // xor2
-    ntk.create_po(f4);
+  auto const f1 = ntk.create_node({a, b}, 0u);    // and2
+  auto const f2 = ntk.create_node({c, d}, 1u);    // xor2
+  auto const f3 = ntk.create_node({f1, f2}, 0u);  // and2
+  auto const f4 = ntk.create_node({f3, e}, 1u);   // xor2
+  ntk.create_po(f4);
 
-    miner.Collect(ntk);
-    CHECK(st.num_added > 0);
-  }
+  miner.Collect(ntk);
+  CHECK(st.num_added == 7);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 7);
+
+  auto const f5 = ntk.create_node({c, b}, 0u);    // and2
+  auto const f6 = ntk.create_node({a, d}, 1u);    // xor2
+  auto const f7 = ntk.create_node({f5, f6}, 0u);  // and2
+  ntk.create_po(f7);
+
+  miner.Collect(ntk);
+  CHECK(st.num_added == 7);
+
+  auto const f8 = ntk.create_node({a, b}, 1u);     // xor2
+  auto const f9 = ntk.create_node({c, d}, 1u);     // xor2
+  auto const f10 = ntk.create_node({f8, f9}, 1u);  // xor2
+  ntk.create_po(f10);
+
+  miner.Collect(ntk);
+  CHECK(st.num_added == 9);
 }
