@@ -75,4 +75,37 @@ TEST_CASE("Mining from AIG - Basic addition", "[database_mining]") {
 
   miner.Collect(ntk);
   CHECK(st.num_added == 9);
+
+  auto const f11 = ntk.create_node({a}, 2u);       // inv1 +0
+  auto const f12 = ntk.create_node({b}, 2u);       // inv1 +0
+  auto const f13 = ntk.create_node({f11, b}, 0u);  // and2 +1
+
+  ntk.create_po(f13);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 10);
+
+  auto const f14 = ntk.create_node({f12, a}, 0u);  // and2 +0
+  ntk.create_po(f14);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 10);
+
+  auto const f15 = ntk.create_node({f13}, 2u);  // inv1 +2
+  ntk.create_po(f15);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 12);
+
+  auto const f16 = ntk.create_node({f14}, 2u);  // inv1 +0
+  ntk.create_po(f16);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 12);
+
+  auto const f17 = ntk.create_node({f15, f16}, 0u);  // inv1 +2
+  ntk.create_po(f17);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 20);
+
+  auto const f18 = ntk.create_node({f17}, 2u);  // inv1 +3
+  ntk.create_po(f18);
+  miner.Collect(ntk);
+  CHECK(st.num_added == 27);
 }

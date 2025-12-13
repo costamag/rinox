@@ -63,6 +63,7 @@ struct WindowManagerParamsDefault : WindowParamsDefault {
   uint32_t max_reconvergence = 10u;
   int max_num_levels_tfi = 10;
   int max_num_levels_tfo = 0;
+  bool collect_sides = true;
 
   void Report() {
     std::cout << "Window Manager Parameters:" << std::endl;

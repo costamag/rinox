@@ -134,7 +134,6 @@ void DatabaseMining<Ntk, Params>::Collect(Ntk& ntk) {
       }
     });
   });
-  st_.Report();
 }
 
 }  // namespace databases
