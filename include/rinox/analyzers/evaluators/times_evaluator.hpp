@@ -134,18 +134,33 @@ class TimesEvaluator {
       info_.emplace(n, std::move(info_ptr));
     });
     tiers_.push_back(std::move(list));
-
-    add_event_ = ntk_.events().register_add_event([&](const Node& n) {
-      ComputeTiers(n);
-      ComputeArrival(n);
-    });
+    Init();
 
     Run();
   }
 
+  ~TimesEvaluator() {
+    if (add_event_) {
+      ntk_.events().release_add_event(add_event_);
+    }
+  }
+
+  void Init() {
+    add_event_ = ntk_.events().register_add_event([&](const Node& n) {
+      ComputeTiers(n);
+      ComputeArrival(n);
+    });
+  }
+
 #pragma region Interface methods
  public:
-  [[nodiscard]] int GetTier(Node const& n) { return info_[n]->tier; }
+  [[nodiscard]] int GetTier(Node const& n) {
+    if (info_.find(n) == info_.end()) {
+      ComputeTiers(n);
+      ComputeArrival(n);
+    }
+    return info_[n]->tier;
+  }
   [[nodiscard]] int GetTier(Signal const& f) {
     return GetTier(ntk_.get_node(f));
   }
