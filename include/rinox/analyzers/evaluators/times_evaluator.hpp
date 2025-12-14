@@ -165,6 +165,12 @@ class TimesEvaluator {
     return GetTier(ntk_.get_node(f));
   }
   [[nodiscard]] double GetArrival(Signal const& f) { return arrivals_[f]; }
+  [[nodiscard]] double GetArrival(Node const& n) {
+    double arrival = std::numeric_limits<double>::min();
+    ntk_.foreach_output(
+        n, [&](auto const& f) { arrival = std::max(arrival, arrivals_[f]); });
+    return arrival;
+  }
   [[nodiscard]] double GetRequired(Signal const& f) { return required_[f]; }
   [[nodiscard]] double GetRequired(Node const& n) {
     double required = std::numeric_limits<double>::max();
@@ -347,11 +353,7 @@ class TimesEvaluator {
 
   double GetWorstArrival() {
     double res = 0;
-    auto& list = tiers_.back();
-    list.ForeachEntry([&](Info* p) {
-      ntk_.foreach_output(
-          p->node, [&](auto const& f) { res = std::max(res, arrivals_[f]); });
-    });
+    ntk_.foreach_po([&](auto const& f) { res = std::max(res, arrivals_[f]); });
     return res;
   }
 
