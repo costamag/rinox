@@ -38,7 +38,7 @@ TEST_CASE("Mining from AIG - Basic addition", "[database_mining]") {
   static constexpr uint32_t MaxNumVars = 6u;
   rinox::databases::mapped_database<bound_network, MaxNumVars> db(lib);
 
-  rinox::databases::MiningParamsDefault ps;
+  rinox::databases::MiningParams ps;
   rinox::databases::MiningStats st;
   rinox::databases::DatabaseMining<bound_network> miner(gates, ps, st);
 

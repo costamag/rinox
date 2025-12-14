@@ -51,7 +51,7 @@ namespace rinox {
 
 namespace databases {
 
-struct MiningParamsDefault : windowing::WindowManagerParamsDefault {
+struct MiningParams : windowing::WindowManagerParamsDefault {
   static constexpr uint32_t kMaxNumLeaves = 12u;
   static constexpr uint32_t num_vars_sign = 12u;
   static constexpr uint32_t kInpsCapacity = 512u;
@@ -79,7 +79,7 @@ struct MiningStats : windowing::WindowManagerStatsDefault {
   }
 };
 
-template <typename Ntk, typename Params = MiningParamsDefault>
+template <typename Ntk, typename Params = MiningParams>
 class DatabaseMining {
   static constexpr network::design_type_t Design = Ntk::design_t;
   using Database = mapped_database<Ntk, Params::kMaxNumVarsDb>;
