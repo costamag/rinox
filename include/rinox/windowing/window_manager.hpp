@@ -560,7 +560,7 @@ class window_manager {
     if (!collect_inps()) return false;
     if (!collect_mffc()) return false;
     if (!collect_divs()) return false;
-    if (!collect_tfos()) return false;
+    if (!collect_tfos_new()) return false;
     if (!expand_inps()) return false;
     if (!fix_dominos()) return false;
 
@@ -992,6 +992,180 @@ class window_manager {
 
     if (window_.tfos_.size() > 0) {
       // -- mark outputs: any TFO that leaves window or is a PO
+      window_.foreach_tfo([&](auto const& n, auto) {
+        bool output = ntk_.is_po(n);
+        ntk_.foreach_fanout(n, [&](auto const& no) {
+          if (!window_.is_inside(no)) output = true;
+        });
+        if (output) {
+          ntk_.foreach_output(
+              n, [&](auto const& f) { window_.outs_.insert_unique(f); });
+        }
+      });
+    } else {
+      ntk_.foreach_output(window_.pivot, [&](auto const& f) {
+        window_.outs_.insert_unique(f);
+      });
+    }
+
+    return (window_.inps_.size() <= ps_.max_num_leaves) &&
+           (window_.divs_.size() <= ps_.max_num_divisors) &&
+           (window_.tfos_.size() <= tfos_capacity) &&
+           (window_.outs_.size() <= outs_capacity);
+  }
+
+  bool collect_tfos_new() {
+    // Case 1: no ODC levels -> pivot is only output
+    if (ps_.max_num_levels_tfo == 0) {
+      ntk_.foreach_output(window_.pivot, [&](auto const& f) {
+        window_.outs_.insert_unique(f);
+      });
+      return true;
+    }
+
+    // We will use two distinct traversal IDs:
+    //   window_trav – marks nodes that belong to the window (pivot + TFOS +
+    //   INPS) exclude_trav – marks nodes that are transitive fanouts of TFOS
+    //   and thus
+    //                  can never be legitimate inputs
+    ntk_.incr_trav_id();
+    auto window_trav = ntk_.trav_id();
+    ntk_.set_visited(window_.pivot, window_trav);
+
+    rinox::math::static_vector<node_index_t, tfos_capacity> current_front;
+    rinox::math::static_vector<node_index_t, tfos_capacity> next_front;
+
+    // -- add immediate fanouts of pivot (level 0) --
+    ntk_.foreach_fanout(window_.pivot, [&](auto const& no) {
+      if (ntk_.visited(no) != window_trav) {
+        current_front.insert_unique(no);
+        ntk_.set_visited(no, window_trav);  // candidate TFOS
+      }
+    });
+
+    if (current_front.empty()) {
+      ntk_.foreach_output(window_.pivot, [&](auto const& f) {
+        window_.outs_.insert_unique(f);
+      });
+      return true;
+    }
+
+    // -- helper to count external leaves (unique fanins not yet inside the
+    // window) --
+    auto count_external_leaves = [&](auto& node_set, size_t& counter) {
+      ntk_.incr_trav_id();
+      auto tmp_trav = ntk_.trav_id();
+      counter = 0;
+      for (auto const& n : node_set) {
+        ntk_.foreach_fanin(n, [&](auto const& fi, auto) {
+          auto ni = ntk_.get_node(fi);
+          // skip pivot and any node already marked as part of the window
+          if (ni == window_.pivot || ntk_.visited(ni) == window_trav) return;
+          if (ntk_.visited(ni) != tmp_trav) {
+            ntk_.set_visited(ni, tmp_trav);
+            counter += ntk_.num_outputs(ni);
+          }
+        });
+      }
+    };
+
+    // -- check leaf budget for the immediate fanouts (level 0) --
+    size_t needed_leaves = 0;
+    count_external_leaves(current_front, needed_leaves);
+    if (needed_leaves > ps_.max_num_leaves) {
+      // budget exceeded even for the first level – pivot becomes the sole
+      // output
+      ntk_.foreach_output(window_.pivot, [&](auto const& f) {
+        window_.outs_.insert_unique(f);
+      });
+      return true;
+    }
+
+    // budget passed – permanently commit level-0 nodes as TFOS
+    for (auto const& n : current_front) window_.make_tfos(n);
+
+    // -- optional growth for additional TFO levels (max_num_levels_tfo > 1) --
+    for (int level = 1; level < ps_.max_num_levels_tfo; ++level) {
+      next_front.clear();
+
+      // collect children of current_front that are not yet inside the window
+      for (auto const& n : current_front) {
+        ntk_.foreach_fanout(n, [&](auto const& no) {
+          if (ntk_.visited(no) != window_trav) {
+            next_front.insert_unique(no);
+          }
+        });
+      }
+      if (next_front.empty()) break;
+
+      // estimate extra leaves that would be required
+      size_t extra = 0;
+      count_external_leaves(next_front, extra);
+      if ((window_.inps_.size() + extra) > ps_.max_num_leaves) {
+        // cannot afford this level – stop growing
+        break;
+      }
+
+      // commit the new level – mark and make TFOS
+      for (auto const& n : next_front) {
+        ntk_.set_visited(n, window_trav);
+        window_.make_tfos(n);
+      }
+      current_front = next_front;
+    }
+
+    // -- crucial step: mark all transitive fanouts of the committed TFOS nodes
+    // --
+    //    Any node reached from here cannot be considered an external input.
+    ntk_.incr_trav_id();
+    auto exclude_trav = ntk_.trav_id();
+    {
+      std::deque<node_index_t> queue;
+      window_.foreach_tfo([&](auto const& n, auto) { queue.push_back(n); });
+
+      while (!queue.empty()) {
+        auto n = queue.front();
+        queue.pop_front();
+        ntk_.foreach_fanout(n, [&](auto const& no) {
+          if (ntk_.visited(no) != exclude_trav) {
+            ntk_.set_visited(no, exclude_trav);
+            queue.push_back(no);
+          }
+        });
+      }
+    }
+
+    // -- now collect the true INPS --
+    //    Only fanins that are not the pivot, not part of the window
+    //    (window_trav), and not in the excluded transitive-fanout cloud
+    //    (exclude_trav) can be inputs.
+    ntk_.incr_trav_id();
+    auto leaf_trav = ntk_.trav_id();
+    window_.foreach_tfo([&](auto const& tfo_node, auto) {
+      ntk_.foreach_fanin(tfo_node, [&](auto const& fi, auto) {
+        auto ni = ntk_.get_node(fi);
+        if (ni == window_.pivot) return;
+        if (ntk_.visited(ni) == window_trav) return;  // already inside
+        if (ntk_.visited(ni) == exclude_trav)
+          return;  // driven by window, cannot be input
+
+        if (ntk_.visited(ni) != leaf_trav) {
+          ntk_.set_visited(ni, leaf_trav);
+          window_.make_inps(ni);
+          // mark as inside the window so that is_inside() works correctly
+          ntk_.set_visited(ni, window_trav);
+        }
+      });
+    });
+
+    // -- sanity: budget should never be exceeded here because we pre‑checked,
+    //    but if it happens, the window is invalid and we return false.
+    if (window_.inps_.size() > ps_.max_num_leaves) {
+      return false;
+    }
+
+    // -- determine outputs (original logic) --
+    if (window_.tfos_.size() > 0) {
       window_.foreach_tfo([&](auto const& n, auto) {
         bool output = ntk_.is_po(n);
         ntk_.foreach_fanout(n, [&](auto const& no) {

@@ -617,6 +617,37 @@ class bound_network {
     }
   }
 
+  /*! \brief Take out a single node from the network.
+   *
+   * This method removes a node from the network, marking it as dead and
+   * updating the fanout counts of its children.
+   *
+   * \param n The index of the node to be removed.
+   */
+  void take_out_node_only(node_index_t n) {
+    /* we cannot delete CIs, constants, or already dead nodes */
+    if (is_constant(n) || is_ci(n) || is_dead(n)) return;
+
+    auto children = _storage->get_children(n);
+
+    /* NOTE: the node's information is not cleared-up yet, so we can
+     * access the node's outputs or the node's fanins. Not its old fanouts.
+     */
+    for (auto const& fn : _events->on_delete) {
+      (*fn)(n);
+    }
+
+    /* mark the node as dead */
+    _storage->delete_node(n);
+
+    /* if the node has been deleted, then deref fanout_size of
+       fanins and try to take them out if their fanout_size become 0 */
+    for (auto i = 0; i < children.size(); ++i) {
+      auto& child = children[i];
+      _storage->delete_fanout(child, n);
+    }
+  }
+
 #pragma endregion
 
 #pragma region Structural properties
