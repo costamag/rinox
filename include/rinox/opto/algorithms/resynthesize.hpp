@@ -37,8 +37,10 @@
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/npn.hpp>
 #include <kitty/operations.hpp>
+#include <kitty/print.hpp>
 #include <kitty/static_truth_table.hpp>
 #include <optional>
+#include <typeinfo>
 
 #include "../../databases/mapped_database.hpp"
 #include "../../dependency/dependency_cut.hpp"
@@ -230,6 +232,7 @@ class resynthesize_impl {
 
     chain_t best_chain;
     best_chain.add_inputs(Params::max_cuts_size);
+    auto const& gates = ntk_.get_library();
 
     int cnt = 0;
     auto nmax = ntk_.size();
@@ -291,6 +294,7 @@ class resynthesize_impl {
         }
       }
       if (ps_.try_window) {
+        // win_manager_.print();
         window_dependencies.run(win_manager_, win_simulator_);
         window_dependencies.foreach_cut([&](auto& cut, auto i) {
           best_reward =
@@ -317,7 +321,6 @@ class resynthesize_impl {
   double evaluate(cut_t const& cut, chain_t& best_chain,
                   signals_t& best_leaves) {
     uint32_t size_bef = ntk_.size();
-
     double best_reward = 0;
     if (cut.func.size() > 1) return 0;
     double const cost_curr =
@@ -328,6 +331,7 @@ class resynthesize_impl {
     for (auto const& f : cut.leaves) signals.push_back(f);
 
     auto times = get_times(signals);
+
     signals.resize(Params::max_cuts_size, std::numeric_limits<uint64_t>::max());
     times.resize(Params::max_cuts_size, std::numeric_limits<double>::max());
     std::optional<signal_t> best_signal;
@@ -349,8 +353,9 @@ class resynthesize_impl {
 
     uint32_t size_aft = ntk_.size();
     if (!success) {
-      if (best_signal && (size_bef < size_aft))
-        ntk_.take_out_node(ntk_.get_node(*best_signal));
+      if (size_bef < size_aft)
+        for (node_index_t idx = size_aft - 1; idx >= size_bef; idx--)
+          ntk_.take_out_node_only(idx);
       return 0;
     }
 
@@ -358,7 +363,9 @@ class resynthesize_impl {
     new_chain.add_inputs(cut.leaves.size());
     if (signals.back().index > 0) {
       extract(new_chain, ntk_, cut.leaves, *best_signal);
-      if (size_bef < size_aft) ntk_.take_out_node(ntk_.get_node(*best_signal));
+      if (size_bef < size_aft)
+        for (node_index_t idx = size_aft - 1; idx >= size_bef; idx--)
+          ntk_.take_out_node_only(idx);
       double const cost_cand = profiler_.template evaluate<chain_t, signals_t>(
           new_chain, cut.leaves, cut.root);
       auto const reward = cost_curr - cost_cand;
@@ -428,16 +435,14 @@ class resynthesize_impl {
     if (best_database_node) {
       auto nnew = database_->write(*best_database_node, ntk_, best_loc_leaves);
       best_signal = ntk_.make_signal(nnew);
-      signals.push_back(best_signal);
-      times.push_back(profiler_.get_arrival(best_signal));
+      auto best_time = profiler_.get_arrival(best_signal);
       chain_t loc_chain;
       loc_chain.add_inputs(Params::max_num_vars);
-      extract(loc_chain, ntk_, best_loc_leaves, signals.back());
+      extract(loc_chain, ntk_, best_loc_leaves, best_signal);
       chain_simulator_(loc_chain, best_loc_sims);
       auto const sim = chain_simulator_.get_simulation(loc_chain, best_loc_sims,
                                                        loc_chain.po_at(0));
-      return std::make_optional(
-          std::make_tuple(signals.back(), times.back(), sim));
+      return std::make_optional(std::make_tuple(best_signal, best_time, sim));
     }
     return std::nullopt;
   }
@@ -450,14 +455,17 @@ class resynthesize_impl {
     double best_cost = std::numeric_limits<double>::max();
 
     database_->foreach_entry(row, [&](auto const& entry) {
+      auto old_ntk_size = ntk_.size();
       auto nnew = database_->write(entry, ntk_, loc_leaves_v);
+      auto new_ntk_size = ntk_.size();
       auto cost_new =
           profiler_.evaluate(nnew, loc_leaves_v, win_manager_.get_pivot());
       if (cost_new < best_cost) {
         best_cost = cost_new;
         best_database_node = entry.index;
       }
-      ntk_.take_out_node(nnew);
+      for (node_index_t idx = new_ntk_size - 1; idx >= old_ntk_size; idx--)
+        ntk_.take_out_node_only(idx);
     });
     return std::make_tuple(best_database_node, best_cost);
   }
